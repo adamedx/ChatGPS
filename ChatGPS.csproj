@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta8" />
+  </ItemGroup>
+
   <Target Name="AnyTargetDependencies">
     <PropertyGroup>
       <LibDirectory>lib</LibDirectory>
