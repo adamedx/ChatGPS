@@ -1,0 +1,12 @@
+packages/
+lib/
+tools/
+azureopenai.config
+.vscode
+
+**/bin/
+**/obj/
+
+*~
+.#*
+*#

@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" >
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <Target Name="AnyTargetDependencies">
+    <PropertyGroup>
+      <LibDirectory>lib</LibDirectory>
+      <DevLibDirectory>$(ProjectDir)/$(LibDirectory)</DevLibDirectory>
+      <DevToolDirectory>$(ProjectDir)/tools</DevToolDirectory>
+      <ModuleOutputDirectory>$(TargetDir)/Module</ModuleOutputDirectory>
+      <OutputLibDirectory>$(ModuleOutputDirectory)/$(LibDirectory)</OutputLibDirectory>
+      <ModuleManifestSourceDirectory>$(ProjectDir)</ModuleManifestSourceDirectory>
+      <PowerShellSourceFilesRoot>src/powershell</PowerShellSourceFilesRoot>
+      <PowerShellCommand>pwsh</PowerShellCommand>
+      <PowerShellCommonArguments>-NoProfile -NonInteractive -ExecutionPolicy Unrestricted</PowerShellCommonArguments>
+      <ModuleValidateScriptPath>./build/validate-psmodule.ps1</ModuleValidateScriptPath>
+      <InitializeTestScriptPath>./build/Initialize-UnitTest.ps1</InitializeTestScriptPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PowerShellSourceFiles Include="$(ProjectDir)/$(PowerShellSourceFilesRoot)/**/*.ps1;$(ProjectDir)/$(PowerShellSourceFilesRoot)/**/*.psm1" Exclude="$(ProjectDir)/**/*.#*;$(ProjectDir)/**/*.tests.ps1" />
+      <PowerShellManifestFiles Include="$(ModuleManifestSourceDirectory)/*.psd1" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="DevTools" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
+    <MakeDir Directories="$(DevToolDirectory)" />
+  </Target>
+
+  <Target Name="DevModule" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
+    <MakeDir Directories="$(DevLibDirectory)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DevLibDirectory)"/>
+  </Target>
+
+  <Target Name="ValidateDevModule" AfterTargets="DevModule" DependsOnTargets="AnyTargetDependencies">
+    <Message Text="Validating that the source root is an importable module for dev testing..." />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(ModuleValidateScriptPath) -ModuleDirectory $(ProjectDir) &quot;" />
+  </Target>
+
+  <Target Name="PowerShellModule" AfterTargets="DevModule" DependsOnTargets="AnyTargetDependencies">
+    <Message Text="Creating publishable, importable PowerShell module output at $(ModuleOutputDirectory)..." />
+    <MakeDir Directories="$(OutputLibDirectory)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputLibDirectory)"/>
+    <Copy SourceFiles="@(PowerShellManifestFiles)" DestinationFolder="$(ModuleOutputDirectory)"/>
+    <Copy SourceFiles="@(PowerShellSourceFiles)" DestinationFolder="$(ModuleOutputDirectory)/$(PowerShellSourceFilesRoot)/%(RecursiveDir)"/>
+  </Target>
+
+  <Target Name="ValidatePowerShellModule" AfterTargets="PowerShellModule">
+    <Message Text="Validating PowerShell build output module at $(ModuleOutputDirectory)" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(ModuleValidateScriptPath) -ModuleDirectory $(ModuleOutputDirectory) &quot;" />
+  </Target>
+
+  <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies;PowerShellModule">
+    <Message Text="Running PowerShell unit tests" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName pester -ToolsModuleVersion 5.5.0;pushd $(PowerShellSourceFilesRoot); Invoke-Pester -Configuration ([PesterConfiguration] @{ Run = @{ Exit = $true } } )  &quot;" />
+  </Target>
+
+  <Target Name="CleanModule" AfterTargets="Clean" DependsOnTargets="AnyTargetDependencies">
+    <Message Text="Removing intermediate and output directories..." />
+    <RemoveDir Directories="$(BaseOutputPath);$(BaseIntermediateOutputPath)" />
+    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory)" />
+  </Target>
+
+</Project>
