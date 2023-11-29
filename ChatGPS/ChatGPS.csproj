@@ -30,7 +30,7 @@
       <ModuleOutputDirectory>$(TargetDir)/Module</ModuleOutputDirectory>
       <OutputLibDirectory>$(ModuleOutputDirectory)/$(LibDirectory)</OutputLibDirectory>
       <ModuleManifestSourceDirectory>$(ProjectDir)</ModuleManifestSourceDirectory>
-      <PowerShellSourceFilesRoot>src/powershell</PowerShellSourceFilesRoot>
+      <PowerShellSourceFilesRoot>src</PowerShellSourceFilesRoot>
       <PowerShellCommand>pwsh</PowerShellCommand>
       <PowerShellCommonArguments>-NoProfile -NonInteractive -ExecutionPolicy Unrestricted</PowerShellCommonArguments>
       <ModuleValidateScriptPath>$(ProjectDir)/build/validate-psmodule.ps1</ModuleValidateScriptPath>
@@ -49,7 +49,6 @@
 
   <Target Name="DevModule" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
     <MakeDir Directories="$(DevLibDirectory)" />
-    <Message Text="exclude $(TargetDir)/$(ProjectName).dll" />
     <ItemGroup>
       <AssemblyDependencies Include="$(TargetDir)*.dll" Exclude="$(TargetDir)$(ProjectName).dll"/>
     </ItemGroup>

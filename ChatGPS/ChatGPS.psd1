@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = './src/powershell/ChatGPS.psm1'
+RootModule = './src/ChatGPS.psm1'
 
 # Version number of this module.
 ModuleVersion = '0.0.1'
@@ -93,10 +93,10 @@ AliasesToExport = @()
 FileList = @(
     './ChatGPS.psd1'
     './lib/ChatGPSLib.dll'
-    './src/powershell/ChatGPS.psm1'
-    './src/powershell/ChatGPS.ps1'
-    './src/powershell/commands.ps1'
-    './src/powershell/commands/Format-ChatVoice.ps1'
+    './src/ChatGPS.psm1'
+    './src/ChatGPS.ps1'
+    './src/commands.ps1'
+    './src/commands/Format-ChatVoice.ps1'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
