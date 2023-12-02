@@ -96,7 +96,9 @@ FileList = @(
     './src/ChatGPS.psm1'
     './src/ChatGPS.ps1'
     './src/commands.ps1'
+    './src/services.ps1'
     './src/commands/Format-ChatVoice.ps1'
+    './src/services/session.ps1'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
