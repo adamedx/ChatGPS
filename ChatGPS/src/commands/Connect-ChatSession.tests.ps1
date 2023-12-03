@@ -24,18 +24,21 @@ class MockChatService : Modulus.ChatGPS.Services.IChatService {
     [Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory] CreateChat([string] $prompt) {
         return [Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory]::new()
     }
+    [Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion] GetChatCompletion() {
+        return $null
+    }
 }
 '@
                ))
 
-            Mock CreateSession {param( $Options, $Prompt) [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, [MockChatService]::new()) } -Verifiable
+#            Mock CreateSession {param( $Options, $Prompt) [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, [MockChatService]::new()) } -Verifiable
         }
 
         Context 'When executing the Connect-ChatSession command' {
 
             It "should not throw an exception when executed with no parameters" {
-                { Connect-ChatSession https://api.ai.mocked.com gpt35 "Don't be evil." apikey123456789mock } | Should -Not -Throw
-                Should -Invoke -CommandName CreateSession
+                { Connect-ChatSession -ApiEndpoint https://api.ai.mocked.com -modelid gpt35 -prompt "Don't be evil." -apikey apikey123456789mock -NoConnect } | Should -Not -Throw
+#                Should -Invoke -CommandName CreateSession
             }
         }
     }

@@ -49,12 +49,9 @@ internal class OpenAIChatService : IChatService
         return this.chatGPT.CreateNewChat(prompt);
     }
 
-    public IChatCompletion? ChatCompletion
+    public IChatCompletion? GetChatCompletion()
     {
-        get
-        {
-            return chatGPT;
-        }
+        return this.chatGPT;
     }
 
     private AiOptions options;

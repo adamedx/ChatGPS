@@ -18,7 +18,9 @@ function Connect-ChatSession {
         [parameter(mandatory=$true)]
         [string] $ApiKey,
 
-        [switch] $NoSetCurrent
+        [switch] $NoSetCurrent,
+
+        [switch] $NoConnect
     )
 
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
@@ -27,5 +29,5 @@ function Connect-ChatSession {
     $options.ModelIdentifier = $ModelId
     $options.ApiKey = $ApiKey
 
-    CreateSession $options $Prompt -SetCurrent:(!$NoSetCurrent.IsPresent)
+    CreateSession $options $Prompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent)
 }

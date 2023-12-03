@@ -13,13 +13,17 @@ function CreateSession {
         [parameter(mandatory=$true)]
         [string] $Prompt,
 
-        [switch] $SetCurrent
+        [switch] $SetCurrent,
+
+        [switch] $NoConnect
     )
 
     $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt)
 
     # This will force an actual connection and set the system prompt for the session
-    SendMessage $session Hello | out-null
+    if ( ! $NoConnect.IsPresent ) {
+        SendMessage $session Hello | out-null
+    }
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {
@@ -28,7 +32,6 @@ function CreateSession {
             $script:Sessions[0] = $session
         }
     }
-
 
     $session
 }
@@ -51,7 +54,7 @@ function SendMessage($session, $prompt) {
     $result = $response.Result
 
     if ( $response.Status -ne ([System.Threading.Tasks.TaskStatus]::RanToCompletion) ) {
-        throw $result.Exception
+        throw $response.Exception
     }
 
     $result

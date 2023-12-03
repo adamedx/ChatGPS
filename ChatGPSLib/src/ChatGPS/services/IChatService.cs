@@ -11,5 +11,5 @@ using Microsoft.SemanticKernel.AI.ChatCompletion;
 public interface IChatService
 {
     public ChatHistory CreateChat(string prompt);
-    public IChatCompletion? ChatCompletion { get; }
+    public IChatCompletion? GetChatCompletion();
 }

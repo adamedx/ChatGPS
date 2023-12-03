@@ -21,11 +21,13 @@ public class ChatGPS
 
         var history = targetChatService.CreateChat(prompt);
 
-        if ( targetChatService.ChatCompletion == null )
+        var chatCompletion = targetChatService.GetChatCompletion();
+
+        if ( chatCompletion == null )
         {
             throw new ArgumentException("Specified chat service did not provide a chat completion interface.");
         }
 
-        return new ChatSession(targetChatService.ChatCompletion, history);
+        return new ChatSession(chatCompletion, history);
     }
 }
