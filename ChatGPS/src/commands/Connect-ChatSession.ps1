@@ -3,10 +3,12 @@
 #
 # All rights reserved.
 
-$Sessions = [object[]] @()
-
 function Connect-ChatSession {
+    [cmdletbinding(positionalbinding=$false)]
     param(
+        [parameter(position=0, mandatory=$true)]
+        [string] $Prompt,
+
         [parameter(mandatory=$true)]
         [Uri] $ApiEndpoint,
 
@@ -14,10 +16,9 @@ function Connect-ChatSession {
         [string] $ModelId,
 
         [parameter(mandatory=$true)]
-        [string] $Prompt,
+        [string] $ApiKey,
 
-        [parameter(mandatory=$true)]
-        [string] $ApiKey
+        [switch] $NoSetCurrent
     )
 
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
@@ -26,5 +27,5 @@ function Connect-ChatSession {
     $options.ModelIdentifier = $ModelId
     $options.ApiKey = $ApiKey
 
-    CreateSession $options $Prompt
+    CreateSession $options $Prompt -SetCurrent:(!$NoSetCurrent.IsPresent)
 }

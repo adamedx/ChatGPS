@@ -16,14 +16,16 @@ public class ChatGPS
         var targetChatService = chatService;
 
         if ( targetChatService == null ) {
-            ChatGPS.chatService = ChatGPS.chatService != null ? ChatGPS.chatService : new OpenAIChatService(options);
-            targetChatService = ChatGPS.chatService;
+            targetChatService = new OpenAIChatService(options);
         }
 
         var history = targetChatService.CreateChat(prompt);
 
-        return new ChatSession(history);
-    }
+        if ( targetChatService.ChatCompletion == null )
+        {
+            throw new ArgumentException("Specified chat service did not provide a chat completion interface.");
+        }
 
-    private static IChatService? chatService;
+        return new ChatSession(targetChatService.ChatCompletion, history);
+    }
 }

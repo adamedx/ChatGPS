@@ -42,13 +42,21 @@ internal class OpenAIChatService : IChatService
             this.options.ApiEndpoint.ToString(),
             this.options.ApiKey);
 
-
         var kernel = builder.Build();
 
-        var chatGPT = kernel.GetService<IChatCompletion>();
+        this.chatGPT = kernel.GetService<IChatCompletion>();
 
-        return chatGPT.CreateNewChat(prompt);
+        return this.chatGPT.CreateNewChat(prompt);
+    }
+
+    public IChatCompletion? ChatCompletion
+    {
+        get
+        {
+            return chatGPT;
+        }
     }
 
     private AiOptions options;
+    private IChatCompletion? chatGPT;
 }

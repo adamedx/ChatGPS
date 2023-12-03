@@ -8,6 +8,8 @@
 $commands = @(
     'Connect-ChatSession'
     'Format-ChatVoice'
+    'Get-ChatConnection'
+    'Send-ChatMessage'
 )
 
 export-modulemember -function $commands

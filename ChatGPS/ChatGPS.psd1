@@ -69,9 +69,11 @@ RequiredAssemblies = @('./lib/ChatGPSLib.dll')
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
- FunctionsToExport = @(
+FunctionsToExport = @(
     'Connect-ChatSession'
     'Format-ChatVoice'
+    'Get-ChatConnection'
+    'Send-ChatMessage'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -97,7 +99,10 @@ FileList = @(
     './src/ChatGPS.ps1'
     './src/commands.ps1'
     './src/services.ps1'
+    './src/commands/Connect-ChatSession.ps1'
     './src/commands/Format-ChatVoice.ps1'
+    './src/commands/Get-ChatConnection.ps1'
+    './src/commands/Send-ChatMessage.ps1'
     './src/services/session.ps1'
 )
 
