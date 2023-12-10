@@ -74,6 +74,7 @@ FunctionsToExport = @(
     'Format-ChatVoice'
     'Get-ChatConnection'
     'Send-ChatMessage'
+    'Start-ChatREPL'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -98,11 +99,13 @@ FileList = @(
     './src/ChatGPS.psm1'
     './src/ChatGPS.ps1'
     './src/commands.ps1'
+    './src/intent.ps1'
     './src/services.ps1'
     './src/commands/Connect-ChatSession.ps1'
     './src/commands/Format-ChatVoice.ps1'
     './src/commands/Get-ChatConnection.ps1'
     './src/commands/Send-ChatMessage.ps1'
+    './src/commands/Start-ChatREPL.ps1'
     './src/services/session.ps1'
 )
 

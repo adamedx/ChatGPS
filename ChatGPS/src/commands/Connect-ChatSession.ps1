@@ -6,8 +6,11 @@
 function Connect-ChatSession {
     [cmdletbinding(positionalbinding=$false)]
     param(
-        [parameter(position=0, mandatory=$true)]
+        [parameter(position=0)]
         [string] $Prompt,
+
+        [validateset('PowerShell', 'PowerShellStrict', 'General', 'Conversational')]
+        [string] $SystemPromptId = 'PowerShell',
 
         [parameter(mandatory=$true)]
         [Uri] $ApiEndpoint,
@@ -20,7 +23,9 @@ function Connect-ChatSession {
 
         [switch] $NoSetCurrent,
 
-        [switch] $NoConnect
+        [switch] $NoConnect,
+
+        [switch] $PassThru
     )
 
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
@@ -29,5 +34,24 @@ function Connect-ChatSession {
     $options.ModelIdentifier = $ModelId
     $options.ApiKey = $ApiKey
 
-    CreateSession $options $Prompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent)
+    $targetPrompt = if ( $Prompt ) {
+        $Prompt
+    } else {
+        [PromptBook]::GetDefaultPrompt($SystemPromptId)
+    }
+
+    $session = CreateSession $options $targetPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent)
+
+    if ( $PassThru.IsPresent ) {
+        $session
+    } else {
+        for ( $i = 0; $i -lt 3; $i++ ) {
+            try {
+                $session.History | select-object -last 1 | select-object -expandproperty Content
+                break
+            } catch {
+                start-sleep 1
+            }
+        }
+    }
 }

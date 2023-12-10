@@ -27,6 +27,9 @@ class MockChatService : Modulus.ChatGPS.Services.IChatService {
     [Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion] GetChatCompletion() {
         return $null
     }
+    [Microsoft.SemanticKernel.ISKFunction] CreateFunction([string] $definitionPrompt) {
+        return $null
+    }
 }
 '@
                ))

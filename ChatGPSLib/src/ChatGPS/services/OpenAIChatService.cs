@@ -8,6 +8,7 @@ namespace Modulus.ChatGPS.Services;
 
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
@@ -20,6 +21,33 @@ internal class OpenAIChatService : IChatService
 
     public ChatHistory CreateChat(string prompt)
     {
+        return this.GetChatCompletion().CreateNewChat(prompt);
+    }
+
+    public ISKFunction CreateFunction(string definitionPrompt)
+    {
+        var kernel = GetKernel();
+
+        var requestSettings = new OpenAIRequestSettings();
+        requestSettings.MaxTokens = this.options.TokenLimit;
+
+        return kernel.CreateSemanticFunction(definitionPrompt, requestSettings: requestSettings);
+    }
+
+    public IChatCompletion GetChatCompletion()
+    {
+        var kernel = GetKernel();
+
+        return kernel.GetService<IChatCompletion>();
+    }
+
+    private IKernel GetKernel()
+    {
+        if ( this.serviceKernel != null )
+        {
+            return this.serviceKernel;
+        }
+
         if ( this.options.ApiEndpoint == null )
         {
             throw new ArgumentException("An API endpoint must be specified.");
@@ -42,18 +70,18 @@ internal class OpenAIChatService : IChatService
             this.options.ApiEndpoint.ToString(),
             this.options.ApiKey);
 
-        var kernel = builder.Build();
+        var newKernel = builder.Build();
 
-        this.chatGPT = kernel.GetService<IChatCompletion>();
+        if ( newKernel == null )
+        {
+            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
+        }
 
-        return this.chatGPT.CreateNewChat(prompt);
+        this.serviceKernel = newKernel;
+
+        return newKernel;
     }
 
-    public IChatCompletion? GetChatCompletion()
-    {
-        return this.chatGPT;
-    }
-
+    private IKernel? serviceKernel;
     private AiOptions options;
-    private IChatCompletion? chatGPT;
 }

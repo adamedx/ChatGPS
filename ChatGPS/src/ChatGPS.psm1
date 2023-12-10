@@ -10,6 +10,7 @@ $commands = @(
     'Format-ChatVoice'
     'Get-ChatConnection'
     'Send-ChatMessage'
+    'Start-ChatREPL'
 )
 
 export-modulemember -function $commands
