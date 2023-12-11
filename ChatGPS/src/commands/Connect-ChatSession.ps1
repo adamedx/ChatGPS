@@ -34,18 +34,22 @@ function Connect-ChatSession {
     $options.ModelIdentifier = $ModelId
     $options.ApiKey = $ApiKey
 
+    $functionPrompt = $null
+
     $targetPrompt = if ( $Prompt ) {
         $Prompt
     } else {
+        $functionPrompt = [PromptBook]::GetFunctionPrompt($SystemPromptId)
         [PromptBook]::GetDefaultPrompt($SystemPromptId)
     }
 
-    $session = CreateSession $options $targetPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent)
+    $session = CreateSession $options -Prompt $targetPrompt -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent)
 
     if ( $PassThru.IsPresent ) {
         $session
     } else {
         for ( $i = 0; $i -lt 3; $i++ ) {
+            # Workaround for apparent race condition
             try {
                 $session.History | select-object -last 1 | select-object -expandproperty Content
                 break

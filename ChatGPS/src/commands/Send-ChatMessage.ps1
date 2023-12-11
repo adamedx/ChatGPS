@@ -11,7 +11,9 @@ function Send-ChatMessage {
         [string] $Message,
 
         [Modulus.ChatGPS.Models.ChatSession]
-        $Connection
+        $Connection,
+
+        [switch] $ForceChat
     )
 
     $targetConnection = if ( $Connection ) {
@@ -20,5 +22,5 @@ function Send-ChatMessage {
         GetCurrentSession $true
     }
 
-    SendMessage $targetConnection $Message
+    SendMessage $targetConnection $Message $ForceChat.IsPresent
 }

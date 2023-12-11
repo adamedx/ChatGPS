@@ -13,12 +13,14 @@ function CreateSession {
         [parameter(mandatory=$true)]
         [string] $Prompt,
 
+        $functionPrompt = $null,
+
         [switch] $SetCurrent,
 
         [switch] $NoConnect
     )
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, $functionPrompt)
 
     # This will force an actual connection and set the system prompt for the session
     if ( ! $NoConnect.IsPresent ) {
@@ -48,8 +50,14 @@ function GetCurrentSession($failIfNotFound) {
     $session
 }
 
-function SendMessage($session, $prompt) {
-    $response = $session.GenerateMessageAsync($prompt)
+function SendMessage($session, $prompt, $forceChat) {
+    $response = if ( $session.HasFunction -and ! $forceChat ) {
+        write-host 'function'
+        $session.GenerateFunctionResponse($prompt)
+    } else {
+        write-host 'message'
+        $session.GenerateMessageAsync($prompt)
+    }
 
     $result = $response.Result
 

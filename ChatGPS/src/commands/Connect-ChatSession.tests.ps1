@@ -11,7 +11,7 @@ InModuleScope ChatGPS {
             # references to Semantic Kernel types will not work -- this is true
             # even when using Pester's InModuleScope enclosing scriptblock
             try {
-                [Modulus.ChatGPS.Models.ChatSession]::new() | out-null
+                [Modulus.ChatGPS.Models.ChatSession]::new($null, $null, $null) | out-null
             } catch {
             }
 
@@ -30,6 +30,9 @@ class MockChatService : Modulus.ChatGPS.Services.IChatService {
     [Microsoft.SemanticKernel.ISKFunction] CreateFunction([string] $definitionPrompt) {
         return $null
     }
+    [Microsoft.SemanticKernel.IKernel] GetKernel() {
+        return $null
+    }
 }
 '@
                ))
@@ -39,9 +42,17 @@ class MockChatService : Modulus.ChatGPS.Services.IChatService {
 
         Context 'When executing the Connect-ChatSession command' {
 
-            It "should not throw an exception when executed with no parameters" {
+            It "should not throw an exception when executed with basic parameters" {
                 { Connect-ChatSession -ApiEndpoint https://api.ai.mocked.com -modelid gpt35 -prompt "Don't be evil." -apikey apikey123456789mock -NoConnect } | Should -Not -Throw
 #                Should -Invoke -CommandName CreateSession
+            }
+
+            It "should not throw an exception when executed with a conversational system prompt" {
+                { Connect-ChatSession -ApiEndpoint https://api.ai.mocked.com -modelid gpt35 -prompt "Don't be evil." -apikey apikey123456789mock -NoConnect -SystemPromptId Conversational } | Should -Not -Throw
+            }
+
+            It "should not throw an exception when executed with a prompt with function invocation" {
+                { Connect-ChatSession -ApiEndpoint https://api.ai.mocked.com -modelid gpt35 -prompt "Echo 'Hello World' to the terminal." -apikey apikey123456789mock -NoConnect -SystemPromptId PowerShellStrict } | Should -Not -Throw
             }
         }
     }

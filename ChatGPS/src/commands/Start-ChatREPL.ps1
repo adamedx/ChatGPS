@@ -84,11 +84,17 @@ function Start-ChatREPL {
 
             $inputText = Read-Host @InputHintArgument
 
+            $forceChat = $false
+
             if ( $inputText.Trim() -eq '.exit' ) {
                 break
-            } else {
-                $response = Send-ChatMessage $inputText
+            } elseif ( $inputText.Trim().StartsWith('.chat ') ) {
+                $keywordLength = '.chat '.Length
+                $inputText = $inputText.SubString($keywordLength, $inputText.Length - $keywordLength)
+                $forceChat = $true
             }
+
+            $response = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument
 
             if ( ! $NoOutput.IsPresent ) {
                 $response | FormatOutput -OutputFormat $OutputFormat
