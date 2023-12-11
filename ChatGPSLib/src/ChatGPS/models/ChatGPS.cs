@@ -11,7 +11,7 @@ using Modulus.ChatGPS.Services;
 
 public class ChatGPS
 {
-    public static ChatSession CreateSession(AiOptions options, string prompt, IChatService? chatService = null)
+    public static ChatSession CreateSession(AiOptions options, string prompt, string? chatFunctionPrompt, IChatService? chatService = null)
     {
         var targetChatService = chatService;
 
@@ -19,15 +19,8 @@ public class ChatGPS
             targetChatService = new OpenAIChatService(options);
         }
 
-        var history = targetChatService.CreateChat(prompt);
+        string? targetChatFunctionPrompt = string.IsNullOrEmpty(chatFunctionPrompt) ? null : chatFunctionPrompt;
 
-        var chatCompletion = targetChatService.GetChatCompletion();
-
-        if ( chatCompletion == null )
-        {
-            throw new ArgumentException("Specified chat service did not provide a chat completion interface.");
-        }
-
-        return new ChatSession(chatCompletion, history);
+        return new ChatSession(targetChatService, prompt, targetChatFunctionPrompt);
     }
 }

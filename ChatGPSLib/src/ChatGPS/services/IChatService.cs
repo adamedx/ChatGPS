@@ -14,4 +14,5 @@ public interface IChatService
     public ChatHistory CreateChat(string prompt);
     public IChatCompletion GetChatCompletion();
     public ISKFunction CreateFunction(string definitionPrompt);
+    public IKernel GetKernel();
 }

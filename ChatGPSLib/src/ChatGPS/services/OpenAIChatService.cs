@@ -41,7 +41,7 @@ internal class OpenAIChatService : IChatService
         return kernel.GetService<IChatCompletion>();
     }
 
-    private IKernel GetKernel()
+    public IKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
