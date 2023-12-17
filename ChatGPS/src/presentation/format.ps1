@@ -33,3 +33,19 @@ function FormatOutput {
         }
     }
 }
+
+function GetPassthroughChatParams {
+    [cmdletbinding(positionalbinding=$false)]
+    param(
+        [HashTable] $AllParameters
+    )
+
+    $passthroughParameters = @{}
+
+    foreach ( $parameter in
+              ( $AllParameters.GetEnumerator() | where Key -in 'OutputFormat', 'NoOutput', 'ResponseBlock' ) ) {
+                  $replyParams.Add($parameter.Key, $parameter.Value )
+              }
+
+    $passthroughParameters
+}

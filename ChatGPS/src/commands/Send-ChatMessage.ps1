@@ -15,6 +15,10 @@ function Send-ChatMessage {
 
         [ScriptBlock] $ResponseBlock,
 
+        [ScriptBlock] $ReplyBlock,
+
+        [int32] $MaxReplies = 1,
+
         [Modulus.ChatGPS.Models.ChatSession]
         $Connection,
 
@@ -23,21 +27,30 @@ function Send-ChatMessage {
         [switch] $ForceChat
     )
 
-    $targetConnection = if ( $Connection ) {
-        $Connection
-    } else {
-        GetCurrentSession $true
-    }
+    $currentMessage = $message
+    $currentReplies = $MaxReplies
 
-    $response = SendMessage $targetConnection $Message $ForceChat.IsPresent
+    $formatParameters = GetPassthroughChatParams -AllParameters $PSBoundParameters
 
-    if ( ! $NoOutput.IsPresent ) {
-        $passthroughParameters = @{}
+    while ( $currentMessage ) {
 
-        foreach ( $parameter in 'OutputFormat', 'ResponseBlock' ) {
-            $passthroughParameters.Add( $parameter, $PSBoundParameters[$parameter] )
+        $targetConnection = if ( $Connection ) {
+            $Connection
+        } else {
+            GetCurrentSession $true
         }
 
-        $response | FormatOutput @passthroughParameters
+        $response = SendMessage $targetConnection $currentMessage $ForceChat.IsPresent
+
+        if ( ! $NoOutput.IsPresent ) {
+            $response | FormatOutput @formatParameters
+        }
+
+        $replyData = GetChatReply -SourceMessage $response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
+
+        $currentMessage = if ( $replyData ) {
+            $currentReplies = $replyData.NextMax
+            $replyData.Reply
+        }
     }
 }

@@ -30,11 +30,17 @@ function Start-ChatREPL {
 
         [ScriptBlock] $ResponseBlock,
 
+        [ScriptBlock] $ReplyBlock,
+
+        [int32] $MaxReplies = 1,
+
         [Modulus.ChatGPS.Models.ChatSession]
         $Connection
     )
 
     begin {
+        $currentReplies = $MaxReplies
+
         $connectionArgument = if ( $Connection ) {
             @{Connection = $Connection}
         } else {
@@ -65,11 +71,13 @@ function Start-ChatREPL {
             $initialResponse | FormatOutput @outputFormat
         }
 
-        $passthroughParameters = @{}
+        $lastResponse = $inputHintArgument.Prompt
+
+        $outputParameters = @{}
 
         foreach ( $parameter in 'OutputFormat', 'ResponseBlock' ) {
             if ( $PSBoundParameters[$parameter] ) {
-                $passthroughParameters.Add( $parameter, $PSBoundParameters[$parameter] )
+                $outputParameters.Add( $parameter, $PSBoundParameters[$parameter] )
             }
         }
     }
@@ -78,11 +86,28 @@ function Start-ChatREPL {
 
         while ( $true ) {
 
-            $inputText = Read-Host @InputHintArgument
+            $replyText = if ( $ReplyBlock -and ( $currentReplies -ne 0 ) ) {
+                $replyData = GetChatReply -SourceMessage $lastResponse -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
+
+                if ( $replyData ) {
+                    if ( $InputHintArgument.Count -gt 0 ) {
+                        Write-Host "$($InputHintArgument['Prompt']): " -nonewline
+                        Write-Host $replyData.Reply
+                    }
+                    $currentReplies = $replyData.nextMax
+                    $replyData.Reply
+                }
+            }
+
+            $inputText = if ( ! $replyText ) {
+                Read-Host @InputHintArgument
+            } else {
+                $replyText
+            }
 
             $forceChat = $false
 
-            if ( $inputText.Trim() -eq '.exit' ) {
+            if ( ( ! $inputText ) -or ( $inputText.Trim() -eq '.exit' ) ) {
                 break
             } elseif ( $inputText.Trim().StartsWith('.chat ') ) {
                 $keywordLength = '.chat '.Length
@@ -90,7 +115,13 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument @passthroughParameters
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument
+
+            $lastResponse = $result
+
+            if ( $result ) {
+                 $result | FormatOutput @outputParameters
+            }
         }
     }
 

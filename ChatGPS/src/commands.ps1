@@ -4,6 +4,7 @@
 # All rights reserved.
 
 . "$psscriptroot/presentation/format.ps1"
+. "$psscriptroot/presentation/reply.ps1"
 
 $commandFiles = Get-ChildItem $psscriptroot/commands -Filter *.ps1 |
   where Name -notlike '.#*' |
