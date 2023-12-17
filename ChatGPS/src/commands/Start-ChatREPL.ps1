@@ -10,16 +10,26 @@ function FormatOutput {
         [parameter(valuefrompipeline=$true)]
         [string] $InputString,
 
+        [ScriptBlock] $ResponseBlock,
+
         [string] $OutputFormat
     )
 
-    if ( $InputString ) {
+    $outputResult = if ( $InputString ) {
         if ( $OutputFormat -eq 'MarkDown' ) {
             $InputString | Show-Markdown
         } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
             "$InputString"
         } else {
             $InputString
+        }
+    }
+
+    if ( $outputResult ) {
+        if ( $ResponseBlock ) {
+            invoke-command -scriptblock $responseBlock -argumentlist $outputResult
+        } else {
+            $outputResult
         }
     }
 }
@@ -47,6 +57,8 @@ function Start-ChatREPL {
         [switch] $NoEcho,
 
         [switch] $NoOutput,
+
+        [ScriptBlock] $ResponseBlock,
 
         [Modulus.ChatGPS.Models.ChatSession]
         $Connection
@@ -97,7 +109,7 @@ function Start-ChatREPL {
             $response = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument
 
             if ( ! $NoOutput.IsPresent ) {
-                $response | FormatOutput -OutputFormat $OutputFormat
+                $response | FormatOutput -OutputFormat $OutputFormat -ResponseBlock $ResponseBlock
             }
         }
     }

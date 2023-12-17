@@ -52,10 +52,8 @@ function GetCurrentSession($failIfNotFound) {
 
 function SendMessage($session, $prompt, $forceChat) {
     $response = if ( $session.HasFunction -and ! $forceChat ) {
-        write-host 'function'
         $session.GenerateFunctionResponse($prompt)
     } else {
-        write-host 'message'
         $session.GenerateMessageAsync($prompt)
     }
 
