@@ -4,36 +4,6 @@
 # All rights reserved.
 
 
-function FormatOutput {
-    [cmdletbinding(positionalbinding=$false)]
-    param(
-        [parameter(valuefrompipeline=$true)]
-        [string] $InputString,
-
-        [ScriptBlock] $ResponseBlock,
-
-        [string] $OutputFormat
-    )
-
-    $outputResult = if ( $InputString ) {
-        if ( $OutputFormat -eq 'MarkDown' ) {
-            $InputString | Show-Markdown
-        } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
-            "$InputString"
-        } else {
-            $InputString
-        }
-    }
-
-    if ( $outputResult ) {
-        if ( $ResponseBlock ) {
-            invoke-command -scriptblock $responseBlock -argumentlist $outputResult
-        } else {
-            $outputResult
-        }
-    }
-}
-
 function Start-ChatREPL {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -86,7 +56,21 @@ function Start-ChatREPL {
         }
 
         if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
-            $initialResponse | FormatOutput -OutputFormat $OutputFormat
+            $outputArgument = @{}
+
+            if ( $OutputFormat ) {
+                $outputArgument = @{OutputFormat=$OutputFormat}
+            }
+
+            $initialResponse | FormatOutput @outputFormat
+        }
+
+        $passthroughParameters = @{}
+
+        foreach ( $parameter in 'OutputFormat', 'ResponseBlock' ) {
+            if ( $PSBoundParameters[$parameter] ) {
+                $passthroughParameters.Add( $parameter, $PSBoundParameters[$parameter] )
+            }
         }
     }
 
@@ -106,11 +90,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $response = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument
-
-            if ( ! $NoOutput.IsPresent ) {
-                $response | FormatOutput -OutputFormat $OutputFormat -ResponseBlock $ResponseBlock
-            }
+            Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument @passthroughParameters
         }
     }
 

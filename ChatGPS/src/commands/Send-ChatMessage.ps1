@@ -10,8 +10,15 @@ function Send-ChatMessage {
         [parameter(position=0, mandatory=$true, valuefrompipeline=$true)]
         [string] $Message,
 
+        [validateset('None', 'Markdown', 'PowerShellEscaped')]
+        [string] $OutputFormat,
+
+        [ScriptBlock] $ResponseBlock,
+
         [Modulus.ChatGPS.Models.ChatSession]
         $Connection,
+
+        [switch] $NoOutput,
 
         [switch] $ForceChat
     )
@@ -22,5 +29,15 @@ function Send-ChatMessage {
         GetCurrentSession $true
     }
 
-    SendMessage $targetConnection $Message $ForceChat.IsPresent
+    $response = SendMessage $targetConnection $Message $ForceChat.IsPresent
+
+    if ( ! $NoOutput.IsPresent ) {
+        $passthroughParameters = @{}
+
+        foreach ( $parameter in 'OutputFormat', 'ResponseBlock' ) {
+            $passthroughParameters.Add( $parameter, $PSBoundParameters[$parameter] )
+        }
+
+        $response | FormatOutput @passthroughParameters
+    }
 }
