@@ -12,14 +12,17 @@ function Connect-ChatSession {
         [validateset('PowerShell', 'PowerShellStrict', 'General', 'Conversational')]
         [string] $SystemPromptId = 'PowerShell',
 
-        [parameter(mandatory=$true)]
+        [parameter(valuefrompipelinebypropertyname=$true,mandatory=$true)]
         [Uri] $ApiEndpoint,
 
-        [parameter(mandatory=$true)]
+        [parameter(valuefrompipelinebypropertyname=$true,mandatory=$true)]
         [string] $ModelId,
 
-        [parameter(mandatory=$true)]
+        [parameter(valuefrompipelinebypropertyname=$true,mandatory=$true)]
         [string] $ApiKey,
+
+        [parameter(valuefrompipelinebypropertyname=$true)]
+        [int32] $TokenLimit = 4096,
 
         [switch] $NoSetCurrent,
 
@@ -33,6 +36,7 @@ function Connect-ChatSession {
     $options.ApiEndpoint = $ApiEndpoint
     $options.ModelIdentifier = $ModelId
     $options.ApiKey = $ApiKey
+    $options.TokenLimit = $TokenLimit
 
     $functionPrompt = $null
 
