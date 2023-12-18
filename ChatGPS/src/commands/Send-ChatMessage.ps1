@@ -27,30 +27,38 @@ function Send-ChatMessage {
         [switch] $ForceChat
     )
 
-    $currentMessage = $message
-    $currentReplies = $MaxReplies
+    begin {
+        $currentMessage = $message
+        $currentReplies = $MaxReplies
 
-    $formatParameters = GetPassthroughChatParams -AllParameters $PSBoundParameters
+        $formatParameters = GetPassthroughChatParams -AllParameters $PSBoundParameters
+    }
 
-    while ( $currentMessage ) {
+    process {
 
-        $targetConnection = if ( $Connection ) {
-            $Connection
-        } else {
-            GetCurrentSession $true
+        while ( $currentMessage ) {
+
+            $targetConnection = if ( $Connection ) {
+                $Connection
+            } else {
+                GetCurrentSession $true
+            }
+
+            $response = SendMessage $targetConnection $currentMessage $ForceChat.IsPresent
+
+            if ( ! $NoOutput.IsPresent ) {
+                $response | FormatOutput @formatParameters
+            }
+
+            $replyData = GetChatReply -SourceMessage $response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
+
+            $currentMessage = if ( $replyData ) {
+                $currentReplies = $replyData.NextMax
+                $replyData.Reply
+            }
         }
+    }
 
-        $response = SendMessage $targetConnection $currentMessage $ForceChat.IsPresent
-
-        if ( ! $NoOutput.IsPresent ) {
-            $response | FormatOutput @formatParameters
-        }
-
-        $replyData = GetChatReply -SourceMessage $response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
-
-        $currentMessage = if ( $replyData ) {
-            $currentReplies = $replyData.NextMax
-            $replyData.Reply
-        }
+    end {
     }
 }
