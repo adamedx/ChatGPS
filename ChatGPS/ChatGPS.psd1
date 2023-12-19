@@ -72,6 +72,7 @@ RequiredAssemblies = @('./lib/ChatGPSLib.dll')
 FunctionsToExport = @(
     'Connect-ChatSession'
     'Get-ChatConnection'
+    'Get-ChatCurrentSession'
     'Get-ChatCurrentVoice'
     'Get-ChatVoiceName'
     'New-ChatVoice'
@@ -108,6 +109,7 @@ FileList = @(
     './src/services.ps1'
     './src/commands/Connect-ChatSession.ps1'
     './src/commands/Get-ChatConnection.ps1'
+    './src/commands/Get-ChatCurrentSession.ps1'
     './src/commands/Get-ChatCurrentVoice.ps1'
     './src/commands/Get-ChatVoiceName.ps1'
     './src/commands/Out-ChatVoice.ps1'
