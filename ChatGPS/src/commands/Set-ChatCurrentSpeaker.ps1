@@ -6,7 +6,7 @@
 function Set-ChatCurrentSpeaker {
     [cmdletbinding()]
     param(
-        [parameter(mandatory=$true)]
+        [parameter(mandatory=$true,valuefrompipeline=$true)]
         [PSCustomObject] $Speaker
     )
     SetCurrentSpeaker $Speaker

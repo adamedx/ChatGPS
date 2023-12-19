@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-function Format-ChatVoice {
+function Out-ChatVoice {
     [cmdletbinding()]
     param (
         [parameter(valuefrompipeline=$true)]
