@@ -7,19 +7,25 @@ function Format-ChatVoice {
     [cmdletbinding()]
     param (
         [parameter(valuefrompipeline=$true)]
-        [string] $Text = $null
+        [string] $Text = $null,
+
+        [PSCustomObject] $Speaker
     )
 
     begin {
-        $voice = try {
-            New-Object -ComObject SAPI.SpVoice.1
-        } catch {
+        $targetSpeaker = if ( Test-VoiceSupported ) {
+            if ( $Speaker ) {
+                $Speaker
+            } else {
+                GetCurrentSpeaker
+            }
         }
     }
 
     process {
-        if ( $voice -and $Text) {
-            $voice.Speak($Text) | out-null
+        if ( $targetSpeaker -and $Text ) {
+            $flags = $targetSpeaker.Synchronous ? 0 : 1
+            $targetSpeaker.Speaker.Speak($Text, $flags) | out-null
         }
 
         $Text

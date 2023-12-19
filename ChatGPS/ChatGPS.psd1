@@ -73,7 +73,11 @@ FunctionsToExport = @(
     'Connect-ChatSession'
     'Format-ChatVoice'
     'Get-ChatConnection'
+    'Get-ChatCurrentSpeaker'
+    'Get-ChatVoice'
+    'New-ChatSpeaker'
     'Send-ChatMessage'
+    'Set-ChatCurrentSpeaker'
     'Start-ChatREPL'
 )
 
@@ -100,12 +104,16 @@ FileList = @(
     './src/ChatGPS.ps1'
     './src/commands.ps1'
     './src/intent.ps1'
+    './src/presentation.ps1'
     './src/services.ps1'
     './src/commands/Connect-ChatSession.ps1'
     './src/commands/Format-ChatVoice.ps1'
     './src/commands/Get-ChatConnection.ps1'
+    './src/commands/Get-ChatVoice.ps1'
     './src/commands/Send-ChatMessage.ps1'
     './src/commands/Start-ChatREPL.ps1'
+    './src/presentation/format.ps1'
+    './src/presentation/reply.ps1'
     './src/services/session.ps1'
 )
 

@@ -49,3 +49,27 @@ function GetPassthroughChatParams {
 
     $passthroughParameters
 }
+
+function RegisterTypeData([string] $typeName) {
+    remove-typedata -typename $typeName -erroraction ignore
+
+    $coreProperties = $args
+
+    Update-TypeData -force -TypeName $typeName -DefaultDisplayPropertySet $coreProperties
+}
+
+function SetObjectType([PSCustomObject] $customObject, [string] $typeName) {
+    if ( $customObject.pstypenames -notcontains $typeName ) {
+        $customObject.pstypenames.Add($typeName)
+    }
+}
+
+function HashTableToObject( [Hashtable] $table, [string] $typeName ) {
+    $result = [PSCustomObject] $table
+
+    if ( $typeName ) {
+        SetObjectType $result $typeName
+    }
+
+    $result
+}

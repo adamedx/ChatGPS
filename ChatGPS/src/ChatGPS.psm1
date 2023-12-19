@@ -9,7 +9,11 @@ $commands = @(
     'Connect-ChatSession'
     'Format-ChatVoice'
     'Get-ChatConnection'
+    'Get-ChatCurrentSpeaker'
+    'Get-ChatVoice'
+    'New-ChatSpeaker'
     'Send-ChatMessage'
+    'Set-ChatCurrentSpeaker'
     'Start-ChatREPL'
 )
 
