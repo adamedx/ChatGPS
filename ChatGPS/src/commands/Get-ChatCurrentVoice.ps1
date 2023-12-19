@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-function Get-ChatCurrentSpeaker {
+function Get-ChatCurrentVoice {
     [cmdletbinding()]
     param()
     GetCurrentSpeaker

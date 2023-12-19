@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-function New-ChatSpeaker {
+function New-ChatVoice {
     [cmdletbinding()]
     param(
         [string] $VoiceName,
@@ -13,4 +13,4 @@ function New-ChatSpeaker {
     NewSpeaker -VoiceName $VoiceName -IsAsync ( ! $Synchronous.IsPresent )
 }
 
-Register-ArgumentCompleter -CommandName New-ChatSpeaker -ParameterName VoiceName -ScriptBlock (GetVoiceParameterCompleter)
+Register-ArgumentCompleter -CommandName New-ChatVoice -ParameterName VoiceName -ScriptBlock (GetVoiceParameterCompleter)

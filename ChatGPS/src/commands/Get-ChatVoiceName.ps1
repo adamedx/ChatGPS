@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-function Get-ChatVoice {
+function Get-ChatVoiceName {
     [cmdletbinding()]
     param (
         [parameter(valuefrompipeline=$true)]
@@ -23,4 +23,4 @@ function Get-ChatVoice {
     }
 }
 
-Register-ArgumentCompleter -CommandName Get-ChatVoice -ParameterName VoiceName -ScriptBlock (GetVoiceParameterCompleter)
+Register-ArgumentCompleter -CommandName Get-ChatVoiceName -ParameterName VoiceName -ScriptBlock (GetVoiceParameterCompleter)

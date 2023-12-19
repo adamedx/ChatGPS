@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-function Set-ChatCurrentSpeaker {
+function Set-ChatCurrentVoice {
     [cmdletbinding()]
     param(
         [parameter(mandatory=$true,valuefrompipeline=$true)]

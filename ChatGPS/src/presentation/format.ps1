@@ -3,7 +3,6 @@
 #
 # All rights reserved.
 
-
 function FormatOutput {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -25,13 +24,15 @@ function FormatOutput {
         }
     }
 
-    if ( $outputResult ) {
+    $finalResponse = if ( $outputResult ) {
         if ( $ResponseBlock ) {
             invoke-command -scriptblock $responseBlock -argumentlist $outputResult
         } else {
             $outputResult
         }
     }
+
+    $finalResponse
 }
 
 function GetPassthroughChatParams {
@@ -64,7 +65,13 @@ function SetObjectType([PSCustomObject] $customObject, [string] $typeName) {
     }
 }
 
-function HashTableToObject( [Hashtable] $table, [string] $typeName ) {
+function HashtableToObject {
+    param(
+        [parameter(mandatory=$true, valuefrompipeline=$true)]
+        [Hashtable] $table,
+
+        [string] $typeName )
+
     $result = [PSCustomObject] $table
 
     if ( $typeName ) {
@@ -73,3 +80,4 @@ function HashTableToObject( [Hashtable] $table, [string] $typeName ) {
 
     $result
 }
+
