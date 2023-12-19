@@ -7,7 +7,7 @@ function Out-ChatVoice {
     [cmdletbinding()]
     param (
         [parameter(valuefrompipeline=$true)]
-        [string] $Text = $null,
+        [object] $Text = $null,
 
         [PSCustomObject] $Speaker
     )

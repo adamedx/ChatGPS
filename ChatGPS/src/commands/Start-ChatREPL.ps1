@@ -16,7 +16,7 @@ function Start-ChatREPL {
         [parameter(valuefrompipeline=$true)]
         $Reply,
 
-        [string] $InputHint = 'ChatGPS>',
+        [ScriptBlock] $InputHint = { $userName = $env:USER ? $env:USER : $env:USERNAME; "($($userName)) ChatGPS>" },
 
         [switch] $HideInitialPrompt,
 
@@ -34,6 +34,8 @@ function Start-ChatREPL {
 
         [int32] $MaxReplies = 1,
 
+        [switch] $NoAutoConnect,
+
         [Modulus.ChatGPS.Models.ChatSession]
         $Connection
     )
@@ -43,6 +45,12 @@ function Start-ChatREPL {
 
         $connectionArgument = if ( $Connection ) {
             @{Connection = $Connection}
+        } elseif ( ! $NoAutoConnect.IsPresent ) {
+            $currentSession = GetCurrentSession
+            if ( ! $currentSession ) {
+                throw "No current session exists -- please execute Connect-ChatSession and retry"
+            }
+            @{Connection=$currentSession}
         } else {
             @{}
         }
@@ -71,7 +79,7 @@ function Start-ChatREPL {
             $initialResponse | FormatOutput @outputFormat
         }
 
-        $lastResponse = $inputHintArgument.Prompt
+        $lastResponse = $initialResponse
 
         $outputParameters = @{}
 
@@ -84,14 +92,25 @@ function Start-ChatREPL {
 
     process {
 
+
         while ( $true ) {
+
+            $inputHintValue = if ( $InputHintArgument.Count -gt 0 ) {
+                Invoke-Command -scriptblock $InputHintArgument.Prompt
+            }
+
+            $dynamicInputHintArgument = if ( $inputHintValue ) {
+                @{Prompt = $inputHintValue}
+            } else {
+                @{}
+            }
 
             $replyText = if ( $ReplyBlock -and ( $currentReplies -ne 0 ) ) {
                 $replyData = GetChatReply -SourceMessage $lastResponse -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
 
                 if ( $replyData ) {
-                    if ( $InputHintArgument.Count -gt 0 ) {
-                        Write-Host "$($InputHintArgument['Prompt']): " -nonewline
+                    if ( $inputHintValue ) {
+                        Write-Host "$($InputHintValue): " -nonewline
                         Write-Host $replyData.Reply
                     }
                     $currentReplies = $replyData.nextMax
@@ -100,7 +119,7 @@ function Start-ChatREPL {
             }
 
             $inputText = if ( ! $replyText ) {
-                Read-Host @InputHintArgument
+                Read-Host @dynamicInputHintArgument
             } else {
                 $replyText
             }
