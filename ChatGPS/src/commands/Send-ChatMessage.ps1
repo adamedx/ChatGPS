@@ -22,6 +22,8 @@ function Send-ChatMessage {
         [Modulus.ChatGPS.Models.ChatSession]
         $Connection,
 
+        [switch] $RawOutput,
+
         [switch] $NoOutput,
 
         [switch] $ForceChat
@@ -46,8 +48,10 @@ function Send-ChatMessage {
 
             $response = SendMessage $targetConnection $currentMessage $ForceChat.IsPresent
 
+            $responseInfo = $targetConnection.History | select -last 1
+
             if ( ! $NoOutput.IsPresent ) {
-                $response | FormatOutput @formatParameters
+                $response | FormatOutput @formatParameters | ToResponse -role $responseInfo.Role.Label -AsString:$RawOutput.IsPresent
             }
 
             $replyData = GetChatReply -SourceMessage $response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies

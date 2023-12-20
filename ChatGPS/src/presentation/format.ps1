@@ -3,36 +3,81 @@
 #
 # All rights reserved.
 
+$ChatResponseType = 'ChatResponse'
+
 function FormatOutput {
     [cmdletbinding(positionalbinding=$false)]
     param(
-        [parameter(valuefrompipeline=$true)]
-        [string] $InputString,
+        [parameter(valuefrompipeline=$true, mandatory=$true)]
+        $Response,
 
         [ScriptBlock] $ResponseBlock,
 
         [string] $OutputFormat
     )
 
-    $outputResult = if ( $InputString ) {
-        if ( $OutputFormat -eq 'MarkDown' ) {
-            $InputString | Show-Markdown
-        } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
-            "$InputString"
+    begin {}
+
+    process {
+        $inputString = if ( $Response.GetType().FullName -eq 'System.Management.Automation.PSCustomObject' ) {
+            $Response.Response
+        } elseif ( $Response.GetType().FullName -eq 'System.String' ) {
+            $Response
         } else {
-            $InputString
+            throw "Response parameter type '$($Response.GetType())' is not valid -- it must be a string or PSCustomObject"
+        }
+
+        $outputResult = if ( $inputString ) {
+            if ( $OutputFormat -eq 'MarkDown' ) {
+                $InputString | Show-Markdown
+            } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
+                $inputString -replace '`e', "`e"
+            } else {
+                $inputString
+            }
+        }
+
+        $finalResponse = if ( $outputResult ) {
+            if ( $ResponseBlock ) {
+                invoke-command -scriptblock $responseBlock -argumentlist $inputString, $response
+            } else {
+                $outputResult
+            }
+        }
+
+        $finalResponse
+    }
+
+    end {
+    }
+}
+
+function ToResponse {
+    [cmdletbinding()]
+    param(
+        [parameter(valuefrompipeline=$true, mandatory=$true)]
+        [string] $response,
+
+        [string] $role,
+
+        [switch] $AsString
+    )
+
+    begin {}
+
+    process {
+        if ( $AsString.IsPresent ) {
+            $response
+        } else {
+            HashTableToObject -TypeName ChatResponse -Table @{
+                Response = $response
+                Role = $role
+            }
         }
     }
 
-    $finalResponse = if ( $outputResult ) {
-        if ( $ResponseBlock ) {
-            invoke-command -scriptblock $responseBlock -argumentlist $outputResult
-        } else {
-            $outputResult
-        }
+    end {
     }
-
-    $finalResponse
 }
 
 function GetPassthroughChatParams {
@@ -45,7 +90,7 @@ function GetPassthroughChatParams {
 
     foreach ( $parameter in
               ( $AllParameters.GetEnumerator() | where Key -in 'OutputFormat', 'NoOutput', 'ResponseBlock' ) ) {
-                  $replyParams.Add($parameter.Key, $parameter.Value )
+                  $passthroughParameters.Add($parameter.Key, $parameter.Value )
               }
 
     $passthroughParameters
@@ -61,11 +106,12 @@ function RegisterTypeData([string] $typeName) {
 
 function SetObjectType([PSCustomObject] $customObject, [string] $typeName) {
     if ( $customObject.pstypenames -notcontains $typeName ) {
-        $customObject.pstypenames.Add($typeName)
+        $customObject.pstypenames.Add($typeName) | out-null
     }
 }
 
 function HashtableToObject {
+    [cmdletbinding()]
     param(
         [parameter(mandatory=$true, valuefrompipeline=$true)]
         [Hashtable] $table,
@@ -81,3 +127,4 @@ function HashtableToObject {
     $result
 }
 
+RegisterTypeData $script:ChatResponseType Response

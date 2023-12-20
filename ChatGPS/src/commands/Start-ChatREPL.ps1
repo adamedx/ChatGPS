@@ -11,7 +11,7 @@ function Start-ChatREPL {
         [string] $InitialPrompt,
 
         [validateset('None', 'Markdown', 'PowerShellEscaped')]
-        [string] $OutputFormat,
+        [string] $OutputFormat = 'None',
 
         [parameter(valuefrompipeline=$true)]
         $Reply,
@@ -27,6 +27,8 @@ function Start-ChatREPL {
         [switch] $NoEcho,
 
         [switch] $NoOutput,
+
+        [switch] $RawOutput,
 
         [ScriptBlock] $ResponseBlock,
 
@@ -55,11 +57,22 @@ function Start-ChatREPL {
             @{}
         }
 
-        $initialResponse = if ( $InitialPrompt ) {
-            Send-ChatMessage $InitialPrompt @connectionArgument
+        $targetResponseBlock = if ( $ResponseBlock ) {
+            $ResponseBlock
+        } else {
+            # See this issue -- this is causing pipeline objects to not output correctly: https://github.com/PowerShell/PowerShell/issues/4594
+            {param($responseText, $response) ( $response -eq $null ) ? $responseText : ( $response | format-table -wrap ) }
+        }
+
+        $initialResponse = $null
+
+        if ( $InitialPrompt ) {
+            $initialResponse = Send-ChatMessage $InitialPrompt @connectionArgument
 
             if ( ! $HideInitialPrompt.IsPresent ) {
-                $InitialPrompt | FormatOutput -OutputFormat $OutputFormat
+                $conversationTitle = "Conversation: '$InitialPrompt'"
+                "`n$($conversationTitle)" | write-host -foregroundcolor cyan
+                ( '-' * $conversationTitle.Length ) | write-host -foregroundcolor cyan
             }
         }
 
@@ -69,32 +82,16 @@ function Start-ChatREPL {
             @{}
         }
 
-        if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
-            $outputArgument = @{}
-
-            if ( $OutputFormat ) {
-                $outputArgument = @{OutputFormat=$OutputFormat}
-            }
-
-            $initialResponse | FormatOutput @outputFormat
-        }
-
         $lastResponse = $initialResponse
 
-        $outputParameters = @{}
-
-        foreach ( $parameter in 'OutputFormat', 'ResponseBlock' ) {
-            if ( $PSBoundParameters[$parameter] ) {
-                $outputParameters.Add( $parameter, $PSBoundParameters[$parameter] )
-            }
+        if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
+            FormatOutput -Response $initialResponse -OutputFormat $OutputFormat -ResponseBlock $targetResponseBlock
         }
     }
 
     process {
 
-
         while ( $true ) {
-
             $inputHintValue = if ( $InputHintArgument.Count -gt 0 ) {
                 Invoke-Command -scriptblock $InputHintArgument.Prompt
             }
@@ -134,12 +131,12 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat -RawOutput:$RawOutput.IsPresent
 
             $lastResponse = $result
 
             if ( $result ) {
-                 $result | FormatOutput @outputParameters
+                FormatOutput -Response $result -ResponseBlock $targetResponseBlock -OutputFormat $OutputFormat
             }
         }
     }
