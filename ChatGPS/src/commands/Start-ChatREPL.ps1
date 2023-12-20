@@ -57,11 +57,10 @@ function Start-ChatREPL {
             @{}
         }
 
-        $targetResponseBlock = if ( $ResponseBlock ) {
-            $ResponseBlock
-        } else {
-            # See this issue -- this is causing pipeline objects to not output correctly: https://github.com/PowerShell/PowerShell/issues/4594
-            {param($responseText, $response) ( $response -eq $null ) ? $responseText : ( $response | format-table -wrap ) }
+        $targetResponseBlock = @{}
+
+        if ( $ResponseBlock ) {
+            $targetResponseBlock = @{ResponseBlock=$ResponseBlock}
         }
 
         $initialResponse = $null
@@ -85,7 +84,7 @@ function Start-ChatREPL {
         $lastResponse = $initialResponse
 
         if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
-            FormatOutput -Response $initialResponse -OutputFormat $OutputFormat -ResponseBlock $targetResponseBlock
+            FormatOutput -Response $initialResponse -OutputFormat $OutputFormat @targetResponseBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
         }
     }
 
@@ -103,7 +102,7 @@ function Start-ChatREPL {
             }
 
             $replyText = if ( $ReplyBlock -and ( $currentReplies -ne 0 ) ) {
-                $replyData = GetChatReply -SourceMessage $lastResponse -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
+                $replyData = GetChatReply -SourceMessage $lastResponse.Response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
 
                 if ( $replyData ) {
                     if ( $inputHintValue ) {
@@ -116,7 +115,21 @@ function Start-ChatREPL {
             }
 
             $inputText = if ( ! $replyText ) {
-                Read-Host @dynamicInputHintArgument
+                if ( $dynamicInputHintArgument.Prompt ) {
+                    write-host -foregroundcolor cyan "`n$($dynamicInputHintArgument.Prompt): " -nonewline
+                }
+
+                #
+                # So there is a serious defect in PowerShell itself -- see https://github.com/PowerShell/PowerShell/issues/4594.
+                # It causes non-determinism in the display of types that are implicitly tables, which is the case of the
+                # response objects output in this function. The workaround is to have explicit ps1xml formatting for that type
+                # that explicitly specifies a width for every column of the type so that auto-sizing does not happen and bypasses
+                # the bug. This would not be noticeable without the Read-Host below, but we want the output of previous iterations
+                # to be visible before the user enters the prompt, and at least on the first time through, it's not. Because it
+                # seems to correct itself on the second time through, another workaround could be to emit a synthetic / dummy /
+                # placeholder response object that will usually not show in the display (but will be in the output).
+                #
+                Read-Host
             } else {
                 $replyText
             }
@@ -131,12 +144,12 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat -RawOutput:$RawOutput.IsPresent
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock
 
             $lastResponse = $result
 
             if ( $result ) {
-                FormatOutput -Response $result -ResponseBlock $targetResponseBlock -OutputFormat $OutputFormat
+                $result
             }
         }
     }

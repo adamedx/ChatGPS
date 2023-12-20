@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- *******************************************************************
+Copyright Adam Edwards
+All Rights Reserved.
+******************************************************************** -->
+
+<Configuration>
+
+  <ViewDefinitions>
+
+    <View>
+      <Name>ChatResponse</Name>
+      <ViewSelectedBy>
+        <TypeName>ChatResponse</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Width>24</Width>
+            <Label>Received</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Width>1024</Width>
+            <Label>Response</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                 <PropertyName>Received</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Response</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>Voice</Name>
+      <ViewSelectedBy>
+        <TypeName>ChatVoice</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>VoiceName</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Synchronous</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Response</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Synchronous</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+  </ViewDefinitions>
+</Configuration>

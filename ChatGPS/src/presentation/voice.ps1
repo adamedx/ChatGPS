@@ -77,7 +77,7 @@ function GetVoice($VoiceName, [switch] $failIfNotFound, $speakerInterface) {
         }
 
         $targetInterface.GetVoices() |
-          where  { $VoiceName -eq $null ? $true : $_.DataKey.GetStringValue('') -eq $VoiceName }
+          where  { ( ! ! $VoiceName ) -eq $false ? $true : $_.DataKey.GetStringValue('') -eq $VoiceName }
     }
 
     if ( $result ) {
@@ -146,5 +146,3 @@ function GetVoiceParameterCompleter {
     }
 }
 
-
-RegisterTypeData $script:SpeakerTypeName VoiceName Synchronous

@@ -63,7 +63,7 @@ RequiredAssemblies = @('./lib/ChatGPSLib.dll')
 # TypesToProcess = @()
 
 # Format files (.ps1xml) to be loaded when importing this module
-# FormatsToProcess = @()
+FormatsToProcess = @('./src/format/format.ps1xml')
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 # NestedModules = @()
@@ -117,9 +117,11 @@ FileList = @(
     './src/commands/Send-ChatMessage.ps1'
     './src/commands/Set-ChatCurrentVoice.ps1'
     './src/commands/Start-ChatREPL.ps1'
+    './src/format/format.ps1xml'
     './src/intent/PromptBook.ps1'
     './src/presentation/format.ps1'
     './src/presentation/reply.ps1'
+    './src/presentation/voice.ps1'
     './src/services/session.ps1'
 )
 

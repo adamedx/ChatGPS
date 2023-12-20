@@ -51,7 +51,13 @@ function Send-ChatMessage {
             $responseInfo = $targetConnection.History | select -last 1
 
             if ( ! $NoOutput.IsPresent ) {
-                $response | FormatOutput @formatParameters | ToResponse -role $responseInfo.Role.Label -AsString:$RawOutput.IsPresent
+                $responseObject = $response | ToResponse -role $responseInfo.Role.Label -Received ([DateTime]::now)
+                $transformed = $responseObject | FormatOutput @formatParameters
+                if ( ! $RawOutput.IsPresent ) {
+                    $transformed | ToResponse -role $responseObject.Role -Received $responseObject.Received
+                } else {
+                    $transformed
+                }
             }
 
             $replyData = GetChatReply -SourceMessage $response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies

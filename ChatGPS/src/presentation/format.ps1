@@ -9,7 +9,7 @@ function FormatOutput {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(valuefrompipeline=$true, mandatory=$true)]
-        $Response,
+        [PSCustomObject] $Response,
 
         [ScriptBlock] $ResponseBlock,
 
@@ -19,13 +19,7 @@ function FormatOutput {
     begin {}
 
     process {
-        $inputString = if ( $Response.GetType().FullName -eq 'System.Management.Automation.PSCustomObject' ) {
-            $Response.Response
-        } elseif ( $Response.GetType().FullName -eq 'System.String' ) {
-            $Response
-        } else {
-            throw "Response parameter type '$($Response.GetType())' is not valid -- it must be a string or PSCustomObject"
-        }
+        $inputString = $Response.Response
 
         $outputResult = if ( $inputString ) {
             if ( $OutputFormat -eq 'MarkDown' ) {
@@ -37,15 +31,13 @@ function FormatOutput {
             }
         }
 
-        $finalResponse = if ( $outputResult ) {
+        if ( $outputResult ) {
             if ( $ResponseBlock ) {
-                invoke-command -scriptblock $responseBlock -argumentlist $inputString, $response
+                invoke-command -scriptblock $responseBlock -argumentlist $outputResult, $response
             } else {
                 $outputResult
             }
         }
-
-        $finalResponse
     }
 
     end {
@@ -60,6 +52,8 @@ function ToResponse {
 
         [string] $role,
 
+        [DateTime] $received,
+
         [switch] $AsString
     )
 
@@ -70,8 +64,9 @@ function ToResponse {
             $response
         } else {
             HashTableToObject -TypeName ChatResponse -Table @{
-                Response = $response
+                Received = $received
                 Role = $role
+                Response = $response
             }
         }
     }
@@ -127,4 +122,4 @@ function HashtableToObject {
     $result
 }
 
-RegisterTypeData $script:ChatResponseType Response
+# RegisterTypeData $script:ChatResponseType Response
