@@ -38,7 +38,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PowerShellSourceFiles Include="$(ProjectDir)/$(PowerShellSourceFilesRoot)/**/*.ps1;$(ProjectDir)/$(PowerShellSourceFilesRoot)/**/*.psm1" Exclude="$(ProjectDir)/**/*.#*;$(ProjectDir)/**/*.tests.ps1" />
+      <PowerShellSourceFiles Include="$(ProjectDir)/$(PowerShellSourceFilesRoot)/**/*.ps1;$(ProjectDir)/$(PowerShellSourceFilesRoot)/**/*.psm1;$(ProjectDir)/$(PowerShellSourceFilesRoot)/**/*.ps1xml" Exclude="$(ProjectDir)/**/*.#*;$(ProjectDir)/**/*.tests.ps1" />
       <PowerShellManifestFiles Include="$(ModuleManifestSourceDirectory)/*.psd1" />
     </ItemGroup>
   </Target>

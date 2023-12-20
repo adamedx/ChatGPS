@@ -119,7 +119,7 @@ FileList = @(
     './src/commands/Start-ChatREPL.ps1'
     './src/format/format.ps1xml'
     './src/intent/PromptBook.ps1'
-    './src/presentation/format.ps1'
+    './src/presentation/model.ps1'
     './src/presentation/reply.ps1'
     './src/presentation/voice.ps1'
     './src/services/session.ps1'
