@@ -84,7 +84,7 @@ function Start-ChatREPL {
         $lastResponse = $initialResponse
 
         if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
-            FormatOutput -Response $initialResponse -OutputFormat $OutputFormat @targetResponseBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
+            TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @targetResponseBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
         }
     }
 

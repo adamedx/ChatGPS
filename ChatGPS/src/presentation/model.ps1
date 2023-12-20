@@ -5,7 +5,7 @@
 
 $ChatResponseType = 'ChatResponse'
 
-function FormatOutput {
+function TransformResponseText {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(valuefrompipeline=$true, mandatory=$true)]
@@ -49,11 +49,8 @@ function ToResponse {
     param(
         [parameter(valuefrompipeline=$true, mandatory=$true)]
         [string] $response,
-
         [string] $role,
-
         [DateTime] $received,
-
         [switch] $AsString
     )
 
@@ -122,4 +119,3 @@ function HashtableToObject {
     $result
 }
 
-# RegisterTypeData $script:ChatResponseType Response
