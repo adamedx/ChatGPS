@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-$ChatResponseType = 'ChatResponse'
+$ChatResponseTypeName = 'Modulus.ChatGPS.PowerShell.ChatResponse'
 
 function TransformResponseText {
     [cmdletbinding(positionalbinding=$false)]
@@ -60,7 +60,7 @@ function ToResponse {
         if ( $AsString.IsPresent ) {
             $response
         } else {
-            HashTableToObject -TypeName ChatResponse -Table @{
+            HashTableToObject -TypeName $ChatResponseTypeName -Table @{
                 Received = $received
                 Role = $role
                 Response = $response

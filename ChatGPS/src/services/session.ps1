@@ -20,7 +20,7 @@ function CreateSession {
         [switch] $NoConnect
     )
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, $functionPrompt)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, 'Truncate', $null, $functionPrompt)
 
     # This will force an actual connection and set the system prompt for the session
     if ( ! $NoConnect.IsPresent ) {

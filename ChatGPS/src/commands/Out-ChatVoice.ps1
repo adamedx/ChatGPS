@@ -9,13 +9,15 @@ function Out-ChatVoice {
         [parameter(valuefrompipeline=$true)]
         [object] $Text = $null,
 
-        [PSCustomObject] $Speaker
+        [switch] $Silent,
+
+        [PSCustomObject] $Voice
     )
 
     begin {
-        $targetSpeaker = if ( Test-VoiceSupported ) {
-            if ( $Speaker ) {
-                $Speaker
+        $targetVoice = if ( Test-VoiceSupported ) {
+            if ( $Voice ) {
+                $Voice
             } else {
                 GetCurrentSpeaker
             }
@@ -23,9 +25,9 @@ function Out-ChatVoice {
     }
 
     process {
-        if ( $targetSpeaker -and $Text ) {
-            $flags = $targetSpeaker.Synchronous ? 0 : 1
-            $targetSpeaker.Speaker.Speak($Text, $flags) | out-null
+        if ( ( ! $Silent.IsPresent ) -and $targetVoice -and $Text ) {
+            $flags = $targetVoice.Synchronous ? 0 : 1
+            $targetVoice.Speaker.Speak($Text, $flags) | out-null
         }
 
         $Text

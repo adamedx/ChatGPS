@@ -26,6 +26,8 @@ function Send-ChatMessage {
 
         [switch] $NoOutput,
 
+        [switch] $NoReplyOutput,
+
         [switch] $ForceChat
     )
 
@@ -65,6 +67,10 @@ function Send-ChatMessage {
             $currentMessage = if ( $replyData ) {
                 $currentReplies = $replyData.NextMax
                 $replyData.Reply
+            }
+
+            if ( ( ! $NoOutput.IsPresent ) -and ( ! $NoReplyOutput.IsPresent ) -and $currentMessage ) {
+                $currentMessage | ToResponse -role User -Received ([DateTime]::now)
             }
         }
     }

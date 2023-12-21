@@ -12,7 +12,7 @@ All Rights Reserved.
     <View>
       <Name>ChatResponse</Name>
       <ViewSelectedBy>
-        <TypeName>ChatResponse</TypeName>
+        <TypeName>Modulus.ChatGPS.PowerShell.ChatResponse</TypeName>
       </ViewSelectedBy>
 
       <TableControl>
@@ -45,7 +45,7 @@ All Rights Reserved.
     <View>
       <Name>Voice</Name>
       <ViewSelectedBy>
-        <TypeName>ChatVoice</TypeName>
+        <TypeName>Modulus.ChatGPS.PowerShell.ChatVoice</TypeName>
       </ViewSelectedBy>
 
       <TableControl>
@@ -61,7 +61,7 @@ All Rights Reserved.
           <TableRowEntry>
             <TableColumnItems>
               <TableColumnItem>
-                <PropertyName>Response</PropertyName>
+                <PropertyName>VoiceName</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Synchronous</PropertyName>

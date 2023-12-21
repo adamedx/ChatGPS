@@ -11,7 +11,7 @@ InModuleScope ChatGPS {
             # references to Semantic Kernel types will not work -- this is true
             # even when using Pester's InModuleScope enclosing scriptblock
             try {
-                [Modulus.ChatGPS.Models.ChatSession]::new($null, $null, $null) | out-null
+                [Modulus.ChatGPS.Models.ChatSession]::new($null, $null, 'None', $null, $null) | out-null
             } catch {
             }
 

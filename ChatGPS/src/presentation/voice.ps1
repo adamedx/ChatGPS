@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-$SpeakerTypeName = 'Speaker'
+$VoiceTypeName = 'Modulus.ChatGPS.PowerShell.ChatVoice'
 
 $DefaultSpeaker = $null
 $CurrentSpeaker = $null
@@ -56,7 +56,7 @@ function NewSpeaker([string] $VoiceName, [bool] $isAsync) {
             $targetVoice = $result.Voice
         }
 
-        HashTableToObject -TypeName $script:SpeakerTypeName -table @{
+        HashTableToObject -TypeName $script:VoiceTypeName -table @{
             VoiceName = $targetVoice.DataKey.GetStringValue('')
             Speaker = $result
             Synchronous = ! $isAsync
