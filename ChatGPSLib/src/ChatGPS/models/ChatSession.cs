@@ -13,10 +13,12 @@ using Microsoft.SemanticKernel.AI.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, string? chatFunctionPrompt)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null)
     {
         this.chatService = chatService;
+        this.tokenReducer = new TokenReducer(chatService, tokenStrategy, tokenReductionParameters);
         this.chatHistory = chatService.CreateChat(systemPrompt);
+        this.totalChatHistory = chatService.CreateChat(systemPrompt);
         this.completionService = chatService.GetChatCompletion();
         this.chatFunctionPrompt = chatFunctionPrompt;
 
@@ -28,6 +30,15 @@ public class ChatSession
 
     public async Task<string> GenerateMessageAsync(string prompt)
     {
+        this.totalChatHistory.AddMessage(AuthorRole.User, prompt);
+
+        var reducedHistory = this.tokenReducer.Reduce(this.chatHistory);
+
+        if ( reducedHistory != null )
+        {
+            this.chatHistory = reducedHistory;
+        }
+
         this.chatHistory.AddMessage(AuthorRole.User, prompt);
         var response = await completionService.GenerateMessageAsync(this.chatHistory);
 
@@ -66,7 +77,7 @@ public class ChatSession
     {
         get
         {
-            return this.chatHistory;
+            return this.totalChatHistory;
         }
     }
 
@@ -80,6 +91,7 @@ public class ChatSession
 
     private void UpdateHistoryWithResponse(string response)
     {
+        this.totalChatHistory.AddMessage(AuthorRole.Assistant, response);
         this.chatHistory.AddMessage(AuthorRole.Assistant, response);
     }
 
@@ -95,7 +107,9 @@ public class ChatSession
     private IChatService chatService;
     private IChatCompletion completionService;
     private ChatHistory chatHistory;
+    private ChatHistory totalChatHistory;
     private string? chatFunctionPrompt;
     private ISKFunction? chatFunction;
+    private TokenReducer tokenReducer;
 }
 

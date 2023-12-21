@@ -11,7 +11,7 @@ using Modulus.ChatGPS.Services;
 
 public class ChatGPS
 {
-    public static ChatSession CreateSession(AiOptions options, string prompt, string? chatFunctionPrompt, IChatService? chatService = null)
+    public static ChatSession CreateSession(AiOptions options, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, IChatService? chatService = null)
     {
         var targetChatService = chatService;
 
@@ -21,6 +21,6 @@ public class ChatGPS
 
         string? targetChatFunctionPrompt = string.IsNullOrEmpty(chatFunctionPrompt) ? null : chatFunctionPrompt;
 
-        return new ChatSession(targetChatService, prompt, targetChatFunctionPrompt);
+        return new ChatSession(targetChatService, prompt, tokenStrategy, targetChatFunctionPrompt);
     }
 }
