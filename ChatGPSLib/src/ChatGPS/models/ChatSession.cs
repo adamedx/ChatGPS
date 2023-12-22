@@ -118,7 +118,7 @@ public class ChatSession
      {
          get
          {
-             return this.tokenReducer.PastLimitTokenSize;
+             return new ReadOnlyCollection<double>(this.tokenReducer.PastLimitTokenSize);
          }
      }
 
@@ -126,7 +126,7 @@ public class ChatSession
      {
          get
          {
-             return this.tokenReducer.ReducedTokenSize;
+             return new ReadOnlyCollection<double>(this.tokenReducer.ReducedTokenSize);
          }
      }
 

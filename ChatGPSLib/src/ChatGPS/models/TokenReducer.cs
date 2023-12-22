@@ -48,12 +48,20 @@ class TokenReducer
         var historySize = chatHistory.Count;
         int lossIndexStart = 4;
 
-        if ( lossIndexStart < historySize && chatHistory[1].Role == AuthorRole.User )
+        // Ensure that loss starts with an assistant message, with the idea that
+        // the last message we received was from the assistant, and that this means
+        // every communication started with a user and ended with an assistant, which
+        // is not necessarily the case. Another good thing about this approach is that
+        // we can replace the last assistant message with a summary from the assistant and
+        // then the conversation can continue.
+        if ( lossIndexStart < historySize && chatHistory[lossIndexStart].Role == AuthorRole.User )
         {
             lossIndexStart++;
         }
 
-        int retainMostRecentCount = 4;
+        // We want to retain the last message in the history, so that means the count
+        // must always be odd.
+        int retainMostRecentCount = this.lastMessagePairCount * 2 + 1;
         int lossIndexEnd = historySize - retainMostRecentCount;
 
         if ( lossIndexEnd <= lossIndexStart )
@@ -63,17 +71,32 @@ class TokenReducer
 
         var reducedHistory = this.chatService.CreateChat(chatHistory[0].Content);
 
-        double tokenUsage = GetTokenCountForSequence(chatHistory, historySize - retainMostRecentCount, historySize - 1);
+        double tokenUsage = GetTokenCountForSequence(reducedHistory);
+        bool lastSkipped = false;
 
         for ( int current = 0; current < historySize; current++ )
         {
-            tokenUsage += GetTokenCountForMessage(chatHistory[current]);
-
             if ( ( current < lossIndexStart )
                  || ( tokenUsage < tokenTarget )
                  || ( current >= lossIndexEnd ) )
             {
+                // If this is the first message being added back after skipping messages,
+                // Let's make sure it is not an assistant, since we said we want the last
+                // retained message to be from an assistant
+                if ( lastSkipped && chatHistory[current].Role == AuthorRole.Assistant )
+                {
+                    reducedHistory.AddMessage(chatHistory[current - 1].Role, chatHistory[current - 1].Content);
+                    tokenUsage += GetTokenCountForMessage(chatHistory[current - 1]);
+                }
+
                 reducedHistory.AddMessage(chatHistory[current].Role, chatHistory[current].Content);
+                tokenUsage += GetTokenCountForMessage(chatHistory[current]);
+
+                lastSkipped = false;
+            }
+            else
+            {
+                lastSkipped = true;
             }
         }
 
@@ -125,6 +148,8 @@ class TokenReducer
 
     private double truncationPercent;
     private double wordToTokenFactor = 1.2;
+
+    private int lastMessagePairCount = 2;
 
     private List<double> pastLimitTokenSize;
     private List<double> reducedTokenSize;
