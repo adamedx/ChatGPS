@@ -6,6 +6,8 @@
 
 namespace Modulus.ChatGPS.Models;
 
+using System.Collections.ObjectModel;
+using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Orchestration;
@@ -30,17 +32,40 @@ public class ChatSession
 
     public async Task<string> GenerateMessageAsync(string prompt)
     {
+        this.chatHistory.AddMessage(AuthorRole.User, prompt);
         this.totalChatHistory.AddMessage(AuthorRole.User, prompt);
 
-        var reducedHistory = this.tokenReducer.Reduce(this.chatHistory);
+        string? response = null;
 
-        if ( reducedHistory != null )
+        for ( int attempt = 0; attempt < 2; attempt++ )
         {
-            this.chatHistory = reducedHistory;
+            try
+            {
+                response = await completionService.GenerateMessageAsync(this.chatHistory);
+                break;
+            }
+            catch (Exception e)
+            {
+                if ( ( attempt == 0 ) && IsTokenLimitException(e) )
+                {
+                    var reducedHistory = this.tokenReducer.Reduce(this.chatHistory);
+
+                    if ( reducedHistory != null )
+                    {
+                        this.chatHistory = reducedHistory;
+                    }
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
-        this.chatHistory.AddMessage(AuthorRole.User, prompt);
-        var response = await completionService.GenerateMessageAsync(this.chatHistory);
+        if ( response is null )
+        {
+            throw new NotSupportedException("The AI service was not able to return a response");
+        }
 
         UpdateHistoryWithResponse(response);
 
@@ -88,6 +113,57 @@ public class ChatSession
             return this.chatFunctionPrompt != null;
         }
     }
+
+    public ReadOnlyCollection<double> ExceededTokenLimitSizeList
+     {
+         get
+         {
+             return this.tokenReducer.PastLimitTokenSize;
+         }
+     }
+
+    public ReadOnlyCollection<double> ReducedTokenSizeList
+     {
+         get
+         {
+             return this.tokenReducer.ReducedTokenSize;
+         }
+     }
+
+    private bool IsTokenLimitException( Exception e )
+    {
+        var operationException = e as Microsoft.SemanticKernel.Diagnostics.HttpOperationException;
+
+        var tokenLimitExceeded = false;
+
+        if ( operationException is not null && operationException.ResponseContent is not null )
+        {
+            var responseContent = operationException.ResponseContent;
+
+            JsonNode? jsonNode = null;
+
+            try
+            {
+                jsonNode = JsonNode.Parse(responseContent);
+            }
+            catch
+            {
+            }
+
+            string? responseCode = null;
+
+            if ( ( jsonNode != null ) && jsonNode["error"]!["code"]!.AsValue().TryGetValue<string>( out responseCode ) )
+            {
+                if ( responseCode == "context_length_exceeded" )
+                {
+                    tokenLimitExceeded = true;
+                }
+            }
+        }
+
+        return tokenLimitExceeded;
+    }
+
 
     private void UpdateHistoryWithResponse(string response)
     {

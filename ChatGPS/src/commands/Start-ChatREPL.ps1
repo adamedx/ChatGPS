@@ -73,6 +73,10 @@ function Start-ChatREPL {
                 "`n$($conversationTitle)" | write-host -foregroundcolor cyan
                 ( '-' * $conversationTitle.Length ) | write-host -foregroundcolor cyan
             }
+        } elseif ( $connectionArgument.Connection ) {
+            $lastMessage = $connectionArgument.Connection.History | select -last 1
+            $initialResponse = $lastMessage.Content |
+              ToResponse -role $lastMessage.Role.Label -Received ([DateTime]::now)
         }
 
         $inputHintArgument = if ( ! $HideInputHint.IsPresent -and ! $NoEcho.IsPresent ) {

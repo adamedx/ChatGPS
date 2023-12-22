@@ -17,15 +17,13 @@ function CreateSession {
 
         [switch] $SetCurrent,
 
+        [validateset('None','Truncate')]
+        [string] $TokenStrategy = 'Truncate',
+
         [switch] $NoConnect
     )
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, 'Truncate', $null, $functionPrompt)
-
-    # This will force an actual connection and set the system prompt for the session
-    if ( ! $NoConnect.IsPresent ) {
-        SendMessage $session Hello | out-null
-    }
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, $TokenStrategy, $null, $functionPrompt)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {

@@ -24,6 +24,9 @@ function Connect-ChatSession {
         [parameter(valuefrompipelinebypropertyname=$true)]
         [int32] $TokenLimit = 4096,
 
+        [validateset('None', 'Truncate')]
+        [string] $TokenStrategy = 'Truncate',
+
         [switch] $NoSetCurrent,
 
         [switch] $NoConnect,
