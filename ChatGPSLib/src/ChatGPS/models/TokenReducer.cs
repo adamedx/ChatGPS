@@ -74,7 +74,7 @@ class TokenReducer
         double tokenUsage = GetTokenCountForSequence(reducedHistory);
         bool lastSkipped = false;
 
-        for ( int current = 0; current < historySize; current++ )
+        for ( int current = 1; current < historySize; current++ )
         {
             if ( ( current < lossIndexStart )
                  || ( tokenUsage < tokenTarget )
@@ -85,11 +85,11 @@ class TokenReducer
                 // retained message to be from an assistant
                 if ( lastSkipped && chatHistory[current].Role == AuthorRole.Assistant )
                 {
-                    reducedHistory.AddMessage(chatHistory[current - 1].Role, chatHistory[current - 1].Content);
+                    reducedHistory.AddMessage(chatHistory[current - 1].Role, chatHistory[current - 1].Content, chatHistory[current - 1].AdditionalProperties);
                     tokenUsage += GetTokenCountForMessage(chatHistory[current - 1]);
                 }
 
-                reducedHistory.AddMessage(chatHistory[current].Role, chatHistory[current].Content);
+                reducedHistory.AddMessage(chatHistory[current].Role, chatHistory[current].Content, chatHistory[current].AdditionalProperties);
                 tokenUsage += GetTokenCountForMessage(chatHistory[current]);
 
                 lastSkipped = false;

@@ -7,6 +7,7 @@
 namespace Modulus.ChatGPS.Models;
 
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
@@ -32,8 +33,9 @@ public class ChatSession
 
     public async Task<string> GenerateMessageAsync(string prompt)
     {
-        this.chatHistory.AddMessage(AuthorRole.User, prompt);
-        this.totalChatHistory.AddMessage(AuthorRole.User, prompt);
+        var messageProperties = CreateMessageProperties();
+        this.chatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
+        this.totalChatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
 
         string? response = null;
 
@@ -44,7 +46,7 @@ public class ChatSession
                 response = await completionService.GenerateMessageAsync(this.chatHistory);
                 break;
             }
-            catch (Exception e)
+            catch (Microsoft.SemanticKernel.Diagnostics.HttpOperationException e)
             {
                 if ( ( attempt == 0 ) && IsTokenLimitException(e) )
                 {
@@ -81,7 +83,10 @@ public class ChatSession
             throw new ArgumentException("Unable to generate a function response -- this chat session does not have an optional associated chat function");
         }
 
-        this.chatHistory.AddMessage(AuthorRole.User, prompt);
+        var messageProperties = CreateMessageProperties();
+        this.chatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
+        this.totalChatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
+
         var response = await this.chatFunction.InvokeAsync(prompt, this.chatService.GetKernel());
 
         var resultString = response.GetValue<string>();
@@ -103,6 +108,14 @@ public class ChatSession
         get
         {
             return this.totalChatHistory;
+        }
+    }
+
+    public ChatHistory CurrentHistory
+    {
+        get
+        {
+            return this.chatHistory;
         }
     }
 
@@ -130,13 +143,11 @@ public class ChatSession
          }
      }
 
-    private bool IsTokenLimitException( Exception e )
+    private bool IsTokenLimitException( Microsoft.SemanticKernel.Diagnostics.HttpOperationException operationException )
     {
-        var operationException = e as Microsoft.SemanticKernel.Diagnostics.HttpOperationException;
-
         var tokenLimitExceeded = false;
 
-        if ( operationException is not null && operationException.ResponseContent is not null )
+        if ( operationException.ResponseContent is not null )
         {
             var responseContent = operationException.ResponseContent;
 
@@ -167,8 +178,9 @@ public class ChatSession
 
     private void UpdateHistoryWithResponse(string response)
     {
-        this.totalChatHistory.AddMessage(AuthorRole.Assistant, response);
-        this.chatHistory.AddMessage(AuthorRole.Assistant, response);
+        var messageProperties = CreateMessageProperties();
+        this.totalChatHistory.AddMessage(AuthorRole.Assistant, response, messageProperties);
+        this.chatHistory.AddMessage(AuthorRole.Assistant, response, messageProperties);
     }
 
     private void InitializeSemanticFunction()
@@ -180,10 +192,20 @@ public class ChatSession
         }
     }
 
+    private Dictionary<string,string> CreateMessageProperties()
+    {
+        return new Dictionary<string,string>
+        {
+            { "Timestamp", JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
+            { "MessageIndex", JsonSerializer.Serialize<int>(this.messageIndex++) }
+        };
+    }
+
     private IChatService chatService;
     private IChatCompletion completionService;
     private ChatHistory chatHistory;
     private ChatHistory totalChatHistory;
+    private int messageIndex = 0;
     private string? chatFunctionPrompt;
     private ISKFunction? chatFunction;
     private TokenReducer tokenReducer;

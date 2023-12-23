@@ -38,6 +38,10 @@ function Start-ChatREPL {
 
         [switch] $NoAutoConnect,
 
+        [switch] $MessageSound,
+
+        [string] $SoundPath,
+
         [Modulus.ChatGPS.Models.ChatSession]
         $Connection
     )
@@ -57,6 +61,10 @@ function Start-ChatREPL {
             @{}
         }
 
+        $soundParameters = @{}
+        if ( $MessageSound.IsPresent ) { $soundParameters['MessageSound'] = $MessageSound }
+        if ( $SoundPath ) { $soundParameters['SoundPath'] = $SoundPath }
+
         $targetResponseBlock = @{}
 
         if ( $ResponseBlock ) {
@@ -66,7 +74,7 @@ function Start-ChatREPL {
         $initialResponse = $null
 
         if ( $InitialPrompt ) {
-            $initialResponse = Send-ChatMessage $InitialPrompt @connectionArgument
+            $initialResponse = Send-ChatMessage $InitialPrompt @connectionArgument @soundParameters
 
             if ( ! $HideInitialPrompt.IsPresent ) {
                 $conversationTitle = "Conversation: '$InitialPrompt'"
@@ -150,7 +158,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters
 
             $lastResponse = $result
 

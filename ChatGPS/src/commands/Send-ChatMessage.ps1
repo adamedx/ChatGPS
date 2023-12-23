@@ -28,6 +28,10 @@ function Send-ChatMessage {
 
         [switch] $NoReplyOutput,
 
+        [switch] $MessageSound,
+
+        [string] $SoundPath,
+
         [switch] $ForceChat
     )
 
@@ -36,6 +40,16 @@ function Send-ChatMessage {
         $currentReplies = $MaxReplies
 
         $formatParameters = GetPassthroughChatParams -AllParameters $PSBoundParameters
+
+        $targetSound = if ( $MessageSound.IsPresent -and $PSVersionTable.Platform -eq 'Win32NT' ) {
+            $targetSoundPath = if ( $SoundPath ) {
+                $SoundPath
+            } else {
+                join-path $env:windir 'media/windows menu command.wav'
+            }
+
+            [System.Media.SoundPlayer]::new($targetSoundPath)
+        }
     }
 
     process {
@@ -60,6 +74,10 @@ function Send-ChatMessage {
                 } else {
                     $transformed
                 }
+
+                if ( $targetSound ) {
+                    $targetSound.Play()
+                }
             }
 
             $replyData = GetChatReply -SourceMessage $response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
@@ -71,6 +89,9 @@ function Send-ChatMessage {
 
             if ( ( ! $NoOutput.IsPresent ) -and ( ! $NoReplyOutput.IsPresent ) -and $currentMessage ) {
                 $currentMessage | ToResponse -role User -Received ([DateTime]::now)
+                if ( $targetSound ) {
+                    $targetSound.Play()
+                }
             }
         }
     }
