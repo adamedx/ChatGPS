@@ -43,7 +43,7 @@ class TokenReducer
         }
 
         var tokenEstimate = GetTokenCountForSequence(chatHistory);
-        var tokenTarget = tokenEstimate * truncationPercent;
+        var tokenTarget = tokenEstimate * (1 - this.truncationPercent);
 
         var historySize = chatHistory.Count;
         int lossIndexStart = 4;

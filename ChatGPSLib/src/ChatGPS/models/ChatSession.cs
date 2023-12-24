@@ -39,7 +39,7 @@ public class ChatSession
 
         string? response = null;
 
-        for ( int attempt = 0; attempt < 2; attempt++ )
+        for ( int attempt = 0; attempt < 3; attempt++ )
         {
             try
             {
