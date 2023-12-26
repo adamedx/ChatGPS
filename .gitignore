@@ -2,11 +2,12 @@ packages/
 lib/
 tools/
 azureopenai.config
-.vscode
-
+.vscode/
+.vs/
 **/bin/
 **/obj/
 
 *~
 .#*
 *#
+launchsettings.json

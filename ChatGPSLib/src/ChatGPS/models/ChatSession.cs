@@ -11,31 +11,27 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.AI.ChatCompletion;
 
 public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null)
     {
-        this.chatService = chatService;
-        this.tokenReducer = new TokenReducer(chatService, tokenStrategy, tokenReductionParameters);
-        this.chatHistory = chatService.CreateChat(systemPrompt);
-        this.totalChatHistory = chatService.CreateChat(systemPrompt);
-        this.completionService = chatService.GetChatCompletion();
         this.chatFunctionPrompt = chatFunctionPrompt;
+        this.conversationBuilder = new ConversationBuilder(chatService, chatFunctionPrompt);
 
-        if ( this.completionService == null )
-        {
-            throw new ArgumentException("Specified chat service did not provide a chat completion interface.");
-        }
+        this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
+        this.totalChatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
+
+        this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
     }
 
     public async Task<string> GenerateMessageAsync(string prompt)
     {
-        var messageProperties = CreateMessageProperties();
-        this.chatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
-        this.totalChatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
+        var newMessageRole = AuthorRole.User;
+
+        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt);
+        ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
 
         string? response = null;
 
@@ -43,14 +39,14 @@ public class ChatSession
         {
             try
             {
-                response = await completionService.GenerateMessageAsync(this.chatHistory);
+                response = await this.conversationBuilder.SendMessageAsync(this.chatHistory);
                 break;
             }
             catch (Microsoft.SemanticKernel.Diagnostics.HttpOperationException e)
             {
-                if ( ( attempt == 0 ) && IsTokenLimitException(e) )
+                if ( IsTokenLimitException(e) )
                 {
-                    var reducedHistory = this.tokenReducer.Reduce(this.chatHistory);
+                    var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
 
                     if ( reducedHistory != null )
                     {
@@ -69,38 +65,17 @@ public class ChatSession
             throw new NotSupportedException("The AI service was not able to return a response");
         }
 
-        UpdateHistoryWithResponse(response);
+        UpdateHistoryWithResponse();
 
         return response;
     }
 
     public async Task<string> GenerateFunctionResponse(string prompt)
     {
-        InitializeSemanticFunction();
+        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, AuthorRole.User, prompt);
+        ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
 
-        if ( this.chatFunction == null )
-        {
-            throw new ArgumentException("Unable to generate a function response -- this chat session does not have an optional associated chat function");
-        }
-
-        var messageProperties = CreateMessageProperties();
-        this.chatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
-        this.totalChatHistory.AddMessage(AuthorRole.User, prompt, messageProperties);
-
-        var response = await this.chatFunction.InvokeAsync(prompt, this.chatService.GetKernel());
-
-        var resultString = response.GetValue<string>();
-
-        var targetResponse = "I was unable to respond to your message.";
-
-        if ( resultString != null )
-        {
-            targetResponse = resultString;
-        }
-
-        UpdateHistoryWithResponse(targetResponse);
-
-        return resultString == null ? "" : resultString;
+        return await conversationBuilder.InvokeFunctionAsync(this.chatHistory, prompt);
     }
 
     public ChatHistory History
@@ -176,38 +151,15 @@ public class ChatSession
     }
 
 
-    private void UpdateHistoryWithResponse(string response)
+    private void UpdateHistoryWithResponse()
     {
-        var messageProperties = CreateMessageProperties();
-        this.totalChatHistory.AddMessage(AuthorRole.Assistant, response, messageProperties);
-        this.chatHistory.AddMessage(AuthorRole.Assistant, response, messageProperties);
+        ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
     }
 
-    private void InitializeSemanticFunction()
-    {
-        if ( ( this.chatFunctionPrompt != null ) &&
-             ( this.chatFunction == null ) )
-        {
-            this.chatFunction = this.chatService.CreateFunction(this.chatFunctionPrompt);
-        }
-    }
-
-    private Dictionary<string,string> CreateMessageProperties()
-    {
-        return new Dictionary<string,string>
-        {
-            { "Timestamp", JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
-            { "MessageIndex", JsonSerializer.Serialize<int>(this.messageIndex++) }
-        };
-    }
-
-    private IChatService chatService;
-    private IChatCompletion completionService;
+    private ConversationBuilder conversationBuilder;
     private ChatHistory chatHistory;
     private ChatHistory totalChatHistory;
-    private int messageIndex = 0;
     private string? chatFunctionPrompt;
-    private ISKFunction? chatFunction;
     private TokenReducer tokenReducer;
 }
 

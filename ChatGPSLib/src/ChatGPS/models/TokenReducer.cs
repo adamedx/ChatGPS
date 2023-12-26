@@ -12,9 +12,9 @@ using Modulus.ChatGPS.Services;
 
 class TokenReducer
 {
-    public TokenReducer(IChatService chatService, TokenReductionStrategy strategy, object? parameters)
+    public TokenReducer(ConversationBuilder conversationBuilder, TokenReductionStrategy strategy, object? parameters)
     {
-        this.chatService = chatService;
+        this.conversationBuilder = conversationBuilder;
         this.strategy = strategy;
 
         this.pastLimitTokenSize = new List<double>();
@@ -27,6 +27,9 @@ class TokenReducer
         {
         case TokenReductionStrategy.None:
             break;
+        case TokenReductionStrategy.Summarize:
+            this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.6;
+            break;
         case TokenReductionStrategy.Truncate:
             this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.5;
             break;
@@ -35,32 +38,18 @@ class TokenReducer
         }
     }
 
-    public ChatHistory? Reduce(ChatHistory chatHistory)
+    public ChatHistory? Reduce(ChatHistory chatHistory, AuthorRole triggeringRole)
     {
         if ( this.strategy == TokenReductionStrategy.None )
         {
             return null;
         }
 
-        var tokenEstimate = GetTokenCountForSequence(chatHistory);
-        var tokenTarget = tokenEstimate * (1 - this.truncationPercent);
+        ValidateHistory(chatHistory, triggeringRole);
 
         var historySize = chatHistory.Count;
-        int lossIndexStart = 4;
+        int lossIndexStart = this.startMessageIndex + retainBeginningMessagePairs * 2 - 1;
 
-        // Ensure that loss starts with an assistant message, with the idea that
-        // the last message we received was from the assistant, and that this means
-        // every communication started with a user and ended with an assistant, which
-        // is not necessarily the case. Another good thing about this approach is that
-        // we can replace the last assistant message with a summary from the assistant and
-        // then the conversation can continue.
-        if ( lossIndexStart < historySize && chatHistory[lossIndexStart].Role == AuthorRole.User )
-        {
-            lossIndexStart++;
-        }
-
-        // We want to retain the last message in the history, so that means the count
-        // must always be odd.
         int retainMostRecentCount = this.lastMessagePairCount * 2 + 1;
         int lossIndexEnd = historySize - retainMostRecentCount;
 
@@ -69,41 +58,69 @@ class TokenReducer
             return null;
         }
 
-        var reducedHistory = this.chatService.CreateChat(chatHistory[0].Content);
+        var reducedHistory = this.conversationBuilder.CreateConversationHistory(chatHistory[0].Content);
 
-        double tokenUsage = GetTokenCountForSequence(reducedHistory);
-        bool lastSkipped = false;
+        var tokenEstimate = GetTokenCountForSequence(chatHistory);
+        var tokenTarget = tokenEstimate * (1 - this.truncationPercent);
 
-        for ( int current = 1; current < historySize; current++ )
+        double lastRetainedTokenUsage = GetTokenCountForSequence(chatHistory, lossIndexEnd);
+        double tokenUsage = GetTokenCountForSequence(reducedHistory) + lastRetainedTokenUsage;
+
+        for ( int current = 1; current < historySize; current+= 2 )
         {
             if ( ( current < lossIndexStart )
                  || ( tokenUsage < tokenTarget )
                  || ( current >= lossIndexEnd ) )
             {
-                // If this is the first message being added back after skipping messages,
-                // Let's make sure it is not an assistant, since we said we want the last
-                // retained message to be from an assistant
-                if ( lastSkipped && chatHistory[current].Role == AuthorRole.Assistant )
+                var pairSize = current != historySize - 1 ? 2 : 1;
+
+                for ( int pairIndex = 0; pairIndex < pairSize; pairIndex++ )
                 {
-                    reducedHistory.AddMessage(chatHistory[current - 1].Role, chatHistory[current - 1].Content, chatHistory[current - 1].AdditionalProperties);
-                    tokenUsage += GetTokenCountForMessage(chatHistory[current - 1]);
+                    this.conversationBuilder.AddMessageToConversation(reducedHistory, chatHistory[current + pairIndex].Role, chatHistory[current + pairIndex].Content, chatHistory[current + pairIndex].AdditionalProperties);
+                    tokenUsage += GetTokenCountForMessage(chatHistory[current + pairIndex]);
                 }
-
-                reducedHistory.AddMessage(chatHistory[current].Role, chatHistory[current].Content, chatHistory[current].AdditionalProperties);
-                tokenUsage += GetTokenCountForMessage(chatHistory[current]);
-
-                lastSkipped = false;
-            }
-            else
-            {
-                lastSkipped = true;
             }
         }
 
         this.pastLimitTokenSize.Add(tokenEstimate);
         this.reducedTokenSize.Add(GetTokenCountForSequence(reducedHistory));
 
+        ValidateHistory(reducedHistory, triggeringRole);
+
         return reducedHistory;
+    }
+
+    private void ValidateHistory(ChatHistory history, AuthorRole reductionTriggeringRole )
+    {
+        if ( history.Count < 1 )
+        {
+            throw new ArgumentException("History has no message -- it must have at least one message");
+        }
+
+        if ( history[0].Role != AuthorRole.System )
+        {
+            throw new ArgumentException(String.Format("First message in history does not have the valid System role and instead has invalid role {0}", history[0].Role));
+        }
+
+        var triggeringMessage = history[history.Count -1];
+
+        if ( triggeringMessage.Role != reductionTriggeringRole )
+        {
+            throw new ArgumentException(String.Format("The last message that triggered token reduction should have been {0} but was {1} instead", reductionTriggeringRole, triggeringMessage.Role));
+        }
+
+        var expectedOffset = triggeringMessage.Role == AuthorRole.Assistant ? 1 : 0;
+
+        if ( history.Count % 2 != expectedOffset )
+        {
+            throw new ArgumentException(String.Format("History count had an unexpected offset given the reduction triggering message role of {0}", triggeringMessage.Role));
+        }
+    }
+
+    private void SummarizeSequence(ChatHistory history, int start = 1)
+    {
+//        history.AddMessage(AuthorRole.Assistant, "Please summarize our conversation to this point",
+//        string summary = this.completionService.GenerateMessageAsync
     }
 
     private double GetTokenCountForMessage(ChatMessage message)
@@ -143,13 +160,15 @@ class TokenReducer
         }
     }
 
-    private IChatService chatService;
+    private ConversationBuilder conversationBuilder;
     private TokenReductionStrategy strategy;
 
     private double truncationPercent;
     private double wordToTokenFactor = 1.2;
 
     private int lastMessagePairCount = 2;
+    private int startMessageIndex = 1;
+    private int retainBeginningMessagePairs = 2;
 
     private List<double> pastLimitTokenSize;
     private List<double> reducedTokenSize;
