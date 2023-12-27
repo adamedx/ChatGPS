@@ -84,7 +84,7 @@ internal class ConversationBuilder
         destinationHistory.AddMessage(sourceHistory[messageIndex].Role, sourceHistory[messageIndex].Content, sourceHistory[messageIndex].AdditionalProperties);
     }
 
-    private void UpdateHistoryWithResponse(ChatHistory chatHistory, string response)
+    internal void UpdateHistoryWithResponse(ChatHistory chatHistory, string response)
     {
         AddMessageToConversation(chatHistory, AuthorRole.Assistant, response);
     }

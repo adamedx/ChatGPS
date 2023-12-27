@@ -28,7 +28,7 @@ class TokenReducer
         case TokenReductionStrategy.None:
             break;
         case TokenReductionStrategy.Summarize:
-            this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.6;
+            this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.7;
             break;
         case TokenReductionStrategy.Truncate:
             this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.5;
@@ -76,8 +76,18 @@ class TokenReducer
 
                 for ( int pairIndex = 0; pairIndex < pairSize; pairIndex++ )
                 {
-                    this.conversationBuilder.AddMessageToConversation(reducedHistory, chatHistory[current + pairIndex].Role, chatHistory[current + pairIndex].Content, chatHistory[current + pairIndex].AdditionalProperties);
-                    tokenUsage += GetTokenCountForMessage(chatHistory[current + pairIndex]);
+                    if ( ( current == lossIndexEnd ) &&
+                         ( pairIndex == 0 ) &&
+                         ( this.strategy == TokenReductionStrategy.Summarize ) )
+                    {
+                        AddSummaryToConversation(reducedHistory, chatHistory, lossIndexStart);
+                    }
+                    else
+                    {
+                        this.conversationBuilder.AddMessageToConversation(reducedHistory, chatHistory[current + pairIndex].Role, chatHistory[current + pairIndex].Content, chatHistory[current + pairIndex].AdditionalProperties);
+                    }
+
+                    tokenUsage += GetTokenCountForMessage(reducedHistory[reducedHistory.Count - 1]);
                 }
             }
         }
@@ -117,10 +127,24 @@ class TokenReducer
         }
     }
 
-    private void SummarizeSequence(ChatHistory history, int start = 1)
+    private void AddSummaryToConversation(ChatHistory targetHistory, ChatHistory sourceHistory, int summaryEnd)
     {
-//        history.AddMessage(AuthorRole.Assistant, "Please summarize our conversation to this point",
-//        string summary = this.completionService.GenerateMessageAsync
+        var lastMessage = sourceHistory[summaryEnd];
+
+        if ( lastMessage.Role != AuthorRole.Assistant )
+        {
+            throw new ArgumentException("Message summary cannot be generated for this history because the last response is not from an assistant");
+        }
+
+        this.conversationBuilder.AddMessageToConversation(targetHistory, AuthorRole.User, "Please summarize our conversation up to this point, and start the summary by saying 'Also, just to remind us both of our conversation in case we forgot anything, here is a summary what we have been talking about:'.");
+
+        var summaryTask = this.conversationBuilder.SendMessageAsync(targetHistory);
+
+        var summary = summaryTask.Result;
+
+        var summaryWithOriginalResponse = summary + "\n\n" + lastMessage.Content;
+
+        this.conversationBuilder.UpdateHistoryWithResponse(targetHistory, summaryWithOriginalResponse);
     }
 
     private double GetTokenCountForMessage(ChatMessage message)

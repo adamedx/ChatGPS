@@ -35,22 +35,30 @@ public class ChatSession
 
         string? response = null;
 
+        Microsoft.SemanticKernel.Diagnostics.HttpOperationException? tokenException = null;
+
         for ( int attempt = 0; attempt < 3; attempt++ )
         {
             try
             {
                 response = await this.conversationBuilder.SendMessageAsync(this.chatHistory);
+                tokenException = null;
                 break;
             }
             catch (Microsoft.SemanticKernel.Diagnostics.HttpOperationException e)
             {
                 if ( IsTokenLimitException(e) )
                 {
+                    tokenException = e;
                     var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
 
                     if ( reducedHistory != null )
                     {
                         this.chatHistory = reducedHistory;
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
                 else
@@ -58,6 +66,11 @@ public class ChatSession
                     throw;
                 }
             }
+        }
+
+        if ( tokenException is not null )
+        {
+            throw tokenException;
         }
 
         if ( response is null )

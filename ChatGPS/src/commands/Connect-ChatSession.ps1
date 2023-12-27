@@ -24,7 +24,7 @@ function Connect-ChatSession {
         [parameter(valuefrompipelinebypropertyname=$true)]
         [int32] $TokenLimit = 4096,
 
-        [validateset('None', 'Truncate')]
+        [validateset('None', 'Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Truncate',
 
         [switch] $NoSetCurrent,
@@ -50,19 +50,9 @@ function Connect-ChatSession {
         [PromptBook]::GetDefaultPrompt($SystemPromptId)
     }
 
-    $session = CreateSession $options -Prompt $targetPrompt -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent)
+    $session = CreateSession $options -Prompt $targetPrompt -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy
 
     if ( $PassThru.IsPresent ) {
         $session
-    } else {
-        for ( $i = 0; $i -lt 3; $i++ ) {
-            # Workaround for apparent race condition
-            try {
-                $session.History | select-object -last 1 | select-object -expandproperty Content
-                break
-            } catch {
-                start-sleep 1
-            }
-        }
     }
 }

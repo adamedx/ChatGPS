@@ -17,7 +17,7 @@ function CreateSession {
 
         [switch] $SetCurrent,
 
-        [validateset('None','Truncate')]
+        [validateset('None','Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Truncate',
 
         [switch] $NoConnect
@@ -61,5 +61,6 @@ function SendMessage($session, $prompt, $forceChat) {
         throw $response.Exception
     }
 
-    $result
+    # Explicitly returning this *seems* to work around strange behavior with async. A better fix: get rid of async. :)
+    $response.Result
 }
