@@ -52,15 +52,8 @@ function SendMessage($session, $prompt, $forceChat) {
     $response = if ( $session.HasFunction -and ! $forceChat ) {
         $session.GenerateFunctionResponse($prompt)
     } else {
-        $session.GenerateMessageAsync($prompt)
+        $session.GenerateMessage($prompt)
     }
 
-    $result = $response.Result
-
-    if ( $response.Status -ne ([System.Threading.Tasks.TaskStatus]::RanToCompletion) ) {
-        throw $response.Exception
-    }
-
-    # Explicitly returning this *seems* to work around strange behavior with async. A better fix: get rid of async. :)
-    $response.Result
+    $response
 }

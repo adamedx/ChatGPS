@@ -26,7 +26,7 @@ public class ChatSession
         this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
     }
 
-    public async Task<string> GenerateMessageAsync(string prompt)
+    public string GenerateMessage(string prompt)
     {
         var newMessageRole = AuthorRole.User;
 
@@ -37,19 +37,31 @@ public class ChatSession
 
         Microsoft.SemanticKernel.Diagnostics.HttpOperationException? tokenException = null;
 
+        Task<string>? messageTask = null;
+
         for ( int attempt = 0; attempt < 3; attempt++ )
         {
             try
             {
-                response = await this.conversationBuilder.SendMessageAsync(this.chatHistory);
+                messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
+                messageTask.Wait();
+
+                response = messageTask.Result;
+
                 tokenException = null;
                 break;
             }
-            catch (Microsoft.SemanticKernel.Diagnostics.HttpOperationException e)
+            catch (Exception)
             {
-                if ( IsTokenLimitException(e) )
+                var messageException = (
+                    ( messageTask is not null ) &&
+                    ( messageTask.Status == System.Threading.Tasks.TaskStatus.Faulted ) &&
+                    ( messageTask.Exception is not null ) ) ?
+                    messageTask.Exception.InnerException as Microsoft.SemanticKernel.Diagnostics.HttpOperationException : null;
+
+                if ( messageException is not null && IsTokenLimitException( messageException ) )
                 {
-                    tokenException = e;
+                    tokenException = messageException;
                     var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
 
                     if ( reducedHistory != null )
@@ -83,12 +95,12 @@ public class ChatSession
         return response;
     }
 
-    public async Task<string> GenerateFunctionResponse(string prompt)
+    public string GenerateFunctionResponse(string prompt)
     {
         this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, AuthorRole.User, prompt);
         ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
 
-        return await conversationBuilder.InvokeFunctionAsync(this.chatHistory, prompt);
+        return ( conversationBuilder.InvokeFunctionAsync(this.chatHistory, prompt) ).Result;
     }
 
     public ChatHistory History
