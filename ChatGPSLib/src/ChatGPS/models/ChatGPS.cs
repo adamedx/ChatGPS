@@ -21,6 +21,6 @@ public class ChatGPS
 
         string? targetChatFunctionPrompt = string.IsNullOrEmpty(chatFunctionPrompt) ? null : chatFunctionPrompt;
 
-        return new ChatSession(targetChatService, prompt, tokenStrategy, targetChatFunctionPrompt);
+        return new ChatSession(targetChatService, prompt, tokenStrategy, null, targetChatFunctionPrompt);
     }
 }

@@ -46,7 +46,7 @@ function Connect-ChatSession {
     $targetPrompt = if ( $Prompt ) {
         $Prompt
     } else {
-        $functionPrompt = [PromptBook]::GetFunctionPrompt($SystemPromptId)
+        $functionPrompt = [string] ([PromptBook]::GetFunctionPrompt($SystemPromptId))
         [PromptBook]::GetDefaultPrompt($SystemPromptId)
     }
 

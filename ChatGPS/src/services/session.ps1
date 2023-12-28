@@ -13,7 +13,7 @@ function CreateSession {
         [parameter(mandatory=$true)]
         [string] $Prompt,
 
-        $functionPrompt = $null,
+        [string] $functionPrompt = $null,
 
         [switch] $SetCurrent,
 
@@ -23,7 +23,7 @@ function CreateSession {
         [switch] $NoConnect
     )
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, $TokenStrategy, $null, $functionPrompt)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, $TokenStrategy, $functionPrompt, $null)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {

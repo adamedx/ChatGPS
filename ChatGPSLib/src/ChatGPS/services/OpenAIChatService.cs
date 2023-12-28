@@ -29,7 +29,6 @@ internal class OpenAIChatService : IChatService
         var kernel = GetKernel();
 
         var requestSettings = new OpenAIRequestSettings();
-        requestSettings.MaxTokens = this.options.TokenLimit;
 
         return kernel.CreateSemanticFunction(definitionPrompt, requestSettings: requestSettings);
     }

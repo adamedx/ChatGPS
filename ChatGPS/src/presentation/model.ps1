@@ -48,7 +48,7 @@ function ToResponse {
     [cmdletbinding()]
     param(
         [parameter(valuefrompipeline=$true, mandatory=$true)]
-        [string] $response,
+        [object] $response,
         [string] $role,
         [DateTime] $received,
         [switch] $AsString

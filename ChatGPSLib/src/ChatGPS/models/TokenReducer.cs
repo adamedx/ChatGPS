@@ -28,7 +28,7 @@ class TokenReducer
         case TokenReductionStrategy.None:
             break;
         case TokenReductionStrategy.Summarize:
-            this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.7;
+            this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.8;
             break;
         case TokenReductionStrategy.Truncate:
             this.truncationPercent = ( parameters != null ) ? (double) parameters : 0.5;
@@ -121,7 +121,7 @@ class TokenReducer
 
         var expectedOffset = triggeringMessage.Role == AuthorRole.Assistant ? 1 : 0;
 
-        if ( history.Count % 2 != expectedOffset )
+        if ( history.Count > 1 && ( history.Count % 2 != expectedOffset ) )
         {
             throw new ArgumentException(String.Format("History count had an unexpected offset given the reduction triggering message role of {0}", triggeringMessage.Role));
         }

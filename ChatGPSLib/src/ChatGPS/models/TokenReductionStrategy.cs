@@ -10,6 +10,5 @@ public enum TokenReductionStrategy
 {
     None,
     Truncate,
-    Summarize,
-    SummarizeAndTruncate
+    Summarize
 }

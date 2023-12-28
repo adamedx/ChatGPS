@@ -44,6 +44,7 @@ public class ChatSession
             try
             {
                 messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
+
                 messageTask.Wait();
 
                 response = messageTask.Result;
@@ -80,27 +81,23 @@ public class ChatSession
             }
         }
 
-        if ( tokenException is not null )
+        if ( tokenException != null || response == null )
         {
-            throw tokenException;
-        }
-
-        if ( response is null )
-        {
-            throw new NotSupportedException("The AI service was not able to return a response");
+            this.conversationBuilder.AddMessageToConversation(this.chatHistory, AuthorRole.Assistant, "My apologies, I was unable to respond to your last message.");
         }
 
         UpdateHistoryWithResponse();
 
+        if ( tokenException != null )
+        {
+            throw tokenException;
+        }
+        else if ( response == null )
+        {
+            throw new ArgumentException("The AI assistant was unable to generate a response.");
+        }
+
         return response;
-    }
-
-    public string GenerateFunctionResponse(string prompt)
-    {
-        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, AuthorRole.User, prompt);
-        ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
-
-        return ( conversationBuilder.InvokeFunctionAsync(this.chatHistory, prompt) ).Result;
     }
 
     public ChatHistory History
@@ -174,7 +171,6 @@ public class ChatSession
 
         return tokenLimitExceeded;
     }
-
 
     private void UpdateHistoryWithResponse()
     {
