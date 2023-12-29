@@ -36,6 +36,7 @@ public class ChatSession
         string? response = null;
 
         Microsoft.SemanticKernel.Diagnostics.HttpOperationException? tokenException = null;
+        Exception? lastException = null;
 
         Task<string>? messageTask = null;
 
@@ -43,17 +44,20 @@ public class ChatSession
         {
             try
             {
+                tokenException = null;
+                lastException = null;
+
                 messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
 
                 messageTask.Wait();
 
                 response = messageTask.Result;
-
-                tokenException = null;
                 break;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                lastException = e;
+
                 var messageException = (
                     ( messageTask is not null ) &&
                     ( messageTask.Status == System.Threading.Tasks.TaskStatus.Faulted ) &&
@@ -74,10 +78,6 @@ public class ChatSession
                         break;
                     }
                 }
-                else
-                {
-                    throw;
-                }
             }
         }
 
@@ -91,6 +91,10 @@ public class ChatSession
         if ( tokenException != null )
         {
             throw tokenException;
+        }
+        else if ( lastException is not null )
+        {
+            throw lastException;
         }
         else if ( response == null )
         {
