@@ -100,6 +100,30 @@ public class ChatSession
         return response;
     }
 
+    public string GenerateFunctionResponse(string prompt)
+    {
+        string response;
+
+        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, AuthorRole.User, prompt);
+        ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
+
+        try
+        {
+            response = ( conversationBuilder.InvokeFunctionAsync(this.chatHistory) ).Result;
+        }
+        catch (Exception)
+        {
+            this.conversationBuilder.AddMessageToConversation(this.chatHistory, AuthorRole.Assistant, "My apologies, I was unable to respond to your last message.");
+            throw;
+        }
+        finally
+        {
+            UpdateHistoryWithResponse();
+        }
+
+        return response;
+    }
+
     public ChatHistory History
     {
         get

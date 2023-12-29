@@ -42,7 +42,7 @@ internal class ConversationBuilder
         return response;
     }
 
-    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, string prompt)
+    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, string? prompt = null)
     {
         InitializeSemanticFunction();
 
@@ -51,9 +51,14 @@ internal class ConversationBuilder
             throw new ArgumentException("Unable to generate a function response -- this chat session does not have an optional associated chat function");
         }
 
-        AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
+        var targetPrompt = prompt is not null ? prompt : chatHistory[chatHistory.Count - 1].Content;
 
-        var response = await this.chatFunction.InvokeAsync(prompt, this.chatService.GetKernel());
+        if ( prompt is not null )
+        {
+            AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
+        }
+
+        var response = await this.chatFunction.InvokeAsync(targetPrompt, this.chatService.GetKernel());
 
         var resultString = response.GetValue<string>();
 
