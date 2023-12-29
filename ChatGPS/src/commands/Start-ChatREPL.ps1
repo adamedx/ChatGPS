@@ -144,6 +144,7 @@ function Start-ChatREPL {
                 # placeholder response object that will usually not show in the display (but will be in the output).
                 #
                 Read-Host
+                write-host
             } else {
                 $replyText
             }
@@ -158,7 +159,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters -RawOutput:$RawOutput.IsPresent
 
             $lastResponse = $result
 
