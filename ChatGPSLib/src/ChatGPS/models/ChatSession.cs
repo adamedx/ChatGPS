@@ -28,6 +28,56 @@ public class ChatSession
 
     public string GenerateMessage(string prompt)
     {
+        return GenerateMessageInternal(prompt, false);
+    }
+
+    public string GenerateFunctionResponse(string prompt)
+    {
+        return GenerateMessageInternal(prompt, true);
+    }
+
+    public ChatHistory History
+    {
+        get
+        {
+            return this.totalChatHistory;
+        }
+    }
+
+    public ChatHistory CurrentHistory
+    {
+        get
+        {
+            return this.chatHistory;
+        }
+    }
+
+    public bool HasFunction
+    {
+        get
+        {
+            return this.chatFunctionPrompt != null;
+        }
+    }
+
+    public ReadOnlyCollection<double> ExceededTokenLimitSizeList
+     {
+         get
+         {
+             return new ReadOnlyCollection<double>(this.tokenReducer.PastLimitTokenSize);
+         }
+     }
+
+    public ReadOnlyCollection<double> ReducedTokenSizeList
+     {
+         get
+         {
+             return new ReadOnlyCollection<double>(this.tokenReducer.ReducedTokenSize);
+         }
+     }
+
+    private string GenerateMessageInternal(string prompt, bool isFunction)
+    {
         var newMessageRole = AuthorRole.User;
 
         this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt);
@@ -47,7 +97,14 @@ public class ChatSession
                 tokenException = null;
                 lastException = null;
 
-                messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
+                if ( isFunction )
+                {
+                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory);
+                }
+                else
+                {
+                    messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
+                }
 
                 messageTask.Wait();
 
@@ -103,70 +160,6 @@ public class ChatSession
 
         return response;
     }
-
-    public string GenerateFunctionResponse(string prompt)
-    {
-        string response;
-
-        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, AuthorRole.User, prompt);
-        ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
-
-        try
-        {
-            response = ( conversationBuilder.InvokeFunctionAsync(this.chatHistory) ).Result;
-        }
-        catch (Exception)
-        {
-            this.conversationBuilder.AddMessageToConversation(this.chatHistory, AuthorRole.Assistant, "My apologies, I was unable to respond to your last message.");
-            throw;
-        }
-        finally
-        {
-            UpdateHistoryWithResponse();
-        }
-
-        return response;
-    }
-
-    public ChatHistory History
-    {
-        get
-        {
-            return this.totalChatHistory;
-        }
-    }
-
-    public ChatHistory CurrentHistory
-    {
-        get
-        {
-            return this.chatHistory;
-        }
-    }
-
-    public bool HasFunction
-    {
-        get
-        {
-            return this.chatFunctionPrompt != null;
-        }
-    }
-
-    public ReadOnlyCollection<double> ExceededTokenLimitSizeList
-     {
-         get
-         {
-             return new ReadOnlyCollection<double>(this.tokenReducer.PastLimitTokenSize);
-         }
-     }
-
-    public ReadOnlyCollection<double> ReducedTokenSizeList
-     {
-         get
-         {
-             return new ReadOnlyCollection<double>(this.tokenReducer.ReducedTokenSize);
-         }
-     }
 
     private bool IsTokenLimitException( Microsoft.SemanticKernel.Diagnostics.HttpOperationException operationException )
     {
