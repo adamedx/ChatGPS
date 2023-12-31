@@ -107,6 +107,7 @@ FileList = @(
     './src/intent.ps1'
     './src/presentation.ps1'
     './src/services.ps1'
+    './src/shell.ps1'
     './src/commands/Connect-ChatSession.ps1'
     './src/commands/Get-ChatConnection.ps1'
     './src/commands/Get-ChatCurrentSession.ps1'
@@ -123,6 +124,8 @@ FileList = @(
     './src/presentation/reply.ps1'
     './src/presentation/voice.ps1'
     './src/services/session.ps1'
+    './src/shell/ReplCommand.ps1'
+    './src/shell/ReplState.ps1'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.

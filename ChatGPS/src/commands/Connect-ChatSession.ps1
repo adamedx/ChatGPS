@@ -25,7 +25,7 @@ function Connect-ChatSession {
         [int32] $TokenLimit = 4096,
 
         [validateset('None', 'Truncate', 'Summarize')]
-        [string] $TokenStrategy = 'Truncate',
+        [string] $TokenStrategy = 'Summarize',
 
         [switch] $NoSetCurrent,
 

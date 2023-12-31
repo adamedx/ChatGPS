@@ -61,6 +61,8 @@ function Start-ChatREPL {
             @{}
         }
 
+        $replState = [ReplState]::new($connectionArgument.Connection, 'NaturalLanguage')
+
         $soundParameters = @{}
         if ( $MessageSound.IsPresent ) { $soundParameters['MessageSound'] = $MessageSound }
         if ( $SoundPath ) { $soundParameters['SoundPath'] = $SoundPath }
@@ -144,14 +146,28 @@ function Start-ChatREPL {
                 # placeholder response object that will usually not show in the display (but will be in the output).
                 #
                 Read-Host
-                write-host
             } else {
                 $replyText
             }
 
             $forceChat = $false
 
-            if ( ( ! $inputText ) -or ( $inputText.Trim() -eq '.exit' ) ) {
+            $replCommandResult = if ( $inputText ) {
+                InvokeReplCommand $inputText $replState.GetState()
+            }
+
+            if ( $replCommandResult ) {
+                $replState.Update($replCommandResult.UpdatedReplState)
+
+                if ( $replState.Status -eq [ReplStatus]::Exited ) {
+                    break
+                } else {
+                    $replCommandResult.Result
+                    continue
+                }
+            }
+
+            if ( ! $inputText ) {
                 break
             } elseif ( $inputText.Trim().StartsWith('.chat ') ) {
                 $keywordLength = '.chat '.Length
@@ -164,6 +180,7 @@ function Start-ChatREPL {
             $lastResponse = $result
 
             if ( $result ) {
+                write-host
                 $result
             }
         }
