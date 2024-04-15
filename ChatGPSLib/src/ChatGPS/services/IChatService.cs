@@ -7,12 +7,12 @@
 namespace Modulus.ChatGPS.Services;
 
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 public interface IChatService
 {
     public ChatHistory CreateChat(string prompt);
-    public IChatCompletion GetChatCompletion();
-    public ISKFunction CreateFunction(string definitionPrompt);
-    public IKernel GetKernel();
+    public IChatCompletionService GetChatCompletion();
+    public KernelFunction CreateFunction(string definitionPrompt);
+    public Kernel GetKernel();
 }

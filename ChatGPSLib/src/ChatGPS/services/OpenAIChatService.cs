@@ -7,8 +7,8 @@
 namespace Modulus.ChatGPS.Services;
 
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AI.OpenAI;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
@@ -21,26 +21,33 @@ internal class OpenAIChatService : IChatService
 
     public ChatHistory CreateChat(string prompt)
     {
-        return this.GetChatCompletion().CreateNewChat(prompt);
+        return new ChatHistory(prompt);
     }
 
-    public ISKFunction CreateFunction(string definitionPrompt)
+    public KernelFunction CreateFunction(string definitionPrompt)
     {
         var kernel = GetKernel();
 
-        var requestSettings = new OpenAIRequestSettings();
+        var requestSettings = new OpenAIPromptExecutionSettings();
 
-        return kernel.CreateSemanticFunction(definitionPrompt, requestSettings: requestSettings);
+        return kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
     }
 
-    public IChatCompletion GetChatCompletion()
+    public IChatCompletionService GetChatCompletion()
     {
         var kernel = GetKernel();
 
-        return kernel.GetService<IChatCompletion>();
+        var chatCompletionService = kernel.GetAllServices<IChatCompletionService>().FirstOrDefault();
+
+        if ( chatCompletionService is null )
+        {
+            throw new InvalidOperationException("A null result was obtained for the chat completion service");
+        }
+
+        return chatCompletionService;
     }
 
-    public IKernel GetKernel()
+    public Kernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -62,9 +69,9 @@ internal class OpenAIChatService : IChatService
             throw new ArgumentException("An API key for the AI service must be specified.");
         }
 
-        var builder = new KernelBuilder();
+        var builder = Kernel.CreateBuilder();
 
-        builder.WithAzureOpenAIChatCompletionService(
+        builder.AddAzureOpenAIChatCompletion(
             this.options.ModelIdentifier,
             this.options.ApiEndpoint.ToString(),
             this.options.ApiKey);
@@ -81,6 +88,6 @@ internal class OpenAIChatService : IChatService
         return newKernel;
     }
 
-    private IKernel? serviceKernel;
+    private Kernel? serviceKernel;
     private AiOptions options;
 }

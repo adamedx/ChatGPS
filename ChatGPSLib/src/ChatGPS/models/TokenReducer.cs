@@ -7,7 +7,8 @@
 namespace Modulus.ChatGPS.Models;
 
 using System.Collections.ObjectModel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
 using Modulus.ChatGPS.Services;
 
 class TokenReducer
@@ -58,7 +59,14 @@ class TokenReducer
             return null;
         }
 
-        var reducedHistory = this.conversationBuilder.CreateConversationHistory(chatHistory[0].Content);
+        var content = chatHistory[0].Content;
+
+        if ( content is null )
+        {
+            return null;
+        }
+
+        var reducedHistory = this.conversationBuilder.CreateConversationHistory(content);
 
         var tokenEstimate = GetTokenCountForSequence(chatHistory);
         var tokenTarget = tokenEstimate * (1 - this.truncationPercent);
@@ -82,12 +90,19 @@ class TokenReducer
                     {
                         AddSummaryToConversation(reducedHistory, chatHistory, lossIndexStart);
                     }
-                    else
+                    else if ( chatHistory[current + pairIndex].Content == null )
                     {
-                        this.conversationBuilder.AddMessageToConversation(reducedHistory, chatHistory[current + pairIndex].Role, chatHistory[current + pairIndex].Content, chatHistory[current + pairIndex].AdditionalProperties);
-                    }
+                        var sourceMessage = chatHistory[current + pairIndex];
+                        var sourceMessageContent = sourceMessage.Content;
 
-                    tokenUsage += GetTokenCountForMessage(reducedHistory[reducedHistory.Count - 1]);
+                        if ( sourceMessageContent is null )
+                        {
+                            throw new ArgumentException("Encountered a message with null content");
+                        }
+
+                        this.conversationBuilder.AddMessageToConversation(reducedHistory, sourceMessage.Role, sourceMessageContent, sourceMessage.Metadata);
+                        tokenUsage += GetTokenCountForMessage(reducedHistory[reducedHistory.Count - 1]);
+                    }
                 }
             }
         }
@@ -105,6 +120,11 @@ class TokenReducer
         if ( history.Count < 1 )
         {
             throw new ArgumentException("History has no message -- it must have at least one message");
+        }
+
+        if ( history[0].Content == null )
+        {
+            throw new ArgumentException("The first history message is null");
         }
 
         if ( history[0].Role != AuthorRole.System )
@@ -147,8 +167,13 @@ class TokenReducer
         this.conversationBuilder.UpdateHistoryWithResponse(targetHistory, summaryWithOriginalResponse);
     }
 
-    private double GetTokenCountForMessage(ChatMessage message)
+    private double GetTokenCountForMessage(ChatMessageContent message)
     {
+        if ( message.Content == null )
+        {
+            throw new ArgumentException("Message content may not be null");
+        }
+
         var whitespace = new char[] { ' ', '\t', '\r', '\n' };
 
         return message.Content.Split(whitespace, StringSplitOptions.RemoveEmptyEntries).Length * this.wordToTokenFactor;

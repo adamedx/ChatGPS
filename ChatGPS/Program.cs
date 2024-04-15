@@ -1,2 +1,7 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿//
+// Copyright (c), Adam Edwards
+//
+// All rights reserved.
+//
+Console.WriteLine("Hello World");
+

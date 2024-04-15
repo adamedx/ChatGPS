@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
@@ -85,7 +85,7 @@ public class ChatSession
 
         string? response = null;
 
-        Microsoft.SemanticKernel.Diagnostics.HttpOperationException? tokenException = null;
+        Microsoft.SemanticKernel.HttpOperationException? tokenException = null;
         Exception? lastException = null;
 
         Task<string>? messageTask = null;
@@ -119,7 +119,7 @@ public class ChatSession
                     ( messageTask is not null ) &&
                     ( messageTask.Status == System.Threading.Tasks.TaskStatus.Faulted ) &&
                     ( messageTask.Exception is not null ) ) ?
-                    messageTask.Exception.InnerException as Microsoft.SemanticKernel.Diagnostics.HttpOperationException : null;
+                    messageTask.Exception.InnerException as Microsoft.SemanticKernel.HttpOperationException : null;
 
                 if ( messageException is not null && IsTokenLimitException( messageException ) )
                 {
@@ -161,7 +161,7 @@ public class ChatSession
         return response;
     }
 
-    private bool IsTokenLimitException( Microsoft.SemanticKernel.Diagnostics.HttpOperationException operationException )
+    private bool IsTokenLimitException( Microsoft.SemanticKernel.HttpOperationException operationException )
     {
         var tokenLimitExceeded = false;
 
