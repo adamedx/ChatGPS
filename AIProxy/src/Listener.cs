@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 internal class Listener
 {
-    internal Listener(Func<string, string?> responder)
+    internal Listener(Func<string, (bool finished, string? content)> responder)
     {
         this.responder = responder;
         this.inputStream = System.Console.OpenStandardInput(1);
@@ -102,7 +102,7 @@ internal class Listener
 
         while ( ! finished )
         {
-            string? result = null;
+            string? request = null;
 
             try
             {
@@ -111,28 +111,24 @@ internal class Listener
 
                 Task.WaitAll(tasks, cancellationToken);
 
-                result = task.Result;
+                request = task.Result;
 
-                finished = result is null;
-
-                if ( finished )
-                {
-                    Logger.Log("The input stream has no more input, will stop listening.");
-                }
-                else if ( result == "exit" )
-                {
-                    finished = true;
-
-                    Logger.Log("The input stream contained an instruction to stop listening, will stop listening");
-                }
+                finished = request is null;
 
                 if ( ! finished )
                 {
-                    Console.WriteLine("READ: {0}", result);
+                    var response = responder.Invoke(request ?? "");
+
+                    finished = response.finished;
+
+                    if ( finished )
+                    {
+                        Logger.Log("The input stream contained an instruction to stop listening, will stop listening");
+                    }
                 }
                 else
                 {
-                    Logger.Log("Listener stopping due to detecting an expected completion condition");
+                    Logger.Log("The input stream has no more input, will stop listening.");
                 }
             }
             catch ( TaskCanceledException )
@@ -167,7 +163,7 @@ internal class Listener
         Logger.Log("Closed reader in order to cancel reading input");
     }
 
-    private Func<string, string?> responder;
+    private Func<string, (bool finished, string? content)> responder;
     private Stream? inputStream;
     private Thread? readThread;
     private StreamReader reader;

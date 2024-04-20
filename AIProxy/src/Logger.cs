@@ -13,18 +13,23 @@ internal class Logger
         Debug
     }
 
-    static internal void InitializeDefaultLogger( LogLevel logLevel = LogLevel.Default )
+    static internal void InitializeDefaultLogger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null )
     {
         if ( Logger.defaultLogger is not null )
         {
             throw new InvalidOperationException("The logger has already been initialized.");
         }
 
-        Logger.defaultLogger = new Logger( logLevel );
+        Logger.defaultLogger = new Logger( logLevel, consoleOutput, logFilePath );
+
+        Logger.defaultLogger.Open();
     }
 
-    internal Logger( LogLevel logLevel = LogLevel.Default )
+    internal Logger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null )
     {
+        this.consoleOutput = consoleOutput;
+        this.logFilePath = logFilePath;
+
         if ( logLevel == LogLevel.Default )
         {
             this.logLevel = LogLevel.None;
@@ -35,15 +40,61 @@ internal class Logger
         }
     }
 
+    internal void Open()
+    {
+        if ( this.started )
+        {
+            throw new InvalidOperationException("The log must be started before the Write method may be executed");
+        }
+
+        if ( ( this.logFilePath is not null ) && ( this.logLevel != LogLevel.None ) )
+        {
+            var options = new FileStreamOptions() {
+                Mode = FileMode.Append,
+                Access = FileAccess.Write
+            };
+
+            this.fileWriter = new StreamWriter(this.logFilePath, options);
+        }
+
+        this.started = true;
+    }
+
     internal void Write( string format, params object[] logArguments )
     {
         if ( this.logLevel == LogLevel.Debug )
         {
             var managedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
-            var entryWithTime = string.Format("{0}\t0x{1:X8}\t{2}", DateTimeOffset.Now.LocalDateTime.ToString("u"), managedThreadId, format);
-            Console.WriteLine( entryWithTime,  logArguments );
+            var logArgumentString = string.Format(format, logArguments);
+
+            var entryWithTime = string.Format("{0}\t0x{1:X8}\t{2}\n", DateTimeOffset.Now.LocalDateTime.ToString("u"), managedThreadId, logArgumentString);
+
+            if ( this.fileWriter is not null )
+            {
+                this.fileWriter.WriteAsync(entryWithTime);
+            }
+
+            if ( this.consoleOutput )
+            {
+                Console.Write(entryWithTime);
+            }
         }
+    }
+
+    internal void Close()
+    {
+        if ( this.ended )
+        {
+            throw new InvalidOperationException("The End method may not be invoked more than once");
+        }
+
+        if ( this.fileWriter is not null )
+        {
+            this.fileWriter.Close();
+        }
+
+        this.ended = true;
     }
 
     internal static void Log( string format, params object[] logArguments )
@@ -56,6 +107,21 @@ internal class Logger
         Logger.defaultLogger.Write( format, logArguments );
     }
 
+    internal static void End()
+    {
+        if ( Logger.defaultLogger is null )
+        {
+            throw new InvalidOperationException("The type has not been initialized");
+        }
+
+        Logger.defaultLogger.Close();
+    }
+
     private static Logger? defaultLogger;
     private LogLevel logLevel;
+    private bool consoleOutput;
+    private string? logFilePath;
+    private StreamWriter? fileWriter;
+    private bool started;
+    private bool ended;
 }

@@ -11,3 +11,4 @@ azureopenai.config
 .#*
 *#
 launchsettings.json
+AIProxyLog.txt
