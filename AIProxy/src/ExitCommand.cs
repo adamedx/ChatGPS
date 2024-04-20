@@ -8,18 +8,21 @@ internal class ExitCommand : Command
 {
     internal ExitCommand(CommandProcessor processor) : base(processor) {}
 
-    internal override string? Process(string[] arguments)
+    internal override ProxyResponse.Operation[] Process(string[] arguments, bool whatIf = false)
     {
-        string? result = null;
+        var operation = new ProxyResponse.Operation("exit", Invoke);
 
-        try
+        if ( ! whatIf )
         {
-            result = this.processor.RequestExit();
-        }
-        catch
-        {
+            operation.Invoke();
         }
 
-        return result;
+        return new ProxyResponse.Operation[] { operation };
+    }
+
+    private string? Invoke(ProxyResponse.Operation operation)
+    {
+        this.processor.RequestExit();
+        return null;
     }
 }

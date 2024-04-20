@@ -24,6 +24,9 @@ var serviceIdOption = new Option<string>
 var configOption = new Option<string>
     (name: "--config") { IsRequired = true };
 
+var whatIfOption = new Option<bool>
+    (name: "--whatif");
+
 var timeoutOption = new Option<int>
     (name: "--timeout",
      getDefaultValue: () => 10000);
@@ -39,19 +42,20 @@ var thisCommand = new RootCommand("AI service proxy application");
 
 thisCommand.Add(serviceIdOption);
 thisCommand.Add(configOption);
+thisCommand.Add(whatIfOption);
 thisCommand.Add(timeoutOption);
 thisCommand.Add(debugOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((serviceId, config, timeout, enableDebugOutput, logFilePath) =>
+thisCommand.SetHandler((serviceId, config, whatIf, timeout, enableDebugOutput, logFilePath) =>
     {
-        Start(serviceId, config, timeout, enableDebugOutput, logFilePath);
+        Start(serviceId, config, whatIf, timeout, enableDebugOutput, logFilePath);
     },
-    serviceIdOption, configOption, timeoutOption, debugOption, logFileOption);
+    serviceIdOption, configOption, whatIfOption, timeoutOption, debugOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( string serviceId, string config, int timeout, bool enableDebugOutput, string? logFilePath )
+void Start( string serviceId, string config, bool whatIf, int timeout, bool enableDebugOutput, string? logFilePath )
 {
     var serializedCommandArguments = config;
 
@@ -72,7 +76,7 @@ void Start( string serviceId, string config, int timeout, bool enableDebugOutput
 
         var configuration = GetConfiguration( serializedCommandArguments );
 
-        var proxyApp = new ProxyApp(validServices[serviceId], configuration, timeout);
+        var proxyApp = new ProxyApp(validServices[serviceId], configuration, whatIf, timeout);
 
         proxyApp.Run();
 

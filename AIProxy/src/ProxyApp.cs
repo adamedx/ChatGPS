@@ -9,12 +9,12 @@ using Modulus.ChatGPS.Services;
 
 internal class ProxyApp
 {
-    internal ProxyApp(ServiceBuilder.ServiceId serviceId, AiOptions options, int timeout = 6000)
+    internal ProxyApp(ServiceBuilder.ServiceId serviceId, AiOptions options, bool whatIfMode = false, int timeout = 6000)
     {
         this.serviceId = serviceId;
         this.options = options;
         this.timeout = timeout;
-        this.commandProcessor = new CommandProcessor();
+        this.commandProcessor = new CommandProcessor(whatIfMode);
     }
 
     internal bool Run()
@@ -47,6 +47,13 @@ internal class ProxyApp
         return finished;
     }
 
+    internal bool WhatIfMode {
+        get
+        {
+            return this.commandProcessor.WhatIfMode;
+        }
+    }
+
     private void Initialize()
     {
         Logger.Log($"Getting AI service with service id {serviceId}");
@@ -66,39 +73,33 @@ internal class ProxyApp
 
         responseContent = $"Received request: {input}.";
 
-        try
+        var inputParameters = input.Split(" ");
+
+        if ( inputParameters.Length == 0 )
         {
-            var inputParameters = input.Split(" ");
-
-            if ( inputParameters.Length == 0 )
-            {
-                throw new ArgumentException("No command name was specified");
-            }
-
-            var commandName = inputParameters[0];
-
-            var commandArguments = new string[inputParameters.Length - 1];
-
-            if ( inputParameters.Length > 1 )
-            {
-                commandArguments[0] = inputParameters[1];
-            }
-
-            var commandResult = this.commandProcessor.InvokeCommand(commandName, commandArguments);
-
-            responseContent += $" SUCCESS: {commandResult}";
+            throw new ArgumentException("No command name was specified");
         }
-        catch (ArgumentException e)
+
+        var commandName = inputParameters[0];
+
+        var commandArguments = new string[inputParameters.Length - 1];
+
+        if ( inputParameters.Length > 1 )
         {
-            responseContent += $" ERROR: {e.Message}";
+            commandArguments[0] = inputParameters[1];
         }
+
+        var commandResult = this.commandProcessor.InvokeCommand(commandName, commandArguments);
+
+        responseContent += $"{commandResult}";
 
         var finished = commandProcessor.Status == CommandProcessor.RuntimeStatus.Exited;
 
-        Console.WriteLine("RESPONSE: {0}", responseContent ?? "(no content)");
+        Console.WriteLine("\tRESPONSE:\n\t\t{0}", responseContent ?? "(no content)");
 
         return (finished, responseContent);
     }
+
 
     private ServiceBuilder.ServiceId serviceId;
     private AiOptions options;
