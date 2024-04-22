@@ -4,6 +4,9 @@
 // All rights reserved.
 //
 
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 public class ProxyResponse
 {
     public enum ResponseType
@@ -48,7 +51,7 @@ public class ProxyResponse
             this.operationFunction = operationFunction;
         }
 
-        public void Invoke(Dictionary<string, string?>? arguments = null)
+        public void Invoke()
         {
             if ( this.Status == OperationStatus.Synthetic )
             {
@@ -65,11 +68,6 @@ public class ProxyResponse
                 throw new InvalidOperationException("This operation does not have an assigned function");
             }
 
-            if ( arguments is not null )
-            {
-                this.Arguments = arguments;
-            }
-
             try
             {
                 this.Result = this.operationFunction.Invoke(this);
@@ -83,7 +81,6 @@ public class ProxyResponse
         }
 
         public string? Name { get; set; }
-        public Dictionary<string,string?>? Arguments { get; set; }
 
         public string? Result
         {
@@ -163,9 +160,11 @@ public class ProxyResponse
         this.Type = ResponseType.WhatIf;
     }
 
-    public ProxyResponse(string[] serializedResponses)
+    public ProxyResponse(string[] serializedResponses, ProxyException[] exceptions)
     {
+        this.Status = ResponseStatus.Success;
         this.Content = serializedResponses;
+        this.Exceptions = exceptions;
         this.Type = ResponseType.Normal;
         Validate();
     }
@@ -219,8 +218,32 @@ public class ProxyResponse
         }
     }
 
+    public ProxyException[]? Exceptions {
+        get
+        {
+            return this.exceptions;
+        }
+
+        set
+        {
+            if ( this.exceptions is not null )
+            {
+                throw new InvalidOperationException("This operation's exception status may not be set more than once.");
+            }
+
+            this.exceptions = value;
+
+            if ( value is not null && value.Length > 0 )
+            {
+                this.Status = ResponseStatus.Error;
+            }
+        }
+    }
+
     public ResponseStatus Status { get; set; }
     public ResponseType Type { get; set; }
     public string[]? Content { get; set; }
     public ExecutionPlan? Plan { get; set; }
+
+    private ProxyException[]? exceptions;
 }

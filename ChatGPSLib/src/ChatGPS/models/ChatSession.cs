@@ -17,6 +17,8 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null)
     {
+        this.Id = new Guid();
+
         this.chatFunctionPrompt = chatFunctionPrompt;
         this.conversationBuilder = new ConversationBuilder(chatService, chatFunctionPrompt);
 
@@ -75,6 +77,8 @@ public class ChatSession
              return new ReadOnlyCollection<double>(this.tokenReducer.ReducedTokenSize);
          }
      }
+
+    public Guid Id { get; private set; }
 
     private string GenerateMessageInternal(string prompt, bool isFunction)
     {

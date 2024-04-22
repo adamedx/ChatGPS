@@ -12,9 +12,9 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
-internal class OpenAIChatService : IChatService
+public class OpenAIChatService : IChatService
 {
-    internal OpenAIChatService(AiOptions options)
+    public OpenAIChatService(AiOptions options)
     {
         this.options = options;
     }

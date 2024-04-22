@@ -4,6 +4,8 @@
 // All rights reserved.
 //
 
+using System.Text.Json;
+
 internal class CommandProcessor
 {
     internal enum RuntimeStatus
@@ -15,13 +17,15 @@ internal class CommandProcessor
     internal CommandProcessor(bool whatIfMode = false)
     {
         this.WhatIfMode = whatIfMode;
+        this.Connections = new ConnectionManager();
         this.commandTable = new Dictionary<string,Func<Command>> {
+            { "createconnection", () => { return new CreateConnectionCommand(this); } },
             { "exit", () => { return new ExitCommand(this); } },
             { "sendchat", () => { return new SendChatCommand(this); } }
         };
     }
 
-    internal string? InvokeCommand(string commandName, string[] arguments)
+    internal string? InvokeCommand(string commandName, string? arguments)
     {
         if ( this.Status == RuntimeStatus.Exited )
         {
@@ -36,17 +40,27 @@ internal class CommandProcessor
         {
             var command = commandFunc.Invoke();
 
-            operations = command.Process(arguments, this.WhatIfMode);
+            try
+            {
+                operations = command.Process(arguments, this.WhatIfMode);
+            }
+            catch (Exception e)
+            {
+                var commandFailedOperation = new ProxyResponse.Operation($"The attempt to execute commad '{commandName}' failed.", e);
+                operations = new ProxyResponse.Operation[] { commandFailedOperation };
+            }
         }
         else
         {
-            var operationException = new ArgumentException($"The specified command {commandName} does not exist");
-            var failedOperation = new ProxyResponse.Operation($"InvokeCommand-{commandName}", operationException);
+            var operationException = new ArgumentException($"The specified command {commandName} does not exist.");
+            var notFoundOperation = new ProxyResponse.Operation($"InvokeCommand-{commandName}", operationException);
 
-            operations = new ProxyResponse.Operation[] { failedOperation };
+            operations = new ProxyResponse.Operation[] { notFoundOperation };
         }
 
-        string? result = operations.Length > 0 ? "" : null;
+
+        List<string> content = new List<string>();
+        List<ProxyException> exceptions = new List<ProxyException>();
 
         foreach ( ProxyResponse.Operation operation in operations )
         {
@@ -54,19 +68,39 @@ internal class CommandProcessor
             {
                 if ( operation.Status != ProxyResponse.Operation.OperationStatus.Error )
                 {
-                    result += $"\n\t\tSUCCESS: Successfully executed {operation.Name} with result: {operation.Result}";
+                    content.Add(operation.Result ?? "");
+                    Logger.Log($"Successfully executed {operation.Name} with result: {operation.Result}");
                 }
                 else
                 {
-                    var errorMessage = operation.OperationException?.Message ?? "";
-                    result += $"\n\t\tERROR: Failed to execute {operation.Name} with exception: {errorMessage}";
+                    var targetException = operation.OperationException ??
+                        new ProxyException("An unspecified error occurred", new ArgumentException("An unexpected error occurred"));
+                    var errorMessage = targetException.Message ?? "An unspecified error occurred";
+                    var exceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
+
+                    Logger.Log(exceptionMessage);
+
+                    exceptions.Add( new ProxyException(exceptionMessage, targetException) );
                 }
             }
             else
             {
-                result += $"\n\t\tOPERATION: Would execute {operation.Name}";
+                Logger.Log($"\n\t\tOPERATION: Would execute {operation.Name}");
             }
         }
+
+        ProxyResponse response;
+
+        if ( ! this.WhatIfMode )
+        {
+            response = new ProxyResponse(content.ToArray(), exceptions.ToArray());
+        }
+        else
+        {
+            response = new ProxyResponse(operations);
+        }
+
+        var result = JsonSerializer.Serialize<ProxyResponse>(response);
 
         return result;
     }
@@ -79,6 +113,8 @@ internal class CommandProcessor
 
     internal bool WhatIfMode { get; private set; }
     internal RuntimeStatus Status { get; private set; }
+
+    internal ConnectionManager Connections { get; private set; }
 
     private Dictionary<string,Func<Command>> commandTable;
 }

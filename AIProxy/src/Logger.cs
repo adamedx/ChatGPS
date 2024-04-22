@@ -60,15 +60,13 @@ internal class Logger
         this.started = true;
     }
 
-    internal void Write( string format, params object[] logArguments )
+    internal void Write( string outputString )
     {
         if ( this.logLevel == LogLevel.Debug )
         {
             var managedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
-            var logArgumentString = string.Format(format, logArguments);
-
-            var entryWithTime = string.Format("{0}\t0x{1:X8}\t{2}\n", DateTimeOffset.Now.LocalDateTime.ToString("u"), managedThreadId, logArgumentString);
+            var entryWithTime = string.Format("{0}\t0x{1:X8}\t{2}\n", DateTimeOffset.Now.LocalDateTime.ToString("u"), managedThreadId, outputString);
 
             if ( this.fileWriter is not null )
             {
@@ -97,14 +95,14 @@ internal class Logger
         this.ended = true;
     }
 
-    internal static void Log( string format, params object[] logArguments )
+    internal static void Log( string outputString )
     {
         if ( Logger.defaultLogger is null )
         {
             throw new InvalidOperationException("The type has not been initialized");
         }
 
-        Logger.defaultLogger.Write( format, logArguments );
+        Logger.defaultLogger.Write( outputString );
     }
 
     internal static void End()

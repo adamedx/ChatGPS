@@ -27,6 +27,9 @@ var configOption = new Option<string>
 var whatIfOption = new Option<bool>
     (name: "--whatif");
 
+var noEncodedArgumentsOption = new Option<bool>
+    (name: "--no-encodedarguments");
+
 var timeoutOption = new Option<int>
     (name: "--timeout",
      getDefaultValue: () => 10000);
@@ -43,19 +46,20 @@ var thisCommand = new RootCommand("AI service proxy application");
 thisCommand.Add(serviceIdOption);
 thisCommand.Add(configOption);
 thisCommand.Add(whatIfOption);
+thisCommand.Add(noEncodedArgumentsOption);
 thisCommand.Add(timeoutOption);
 thisCommand.Add(debugOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((serviceId, config, whatIf, timeout, enableDebugOutput, logFilePath) =>
+thisCommand.SetHandler((serviceId, config, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath) =>
     {
-        Start(serviceId, config, whatIf, timeout, enableDebugOutput, logFilePath);
+    Start(serviceId, config, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath);
     },
-    serviceIdOption, configOption, whatIfOption, timeoutOption, debugOption, logFileOption);
+    serviceIdOption, configOption, whatIfOption, noEncodedArgumentsOption, timeoutOption, debugOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( string serviceId, string config, bool whatIf, int timeout, bool enableDebugOutput, string? logFilePath )
+void Start( string serviceId, string config, bool whatIf, bool noEncodedArguments, int timeout, bool enableDebugOutput, string? logFilePath )
 {
     var serializedCommandArguments = config;
 
@@ -72,11 +76,11 @@ void Start( string serviceId, string config, bool whatIf, int timeout, bool enab
     {
         Logger.InitializeDefaultLogger( logLevel, enableDebugOutput, targetLogFilePath);
 
-        Logger.Log("Started AIProxy in process {0} -- debug output enabled", System.Diagnostics.Process.GetCurrentProcess().Id);
+        Logger.Log(string.Format("Started AIProxy in process {0} -- debug output enabled", System.Diagnostics.Process.GetCurrentProcess().Id));
 
         var configuration = GetConfiguration( serializedCommandArguments );
 
-        var proxyApp = new ProxyApp(validServices[serviceId], configuration, whatIf, timeout);
+        var proxyApp = new ProxyApp(validServices[serviceId], configuration, whatIf, ! noEncodedArguments, timeout);
 
         proxyApp.Run();
 
@@ -122,7 +126,7 @@ AiOptions GetConfiguration( string serializedConfiguration )
         configuration.ApiKey = apiKeyEnvironmentVariableValue;
     }
 
-    Logger.Log($"Environment variable {AI_SERVICE_KEY_ENVIRONMENT_VARIABLE} specified:{0}", ( apiKeyEnvironmentVariableValue is not null ).ToString() );
+    Logger.Log(string.Format($"Environment variable {AI_SERVICE_KEY_ENVIRONMENT_VARIABLE} specified:{0}", ( apiKeyEnvironmentVariableValue is not null ).ToString()));
 
     Logger.Log("Successfully read valid configuration");
 

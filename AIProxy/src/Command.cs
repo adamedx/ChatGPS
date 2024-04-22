@@ -21,7 +21,7 @@ internal abstract class Command
         this.processor = processor;
     }
 
-    internal abstract ProxyResponse.Operation[] Process(string[] arguments, bool whatIf = false);
+    internal abstract ProxyResponse.Operation[] Process(string? arguments, bool whatIf = false);
 
     protected CommandProcessor processor;
 }

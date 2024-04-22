@@ -64,7 +64,7 @@ internal class Listener
 
         var isStopped = this.readThread.ThreadState == System.Threading.ThreadState.Stopped;
 
-        Logger.Log("Finished waiting for listener thread to exit, wait for thread to stop was {0}.", isStopped ? "successful" : "unsuccessful");
+        Logger.Log(string.Format("Finished waiting for listener thread to exit, wait for thread to stop was {0}.", isStopped ? "successful" : "unsuccessful"));
 
         Logger.Log("Finished attempt to stop the listener.");
     }
