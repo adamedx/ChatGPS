@@ -128,7 +128,7 @@ $dotnetlocation = get-command $ProxyExecutablePath | select -expandproperty sour
 
 # $dotNetArguments = "-noprofile -command ""& '$dotnetlocation' run --serviceid AzureOpenAi --config stuff --debug --timeout 60000 --no-encodedarguments --project $psscriptroot\..\AIProxy.csproj --no-build"""
 
-$dotNetArguments = "run --serviceid AzureOpenAi --config stuff --debug --timeout 60000 --project $psscriptroot\..\AIProxy.csproj --no-build"
+$dotNetArguments = "run --serviceid AzureOpenAi --debug --timeout 60000 --project $psscriptroot\..\AIProxy.csproj --no-build"
 
 $processArguments = "-noprofile -command ""& '$dotnetlocation' $dotNetArguments"""
 # $processArguments = $dotNetArguments

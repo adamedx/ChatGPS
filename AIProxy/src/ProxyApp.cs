@@ -13,10 +13,9 @@ using Modulus.ChatGPS.Services;
 
 internal class ProxyApp
 {
-    internal ProxyApp(ServiceBuilder.ServiceId serviceId, AiOptions options, bool whatIfMode = false, bool encodedArguments = true, int timeout = 6000)
+    internal ProxyApp(ServiceBuilder.ServiceId serviceId, bool whatIfMode = false, bool encodedArguments = true, int timeout = 6000)
     {
         this.serviceId = serviceId;
-        this.options = options;
         this.encodedArguments = encodedArguments;
         this.timeout = timeout;
         this.commandProcessor = new CommandProcessor(whatIfMode);
@@ -25,8 +24,6 @@ internal class ProxyApp
     internal bool Run()
     {
         Logger.Log("Started proxy application");
-
-        Initialize();
 
         var listener = new Modulus.ChatGPS.AIProxy.Listener(Responder);
 
@@ -57,19 +54,6 @@ internal class ProxyApp
         {
             return this.commandProcessor.WhatIfMode;
         }
-    }
-
-    private void Initialize()
-    {
-        Logger.Log($"Getting AI service with service id {serviceId}");
-
-        var builder = ServiceBuilder.CreateBuilder();
-
-        var chatService =  builder.WithServiceId(this.serviceId).WithOptions(this.options).Build();
-
-        Logger.Log($"Successfully retrieved service");
-
-        this.service = chatService;
     }
 
     private (bool finished, string? content) Responder(string encodedRequest)
@@ -153,9 +137,7 @@ internal class ProxyApp
     }
 
     private ServiceBuilder.ServiceId serviceId;
-    private AiOptions options;
     private bool encodedArguments;
     private int timeout;
-    private IChatService? service;
     private CommandProcessor commandProcessor;
 }

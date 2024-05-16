@@ -7,7 +7,6 @@
 using System.CommandLine;
 using Modulus.ChatGPS.Models;
 
-const string AI_SERVICE_KEY_ENVIRONMENT_VARIABLE = "__AIPROXY_KEY";
 const string DEBUG_FILE_NAME = "AIProxyLog.txt";
 
 Dictionary<string,ServiceBuilder.ServiceId> validServices = new Dictionary<string, ServiceBuilder.ServiceId>() {
@@ -18,9 +17,6 @@ var serviceIdOption = new Option<string>
     (name: "--serviceid",
      getDefaultValue: () => ServiceBuilder.ServiceId.AzureOpenAi.ToString())
     .FromAmong(ServiceBuilder.ServiceId.AzureOpenAi.ToString());
-
-var configOption = new Option<string>
-    (name: "--config") { IsRequired = true };
 
 var whatIfOption = new Option<bool>
     (name: "--whatif");
@@ -42,25 +38,22 @@ var logFileOption = new Option<string>
 var thisCommand = new RootCommand("AI service proxy application");
 
 thisCommand.Add(serviceIdOption);
-thisCommand.Add(configOption);
 thisCommand.Add(whatIfOption);
 thisCommand.Add(noEncodedArgumentsOption);
 thisCommand.Add(timeoutOption);
 thisCommand.Add(debugOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((serviceId, config, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath) =>
+thisCommand.SetHandler((serviceId, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath) =>
     {
-    Start(serviceId, config, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath);
+    Start(serviceId, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath);
     },
-    serviceIdOption, configOption, whatIfOption, noEncodedArgumentsOption, timeoutOption, debugOption, logFileOption);
+    serviceIdOption, whatIfOption, noEncodedArgumentsOption, timeoutOption, debugOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( string serviceId, string config, bool whatIf, bool noEncodedArguments, int timeout, bool enableDebugOutput, string? logFilePath )
+void Start( string serviceId, bool whatIf, bool noEncodedArguments, int timeout, bool enableDebugOutput, string? logFilePath )
 {
-    var serializedCommandArguments = config;
-
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
     var targetLogFilePath = logFilePath is null ?
@@ -78,9 +71,7 @@ void Start( string serviceId, string config, bool whatIf, bool noEncodedArgument
 
         Logger.Log(string.Format("Started AIProxy in process {0} -- debug output enabled", System.Diagnostics.Process.GetCurrentProcess().Id));
 
-        var configuration = GetConfiguration( serializedCommandArguments );
-
-        var proxyApp = new ProxyApp(validServices[serviceId], configuration, whatIf, ! noEncodedArguments, timeout);
+        var proxyApp = new ProxyApp(validServices[serviceId], whatIf, ! noEncodedArguments, timeout);
 
         proxyApp.Run();
 
@@ -90,47 +81,5 @@ void Start( string serviceId, string config, bool whatIf, bool noEncodedArgument
     {
         Logger.End();
     }
-}
-
-AiOptions GetConfiguration( string serializedConfiguration )
-{
-    Logger.Log("Reading and validating configuration");
-
-//    JsonNode? jsonNode = null;
-
-    try
-    {
-        // jsonNode = JsonNode.Parse( serializedConfiguration );
-    }
-    catch ( Exception e )
-    {
-        throw new ArgumentException( "The specified configuration was not valid JSON", e );
-    }
-
-//    AiOptions? configuration = JsonSerializer.Deserialize<AiOptions>( jsonNode );
-    AiOptions configuration = new AiOptions();
-
-    if ( configuration is null )
-    {
-        throw new ArgumentException("The specified configuration JSON did not conform to a valid schema.");
-    }
-
-    if ( configuration.ApiKey is not null )
-    {
-        throw new ArgumentException($"The ApiKey property must not be specified as configuration in the command-line because it is a sensitive value. Instead, it may be specified using the '{AI_SERVICE_KEY_ENVIRONMENT_VARIABLE}' environment variable.");
-    }
-
-    var apiKeyEnvironmentVariableValue = System.Environment.GetEnvironmentVariable(AI_SERVICE_KEY_ENVIRONMENT_VARIABLE);
-
-    if ( apiKeyEnvironmentVariableValue is not null )
-    {
-        configuration.ApiKey = apiKeyEnvironmentVariableValue;
-    }
-
-    Logger.Log(string.Format($"Environment variable {AI_SERVICE_KEY_ENVIRONMENT_VARIABLE} specified:{0}", ( apiKeyEnvironmentVariableValue is not null ).ToString()));
-
-    Logger.Log("Successfully read valid configuration");
-
-    return configuration;
 }
 
