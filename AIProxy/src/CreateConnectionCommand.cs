@@ -13,16 +13,14 @@ internal class CreateConnectionCommand : Command
 {
     internal CreateConnectionCommand(CommandProcessor processor) : base(processor) {}
 
-    internal override ProxyResponse.Operation[] Process(string? arguments, bool whatIf = false)
+    internal override ProxyResponse.Operation[] Process(CommandRequest? request, bool whatIf = false)
     {
-        if ( arguments is null )
+        if ( request is null )
         {
-            throw new ArgumentException("No argument string was specified");
+            throw new ArgumentException("createconnection command missing required arguments");
         }
 
-        var connectionArguments = JsonSerializer.Deserialize<CreateConnectionRequest>(arguments);
-
-        this.connectionArguments = connectionArguments;
+        this.connectionArguments = (CreateConnectionRequest) request;
 
         var operation = new ProxyResponse.Operation("createconnection", Invoke);
 
@@ -44,7 +42,10 @@ internal class CreateConnectionCommand : Command
         var newConnection = this.processor.Connections.NewConnection(this.connectionArguments.ServiceId, this.connectionArguments.ConnectionOptions);
         var response = new CreateConnectionResponse(newConnection.Id);
 
-        return JsonSerializer.Serialize<CreateConnectionResponse>(response);
+        var jsonOptions = new JsonSerializerOptions();
+        jsonOptions.IncludeFields = true;
+
+        return JsonSerializer.Serialize<CreateConnectionResponse>(response, jsonOptions);
     }
 
     private CreateConnectionRequest? connectionArguments;

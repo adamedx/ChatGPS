@@ -13,16 +13,16 @@ internal class SendChatCommand : Command
 {
     internal SendChatCommand(CommandProcessor processor) : base(processor) {}
 
-    internal override ProxyResponse.Operation[] Process(string? arguments, bool whatIf = false)
+    internal override ProxyResponse.Operation[] Process(CommandRequest? arguments, bool whatIf = false)
     {
+        if ( arguments is null )
+        {
+            throw new ArgumentException("sendchat command missing required arguments");
+        }
+
         var operation = new ProxyResponse.Operation("sendchat", Invoke);
 
-        this.arguments = ( arguments is not null ) ? JsonSerializer.Deserialize<SendChatRequest>(arguments) : null;
-
-        if ( this.arguments is null )
-        {
-            throw new ArgumentException("Invalid arguments specified for chat command");
-        }
+        this.arguments = (SendChatRequest) arguments;
 
         if ( ! whatIf )
         {
@@ -47,7 +47,10 @@ internal class SendChatCommand : Command
 
         var response = new SendChatResponse( ( result is not null ) ? result[result.Count - 1].Content : null );
 
-        return JsonSerializer.Serialize<SendChatResponse>(response);
+        var jsonOptions = new JsonSerializerOptions();
+        jsonOptions.IncludeFields = true;
+
+        return JsonSerializer.Serialize<SendChatResponse>(response, jsonOptions);
     }
 
     private SendChatRequest? arguments;

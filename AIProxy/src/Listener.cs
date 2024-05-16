@@ -73,11 +73,26 @@ internal class Listener
     {
         Logger.Log($"Started wait for {timeout} milliseconds for listener to finish");
 
-        var result = this.finishedEvent.WaitOne(timeout);
+        bool signaled = false;
 
-        Logger.Log($"Completed wait for listener -- finished:{result}");
+        while ( ! signaled )
+        {
+            this.waitAgain = false;
+            signaled = this.finishedEvent.WaitOne(timeout);
 
-        return result;
+            Logger.Log($"Listener event exited with:{signaled}, wait again set to {this.waitAgain}");
+
+            if ( signaled && this.waitAgain )
+            {
+                this.finishedEvent.Reset();
+                signaled = false;
+                Logger.Log("Finish waiting event was signaled, but wait again flag was set indicating the timeout has been reset to start again");
+            }
+        }
+
+        Logger.Log($"Completed wait for listener -- finished:{signaled}");
+
+        return signaled;
     }
 
     private void Listen()
@@ -117,6 +132,11 @@ internal class Listener
 
                 if ( ! finished )
                 {
+                    // Reset the idle timer for waiting for input -- now that
+                    // we've received some input, we can wait for additional time
+                    this.waitAgain = true;
+                    this.finishedEvent.Set();
+
                     var response = responder.Invoke(request ?? "");
 
                     finished = response.finished;
@@ -168,6 +188,7 @@ internal class Listener
     private Thread? readThread;
     private StreamReader reader;
     private ManualResetEvent finishedEvent;
+    private bool waitAgain = false;
     private CancellationTokenSource? cancellationTokenSource;
 }
 

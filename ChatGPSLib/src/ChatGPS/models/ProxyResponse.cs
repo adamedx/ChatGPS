@@ -156,35 +156,31 @@ public class ProxyResponse
         public Operation[]? Operations;
     }
 
-    public ProxyResponse() {
+    public ProxyResponse()
+    {
         this.Type = ResponseType.WhatIf;
     }
 
-    public ProxyResponse(string[] serializedResponses, ProxyException[] exceptions)
+    public ProxyResponse(Guid requestId, ResponseStatus status, string[] serializedResponses, ProxyException[] exceptions)
     {
         this.Status = ResponseStatus.Success;
         this.Content = serializedResponses;
         this.Exceptions = exceptions;
         this.Type = ResponseType.Normal;
-        Validate();
-    }
-
-    public ProxyResponse(ResponseStatus status, string[]? content)
-    {
-        this.Type = ResponseType.Normal;
+        this.RequestId = requestId;
         this.Status = status;
-        this.Content = content;
-        this.Plan = null;
 
         Validate();
     }
 
-    public ProxyResponse(Operation[] operations)
+    public ProxyResponse(Guid requestId, ResponseStatus status, Operation[] operations)
     {
         this.Type = ResponseType.WhatIf;
         this.Status = ResponseStatus.Success;
         this.Plan = new ExecutionPlan(operations);
         this.Content = null;
+        this.RequestId = requestId;
+        this.Status = status;
 
         Validate();
     }
@@ -244,6 +240,7 @@ public class ProxyResponse
     public ResponseType Type { get; set; }
     public string[]? Content { get; set; }
     public ExecutionPlan? Plan { get; set; }
+    public Guid RequestId { get; set; }
 
     private ProxyException[]? exceptions;
 }

@@ -4,11 +4,13 @@
 // All rights reserved.
 //
 
+using Modulus.ChatGPS.Models.Proxy;
+
 internal class ExitCommand : Command
 {
     internal ExitCommand(CommandProcessor processor) : base(processor) {}
 
-    internal override ProxyResponse.Operation[] Process(string? arguments, bool whatIf = false)
+    internal override ProxyResponse.Operation[] Process(CommandRequest? request, bool whatIf = false)
     {
         var operation = new ProxyResponse.Operation("exit", Invoke);
 

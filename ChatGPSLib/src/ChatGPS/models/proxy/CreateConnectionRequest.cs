@@ -5,9 +5,10 @@
 //
 
 using Modulus.ChatGPS.Models;
-using Modulus.ChatGPS.Models.Proxy;
 
-public class CreateConnectionRequest
+namespace Modulus.ChatGPS.Models.Proxy;
+
+public class CreateConnectionRequest : CommandRequest
 {
     public ServiceBuilder.ServiceId ServiceId { get; set; }
     public AiOptions? ConnectionOptions { get; set; }

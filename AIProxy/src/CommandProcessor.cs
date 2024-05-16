@@ -5,6 +5,8 @@
 //
 
 using System.Text.Json;
+using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Models.Proxy;
 
 internal class CommandProcessor
 {
@@ -18,18 +20,19 @@ internal class CommandProcessor
     {
         this.WhatIfMode = whatIfMode;
         this.Connections = new ConnectionManager();
-        this.commandTable = new Dictionary<string,Func<Command>> {
+        this.commandTable = new Dictionary<string,Func<Command>>
+        {
             { "createconnection", () => { return new CreateConnectionCommand(this); } },
             { "exit", () => { return new ExitCommand(this); } },
             { "sendchat", () => { return new SendChatCommand(this); } }
         };
     }
 
-    internal string? InvokeCommand(string commandName, string? arguments)
+    internal string? InvokeCommand(Guid requestId, string commandName, CommandRequest? commandRequest)
     {
         if ( this.Status == RuntimeStatus.Exited )
         {
-            throw new InvalidOperationException("The commmand may not be invoked because the command processor has already terminated.");
+            throw new InvalidOperationException("The command may not be invoked because the command processor has already terminated.");
         }
 
         Func<Command>? commandFunc;
@@ -42,7 +45,7 @@ internal class CommandProcessor
 
             try
             {
-                operations = command.Process(arguments, this.WhatIfMode);
+                operations = command.Process(commandRequest, this.WhatIfMode);
             }
             catch (Exception e)
             {
@@ -62,17 +65,23 @@ internal class CommandProcessor
         List<string> content = new List<string>();
         List<ProxyException> exceptions = new List<ProxyException>();
 
+        ProxyResponse.ResponseStatus responseStatus = ProxyResponse.ResponseStatus.Unknown;
+
         foreach ( ProxyResponse.Operation operation in operations )
         {
             if ( ! this.WhatIfMode || commandFunc is null )
             {
                 if ( operation.Status != ProxyResponse.Operation.OperationStatus.Error )
                 {
+                    responseStatus = ProxyResponse.ResponseStatus.Success;
+
                     content.Add(operation.Result ?? "");
                     Logger.Log($"Successfully executed {operation.Name} with result: {operation.Result}");
                 }
                 else
                 {
+                    responseStatus = ProxyResponse.ResponseStatus.Error;
+
                     var targetException = operation.OperationException ??
                         new ProxyException("An unspecified error occurred", new ArgumentException("An unexpected error occurred"));
                     var errorMessage = targetException.Message ?? "An unspecified error occurred";
@@ -85,6 +94,7 @@ internal class CommandProcessor
             }
             else
             {
+                responseStatus = ProxyResponse.ResponseStatus.Success;
                 Logger.Log($"\n\t\tOPERATION: Would execute {operation.Name}");
             }
         }
@@ -93,14 +103,17 @@ internal class CommandProcessor
 
         if ( ! this.WhatIfMode )
         {
-            response = new ProxyResponse(content.ToArray(), exceptions.ToArray());
+            response = new ProxyResponse(requestId, responseStatus, content.ToArray(), exceptions.ToArray());
         }
         else
         {
-            response = new ProxyResponse(operations);
+            response = new ProxyResponse(requestId, responseStatus, operations);
         }
 
-        var result = JsonSerializer.Serialize<ProxyResponse>(response);
+        var jsonOptions = new JsonSerializerOptions();
+        jsonOptions.IncludeFields = true;
+
+        var result = JsonSerializer.Serialize<ProxyResponse>(response, jsonOptions);
 
         return result;
     }

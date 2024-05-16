@@ -8,8 +8,10 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace Modulus.ChatGPS.Models.Proxy;
 
-public class SendChatRequest
+public class SendChatRequest : CommandRequest
 {
-    public Guid ConnectionId { get; set; }
+    public SendChatRequest(Guid connectionId) : base ( connectionId ) {}
+    public SendChatRequest() {}
+
     public ChatHistory? History{ get; set; }
 }

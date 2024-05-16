@@ -4,7 +4,11 @@
 // All rights reserved.
 //
 
+
+using System.Text.Json;
+
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Models.Proxy;
 using Modulus.ChatGPS.Services;
 
 internal class ProxyApp
@@ -68,44 +72,61 @@ internal class ProxyApp
         this.service = chatService;
     }
 
-    private (bool finished, string? content) Responder(string input)
+    private (bool finished, string? content) Responder(string encodedRequest)
     {
-        var argumentStart = input.IndexOf(" ");
+        var finished = false;
+        string? encodedResponse = null;
 
-        var commandName = argumentStart == -1 ?
-            input :
-            input.Substring(0, argumentStart);
+        var decodedRequest = ConvertBase64ToString(encodedRequest);
 
-        if ( commandName.Length == 0 )
+        if ( decodedRequest is not null )
         {
-            throw new ArgumentException("No command name was specified");
+            var jsonOptions = new JsonSerializerOptions();
+            jsonOptions.IncludeFields = true;
+
+            var request = JsonSerializer.Deserialize<ProxyRequest>(decodedRequest, jsonOptions);
+
+            if ( request is null || request.Content is null || request.CommandName is null )
+            {
+                throw new ArgumentException("Invalid request: the request was empty, had no content, or had no command name");
+            }
+
+            var commandContentType = CommandRequest.GetCommandRequestType(request.CommandName);
+
+            if ( commandContentType is null )
+            {
+                throw new ArgumentException($"The specified command '{request.CommandName}' does not have an associated request type");
+            }
+
+            var commandContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
+
+            var commandResult = this.commandProcessor.InvokeCommand(request.RequestId, request.CommandName, commandContent);
+
+            finished = commandProcessor.Status == CommandProcessor.RuntimeStatus.Exited;
+
+            encodedResponse = ConvertStringToBase64(commandResult);
+
+            Console.WriteLine(encodedResponse);
         }
 
-        var commandArguments = argumentStart != -1 ?
-            input.Substring(argumentStart + 1, input.Length - argumentStart - 1) :
-            null;
-
-        var decodedArguments = this.encodedArguments ? ConvertBase64ToString(commandArguments) : commandArguments;
-
-        var commandResult = this.commandProcessor.InvokeCommand(commandName, decodedArguments);
-
-        var finished = commandProcessor.Status == CommandProcessor.RuntimeStatus.Exited;
-
-        var encodedResponse = this.encodedArguments ? ConvertStringToBase64(commandResult) : commandResult;
-
-        Console.WriteLine(encodedResponse);
-
-        return (finished, commandResult);
+        return (finished, encodedResponse);
     }
 
     private string? ConvertBase64ToString(string? base64String)
     {
         string? result = null;
 
-        if ( base64String is not null )
+        if ( this.encodedArguments )
         {
-            var decodedBytes = Convert.FromBase64String(base64String);
-            result = System.Text.Encoding.UTF8.GetString(decodedBytes);
+            if ( base64String is not null )
+            {
+                var decodedBytes = Convert.FromBase64String(base64String);
+                result = System.Text.Encoding.UTF8.GetString(decodedBytes);
+            }
+        }
+        else
+        {
+            result = base64String;
         }
 
         return result;
@@ -115,10 +136,17 @@ internal class ProxyApp
     {
         string? result = null;
 
-        if ( unencodedString is not null )
+        if ( this.encodedArguments )
         {
-            var unencodedBytes = System.Text.Encoding.UTF8.GetBytes(unencodedString);
-            result = Convert.ToBase64String(unencodedBytes);
+            if ( unencodedString is not null )
+            {
+                var unencodedBytes = System.Text.Encoding.UTF8.GetBytes(unencodedString);
+                result = Convert.ToBase64String(unencodedBytes);
+            }
+        }
+        else
+        {
+            result = unencodedString;
         }
 
         return result;

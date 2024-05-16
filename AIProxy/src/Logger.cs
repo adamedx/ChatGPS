@@ -75,7 +75,9 @@ internal class Logger
 
             if ( this.consoleOutput )
             {
-                Console.Write(entryWithTime);
+                // The '.' at the start is a signal to automated consumers of the console output stream to ignore this
+                // line as debug output
+                Console.Write($".{entryWithTime}");
             }
         }
     }

@@ -5,8 +5,6 @@
 //
 
 using System.CommandLine;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Models;
 
 const string AI_SERVICE_KEY_ENVIRONMENT_VARIABLE = "__AIPROXY_KEY";
@@ -72,6 +70,8 @@ void Start( string serviceId, string config, bool whatIf, bool noEncodedArgument
     var logLevel = ( ( targetLogFilePath is not null ) || enableDebugOutput ) ?
         Logger.LogLevel.Debug : Logger.LogLevel.Default;
 
+    System.Diagnostics.Debugger.Break();
+
     try
     {
         Logger.InitializeDefaultLogger( logLevel, enableDebugOutput, targetLogFilePath);
@@ -96,18 +96,19 @@ AiOptions GetConfiguration( string serializedConfiguration )
 {
     Logger.Log("Reading and validating configuration");
 
-    JsonNode? jsonNode = null;
+//    JsonNode? jsonNode = null;
 
     try
     {
-        jsonNode = JsonNode.Parse( serializedConfiguration );
+        // jsonNode = JsonNode.Parse( serializedConfiguration );
     }
     catch ( Exception e )
     {
         throw new ArgumentException( "The specified configuration was not valid JSON", e );
     }
 
-    AiOptions? configuration = JsonSerializer.Deserialize<AiOptions>( jsonNode );
+//    AiOptions? configuration = JsonSerializer.Deserialize<AiOptions>( jsonNode );
+    AiOptions configuration = new AiOptions();
 
     if ( configuration is null )
     {

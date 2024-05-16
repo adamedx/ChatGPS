@@ -4,6 +4,9 @@
 // All rights reserved.
 //
 
+using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Models.Proxy;
+
 //
 // Note that we can't inherit from an interface because
 // any methods implemented for an interface MUST be
@@ -21,7 +24,7 @@ internal abstract class Command
         this.processor = processor;
     }
 
-    internal abstract ProxyResponse.Operation[] Process(string? arguments, bool whatIf = false);
+    internal abstract ProxyResponse.Operation[] Process(CommandRequest? commandRequest, bool whatIf = false);
 
     protected CommandProcessor processor;
 }
