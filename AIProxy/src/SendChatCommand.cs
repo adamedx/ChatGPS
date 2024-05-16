@@ -5,6 +5,7 @@
 //
 
 using System.Text.Json;
+using System.Collections.Generic;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 using Modulus.ChatGPS.Models.Proxy;
@@ -41,7 +42,7 @@ internal class SendChatCommand : Command
 
         var connection = this.processor.Connections.GetConnection(this.arguments.ConnectionId);
 
-        var task = connection.ChatCompletion.GetChatMessageContentsAsync(this.arguments.History);
+        var task = connection.ChatService.GetChatCompletionAsync(this.arguments.History);
 
         var result = task.Result;
 

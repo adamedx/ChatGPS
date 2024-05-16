@@ -19,12 +19,6 @@ internal class ConversationBuilder
     {
         this.chatFunctionPrompt = chatFunctionPrompt;
         this.chatService = chatService;
-        this.completionService = chatService.GetChatCompletion();
-
-        if ( this.completionService == null )
-        {
-            throw new ArgumentException("Specified chat service did not provide a chat completion interface.");
-        }
     }
 
     internal ChatHistory CreateConversationHistory(string systemPrompt)
@@ -34,7 +28,7 @@ internal class ConversationBuilder
 
     internal async Task<string> SendMessageAsync(ChatHistory chatHistory)
     {
-        var responses = await this.completionService.GetChatMessageContentsAsync(chatHistory);
+        var responses = await this.chatService.GetChatCompletionAsync(chatHistory);
 
         string results = "";
 
@@ -130,7 +124,6 @@ internal class ConversationBuilder
     }
 
     private IChatService chatService;
-    private IChatCompletionService completionService;
 
     private int messageIndex = 0;
 

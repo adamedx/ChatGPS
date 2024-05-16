@@ -6,6 +6,7 @@
 
 namespace Modulus.ChatGPS.Services;
 
+using System.Collections.Generic;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -33,18 +34,9 @@ public class OpenAIChatService : IChatService
         return kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
     }
 
-    public IChatCompletionService GetChatCompletion()
+    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
     {
-        var kernel = GetKernel();
-
-        var chatCompletionService = kernel.GetAllServices<IChatCompletionService>().FirstOrDefault();
-
-        if ( chatCompletionService is null )
-        {
-            throw new InvalidOperationException("A null result was obtained for the chat completion service");
-        }
-
-        return chatCompletionService;
+        return await GetChatCompletionService().GetChatMessageContentsAsync(history);
     }
 
     public Kernel GetKernel()
@@ -88,6 +80,24 @@ public class OpenAIChatService : IChatService
         return newKernel;
     }
 
+    IChatCompletionService GetChatCompletionService()
+    {
+        if ( this.chatCompletionService is null )
+        {
+            var kernel = GetKernel();
+
+            this.chatCompletionService = kernel.GetAllServices<IChatCompletionService>().FirstOrDefault();
+        }
+
+        if ( this.chatCompletionService is null )
+        {
+            throw new InvalidOperationException("A null result was obtained for the chat completion service");
+        }
+
+        return this.chatCompletionService;
+    }
+
     private Kernel? serviceKernel;
+    private IChatCompletionService? chatCompletionService;
     private AiOptions options;
 }

@@ -13,11 +13,9 @@ internal class Connection
     {
         this.Id = Id;
         this.ChatService = chatService;
-        this.ChatCompletion = this.ChatService.GetChatCompletion();
     }
 
     internal Guid Id { get; private set; }
 
     internal IChatService ChatService { get; private set; }
-    internal IChatCompletionService ChatCompletion {get; private set; }
 }

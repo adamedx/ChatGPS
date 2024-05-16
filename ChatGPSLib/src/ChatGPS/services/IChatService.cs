@@ -12,7 +12,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 public interface IChatService
 {
     public ChatHistory CreateChat(string prompt);
-    public IChatCompletionService GetChatCompletion(); // Replace with IChatCompletionService.GetChatMessageContentsAsync ?
+    public Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history);
     public KernelFunction CreateFunction(string definitionPrompt); // May need a name for the function, should return the name
     public Kernel GetKernel(); // InvokeFunction by name
 }
