@@ -31,6 +31,7 @@ function Start-ProxyRepl {
     $currentCommand = $null
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
+        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\ChatGPSLib.dll") | out-null
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\Microsoft.SemanticKernel.Abstractions.dll") | out-null
     }
@@ -147,13 +148,13 @@ function Start-ProxyRepl {
     $process.StartInfo.UseShellExecute = $false
     # $process.StartInfo.StandardOutputEncoding = ([System.Text.Encoding]::Utf8)
 
-    Register-ObjectEvent -Action {param($i, $e) write-host 'EXITING' } -InputObject $process -EventName 'Exited' | out-null
+    Register-ObjectEvent -Action {param($i, $e) write-verbose 'EXITING' } -InputObject $process -EventName 'Exited' | out-null
 
-    $processArguments
+    write-verbose "Starting process with process with arguments '$processArguments'"
 
     $process.start() | out-null
 
-    $process.Id
+    write-verbose "Started process successfully with PID $$(process.Id)"
 
     $tries = 0
     $commandName = $null
