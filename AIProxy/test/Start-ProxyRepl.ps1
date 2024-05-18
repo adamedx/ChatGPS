@@ -95,16 +95,9 @@ function Start-ProxyRepl {
         }
     }
 
-    function CreateSendChatRequest($message, $connectionId) {
-        $targetConnectionId = $connectionId -eq $null ? $script:__TEST_AIPROXY_SESSION_ID : $connectionId
-
-        if ( $targetConnectionId -eq $null ) {
-            throw "Cannot send chat message because no connection id was specified"
-        }
-
+    function CreateSendChatRequest($message) {
         $requestId = [Guid]::NewGuid()
-        $chatRequest = [Modulus.ChatGPS.Models.Proxy.SendChatRequest]::new($requestId)
-        $chatRequest.ConnectionId = $targetConnectionId
+        $chatRequest = [Modulus.ChatGPS.Models.Proxy.SendChatRequest]::new()
         $script:__SESSION_HISTORY.AddMessage('User', $message)
         $chatRequest.History = $script:__SESSION_HISTORY
 
@@ -204,6 +197,10 @@ function Start-ProxyRepl {
                         break
                     }
                     '.sendchat' {
+                        if ( $script:__TEST_AIPROXY_SESSION_ID -eq $null ) {
+                            throw "Cannot send chat message because no connection id was specified"
+                        }
+
                         $proxyCommandArguments = CreateSendChatRequest $commandArguments
                         'sendchat'
                         break
@@ -247,9 +244,13 @@ function Start-ProxyRepl {
 
         $request = [Modulus.ChatGPS.Models.Proxy.ProxyRequest]::new()
 
+        $targetConnectionId = $script:__TEST_AIPROXY_SESSION_ID -ne $null ? $script:__TEST_AIPROXY_SESSION_ID : [Guid]::Empty
+
         $request.CommandName = $proxyCommand
         $request.RequestId = [Guid]::NewGuid()
         $request.Content = $proxyCommandArguments
+
+        $request.TargetConnectionId = $targetConnectionId
 
         $serializedRequest = [System.Text.Json.JsonSerializer]::Serialize($request, $request.GetType())
 

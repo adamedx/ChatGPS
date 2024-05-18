@@ -28,17 +28,10 @@ public class CommandRequest
 
     public CommandRequest() {}
 
-    public CommandRequest( Guid connectionId )
-    {
-        this.ConnectionId = connectionId;
-    }
-
     public static Type? GetCommandRequestType(string command)
     {
         return CommandRequest.commandToType[command];
     }
-
-    public Guid ConnectionId;
 
     private static Dictionary<string, Type?> commandToType;
 }

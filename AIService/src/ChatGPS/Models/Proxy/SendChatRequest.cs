@@ -10,8 +10,5 @@ namespace Modulus.ChatGPS.Models.Proxy;
 
 public class SendChatRequest : CommandRequest
 {
-    public SendChatRequest(Guid connectionId) : base ( connectionId ) {}
-    public SendChatRequest() {}
-
     public ChatHistory? History{ get; set; }
 }

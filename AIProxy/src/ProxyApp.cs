@@ -83,7 +83,7 @@ internal class ProxyApp
 
             var commandContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
 
-            var commandResult = this.commandProcessor.InvokeCommand(request.RequestId, request.CommandName, commandContent);
+            var commandResult = this.commandProcessor.InvokeCommand(request.RequestId, request.CommandName, commandContent, request.TargetConnectionId);
 
             finished = commandProcessor.Status == CommandProcessor.RuntimeStatus.Exited;
 

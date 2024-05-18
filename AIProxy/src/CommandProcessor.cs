@@ -20,28 +20,28 @@ internal class CommandProcessor
     {
         this.WhatIfMode = whatIfMode;
         this.Connections = new ConnectionManager();
-        this.commandTable = new Dictionary<string,Func<Command>>
+        this.commandTable = new Dictionary<string,Func<Guid, Command>>
         {
-            { "createconnection", () => { return new CreateConnectionCommand(this); } },
-            { "exit", () => { return new ExitCommand(this); } },
-            { "sendchat", () => { return new SendChatCommand(this); } }
+            { "createconnection", (connectionId) => { return new CreateConnectionCommand(this); } },
+            { "exit", (connectionId) => { return new ExitCommand(this); } },
+            { "sendchat", (connectionId) => { return new SendChatCommand(this, connectionId); } }
         };
     }
 
-    internal string? InvokeCommand(Guid requestId, string commandName, CommandRequest? commandRequest)
+    internal string? InvokeCommand(Guid requestId, string commandName, CommandRequest? commandRequest, Guid serviceConnectionId)
     {
         if ( this.Status == RuntimeStatus.Exited )
         {
             throw new InvalidOperationException("The command may not be invoked because the command processor has already terminated.");
         }
 
-        Func<Command>? commandFunc;
+        Func<Guid, Command>? commandFunc;
 
         ProxyResponse.Operation[] operations;
 
         if ( this.commandTable.TryGetValue(commandName, out commandFunc) )
         {
-            var command = commandFunc.Invoke();
+            var command = commandFunc.Invoke(serviceConnectionId);
 
             try
             {
@@ -49,7 +49,7 @@ internal class CommandProcessor
             }
             catch (Exception e)
             {
-                var commandFailedOperation = new ProxyResponse.Operation($"The attempt to execute commad '{commandName}' failed.", e);
+                var commandFailedOperation = new ProxyResponse.Operation($"The attempt to execute command '{commandName}' failed.", e);
                 operations = new ProxyResponse.Operation[] { commandFailedOperation };
             }
         }
@@ -129,5 +129,5 @@ internal class CommandProcessor
 
     internal ConnectionManager Connections { get; private set; }
 
-    private Dictionary<string,Func<Command>> commandTable;
+    private Dictionary<string,Func<Guid, Command>> commandTable;
 }

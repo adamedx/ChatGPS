@@ -12,7 +12,10 @@ using Modulus.ChatGPS.Models.Proxy;
 
 internal class SendChatCommand : Command
 {
-    internal SendChatCommand(CommandProcessor processor) : base(processor) {}
+    internal SendChatCommand(CommandProcessor processor, Guid serviceConnectionId) : base(processor)
+    {
+        this.serviceConnectionId = serviceConnectionId;
+    }
 
     internal override ProxyResponse.Operation[] Process(CommandRequest? arguments, bool whatIf = false)
     {
@@ -40,7 +43,7 @@ internal class SendChatCommand : Command
             throw new ArgumentException("Invalid arguments specified for chat command");
         }
 
-        var connection = this.processor.Connections.GetConnection(this.arguments.ConnectionId);
+        var connection = this.processor.Connections.GetConnection(this.serviceConnectionId);
 
         var task = connection.ChatService.GetChatCompletionAsync(this.arguments.History);
 
@@ -55,4 +58,5 @@ internal class SendChatCommand : Command
     }
 
     private SendChatRequest? arguments;
+    private Guid serviceConnectionId;
 }
