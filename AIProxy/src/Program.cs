@@ -9,15 +9,6 @@ using Modulus.ChatGPS.Models;
 
 const string DEBUG_FILE_NAME = "AIProxyLog.txt";
 
-Dictionary<string,ServiceBuilder.ServiceId> validServices = new Dictionary<string, ServiceBuilder.ServiceId>() {
-    { "AzureOpenAi", ServiceBuilder.ServiceId.AzureOpenAi }
-};
-
-var serviceIdOption = new Option<string>
-    (name: "--serviceid",
-     getDefaultValue: () => ServiceBuilder.ServiceId.AzureOpenAi.ToString())
-    .FromAmong(ServiceBuilder.ServiceId.AzureOpenAi.ToString());
-
 var whatIfOption = new Option<bool>
     (name: "--whatif");
 
@@ -37,22 +28,21 @@ var logFileOption = new Option<string>
 
 var thisCommand = new RootCommand("AI service proxy application");
 
-thisCommand.Add(serviceIdOption);
 thisCommand.Add(whatIfOption);
 thisCommand.Add(noEncodedArgumentsOption);
 thisCommand.Add(timeoutOption);
 thisCommand.Add(debugOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((serviceId, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath) =>
+thisCommand.SetHandler((whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath) =>
     {
-    Start(serviceId, whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath);
+    Start(whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath);
     },
-    serviceIdOption, whatIfOption, noEncodedArgumentsOption, timeoutOption, debugOption, logFileOption);
+    whatIfOption, noEncodedArgumentsOption, timeoutOption, debugOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( string serviceId, bool whatIf, bool noEncodedArguments, int timeout, bool enableDebugOutput, string? logFilePath )
+void Start( bool whatIf, bool noEncodedArguments, int timeout, bool enableDebugOutput, string? logFilePath )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
@@ -71,7 +61,7 @@ void Start( string serviceId, bool whatIf, bool noEncodedArguments, int timeout,
 
         Logger.Log(string.Format("Started AIProxy in process {0} -- debug output enabled", System.Diagnostics.Process.GetCurrentProcess().Id));
 
-        var proxyApp = new ProxyApp(validServices[serviceId], whatIf, ! noEncodedArguments, timeout);
+        var proxyApp = new ProxyApp(timeout, whatIf, ! noEncodedArguments);
 
         proxyApp.Run();
 

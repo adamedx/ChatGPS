@@ -13,9 +13,8 @@ using Modulus.ChatGPS.Services;
 
 internal class ProxyApp
 {
-    internal ProxyApp(ServiceBuilder.ServiceId serviceId, bool whatIfMode = false, bool encodedArguments = true, int timeout = 6000)
+    internal ProxyApp(int timeout = 6000, bool whatIfMode = false, bool encodedArguments = true)
     {
-        this.serviceId = serviceId;
         this.encodedArguments = encodedArguments;
         this.timeout = timeout;
         this.commandProcessor = new CommandProcessor(whatIfMode);
@@ -136,7 +135,6 @@ internal class ProxyApp
         return result;
     }
 
-    private ServiceBuilder.ServiceId serviceId;
     private bool encodedArguments;
     private int timeout;
     private CommandProcessor commandProcessor;
