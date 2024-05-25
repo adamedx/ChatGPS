@@ -10,18 +10,39 @@ using System.Diagnostics;
 
 internal class Process
 {
-    internal Process(TimeSpan? lifetime, bool hidden = true)
+    internal Process(string imageFilePath, string? arguments = null, bool hidden = true)
     {
+        this.imageFilePath = imageFilePath;
+        this.arguments = arguments;
         this.hidden = hidden;
+        this.processStarted = false;
         this.process = new System.Diagnostics.Process();
     }
 
     internal void Start(string? commandLine = null)
     {
+        if ( ! this.processStarted )
+        {
+            this.process.StartInfo.FileName = imageFilePath;
+            this.process.StartInfo.Arguments = arguments;
+            this.process.StartInfo.RedirectStandardError = true;
+            this.process.StartInfo.RedirectStandardOutput = true;
+            this.process.StartInfo.RedirectStandardInput = true;
+            this.process.StartInfo.UseShellExecute = false;
+
+            this.process.Start();
+
+            this.processStarted = true;
+        }
+        else if ( this.process.HasExited )
+        {
+            throw new InvalidOperationException("The process may not be restarted after it has exited.");
+        }
     }
 
-    internal void Stop(int? exitCode = null)
+    internal void Stop()
     {
+        this.process.Close();
     }
 
     internal async Task WriteLineAsync(string? content, bool noNewLine = false)
@@ -38,7 +59,17 @@ internal class Process
         return await this.process.StandardOutput.ReadLineAsync();
     }
 
+    internal bool HasExited
+    {
+        get
+        {
+            return ! this.processStarted || this.process.HasExited;
+        }
+    }
+
     private System.Diagnostics.Process process;
+    private string imageFilePath;
+    private string? arguments;
     private bool hidden = true;
-//    private bool stopping = false;
+    private bool processStarted = false;
 }

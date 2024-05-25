@@ -11,12 +11,16 @@ using Modulus.ChatGPS.Services;
 
 public class ChatGPS
 {
-    public static ChatSession CreateSession(AiOptions options, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, IChatService? chatService = null)
+    public static ChatSession CreateSession(AiOptions options, string? aiProxyHostPath, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, IChatService? chatService = null)
     {
         var targetChatService = chatService;
 
-        if ( targetChatService == null ) {
-            targetChatService = new OpenAIChatService(options);
+        if ( targetChatService == null )
+        {
+            targetChatService =
+                aiProxyHostPath is not null ?
+                new ProxyService(ServiceBuilder.ServiceId.AzureOpenAi, options, aiProxyHostPath) :
+                new OpenAIChatService(options);
         }
 
         string? targetChatFunctionPrompt = string.IsNullOrEmpty(chatFunctionPrompt) ? null : chatFunctionPrompt;

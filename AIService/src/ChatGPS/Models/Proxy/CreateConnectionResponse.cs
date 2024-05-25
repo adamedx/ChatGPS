@@ -6,7 +6,7 @@
 
 namespace Modulus.ChatGPS.Models.Proxy;
 
-public class CreateConnectionResponse
+public class CreateConnectionResponse : CommandResponse
 {
     public CreateConnectionResponse() {}
     public CreateConnectionResponse( Guid id ) { this.ConnectionId = id; }

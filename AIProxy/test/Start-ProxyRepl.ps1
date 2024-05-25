@@ -7,6 +7,11 @@
 set-strictmode -version 2
 $erroractionpreference = 'stop'
 
+
+$jsonOptions = [System.Text.Json.JsonSerializerOptions]::new()
+$jsonOptions.IncludeFields = $true
+
+
 function Start-ProxyRepl {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -32,7 +37,7 @@ function Start-ProxyRepl {
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
-        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\ChatGPSLib.dll") | out-null
+#        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\ChatGPSLib.dll") | out-null
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\Microsoft.SemanticKernel.Abstractions.dll") | out-null
     }
 
@@ -46,33 +51,35 @@ function Start-ProxyRepl {
 
     function CreateConnectionRequest($connectionOptionsJson) {
         $aioptions = if ( $connectionOptionsJson ) {
-            [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.AiOptions]($connectionOptionsJson)
+            [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.AiOptions]($connectionOptionsJson, $jsonOptions)
         }
         $newConnection = [Modulus.ChatGPS.Models.Proxy.CreateConnectionRequest]::new()
         $newConnection.ServiceId = ([ServiceBuilder+ServiceId]::AzureOpenAi)
         $newConnection.ConnectionOptions = $aioptions
 
-        $commandArguments = [System.Text.Json.JsonSerializer]::Serialize($newConnection, $newConnection.GetType())
+        $commandArguments = [System.Text.Json.JsonSerializer]::Serialize($newConnection, $newConnection.GetType(), $jsonOptions)
 
         $commandArguments
     }
 
     function ProcessOutput($decodedOutput) {
         if ( $decodedOutput ) {
-            $response = [System.Text.Json.JsonSerializer]::Deserialize[ProxyResponse]($decodedOutput)
+            $response = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.ProxyResponse]($decodedOutput, $jsonOptions)
 
-            if ( $response.Status -ne ([ProxyResponse+ResponseStatus]::Success) ) {
+            if ( $response.Status -ne ([Modulus.ChatGPS.Models.Proxy.ProxyResponse+ResponseStatus]::Success) ) {
                 write-error "Command '$commandName' failed with status $($response.Status.ToString())" -erroraction continue
 
-                foreach ( $exception in $response.exceptions ) {
-                    $exception | write-error -erroraction continue
+                if ( $response.Exceptions -ne $null -and $response.Exceptions.Length -gt 0 ) {
+                    $exception = $response.Exceptions[0]
+                    $exception | write-error -erroraction continue;
+                    throw $response.Exceptions[0]
                 }
             } else {
                 switch ( $commandName ) {
                     '.connect' {
                         $connectionContent = $response -ne $null ? $response.Content : $null
                         if ( $connectionContent ) {
-                            $connectionResponse = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.CreateConnectionResponse]($connectionContent)
+                            $connectionResponse = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.CreateConnectionResponse]($connectionContent, $jsonOptions)
                             $script:__TEST_AIPROXY_SESSION_ID = $connectionResponse.ConnectionId
                         }
 
@@ -81,8 +88,8 @@ function Start-ProxyRepl {
                     '.sendchat' {
                         $chatContent = $response -ne $null ? $response.Content : $null
                         if ( $chatContent ) {
-                            $chatResponse = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.SendChatResponse]($chatContent)
-                            $chatMessage = $chatResponse.ChatResponse
+                            $chatResponse = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.SendChatResponse]($chatContent, $jsonOptions)
+                            $chatMessage = $chatResponse.ChatResponse.Content
                             $script:__SESSION_HISTORY.AddMessage('Assistant', $chatMessage)
                             $chatMessage
                         }
@@ -101,9 +108,7 @@ function Start-ProxyRepl {
         $script:__SESSION_HISTORY.AddMessage('User', $message)
         $chatRequest.History = $script:__SESSION_HISTORY
 
-        $options = [System.Text.Json.JsonSerializerOptions]::new()
-        $options.IncludeFields = $true
-        [System.Text.Json.JsonSerializer]::Serialize($chatRequest, $chatRequest.GetType(), $options)
+        [System.Text.Json.JsonSerializer]::Serialize($chatRequest, $chatRequest.GetType(), $jsonOptions)
     }
 
     function ProcessLocalCommand ($localCommand, $arguments) {
@@ -252,7 +257,9 @@ function Start-ProxyRepl {
 
         $request.TargetConnectionId = $targetConnectionId
 
-        $serializedRequest = [System.Text.Json.JsonSerializer]::Serialize($request, $request.GetType())
+        $serializedRequest = [System.Text.Json.JsonSerializer]::Serialize($request, $request.GetType(), $jsonOptions)
+
+        write-verbose "Sending: $serializedRequest"
 
         $unencodedRequestBytes = [System.Text.Encoding]::UTF8.GetBytes($serializedRequest)
         $commandRequest = [System.Convert]::ToBase64String($unencodedRequestBytes)
@@ -260,6 +267,8 @@ function Start-ProxyRepl {
         $failed = $false
 
         write-verbose $commandRequest
+
+        write-progress "Sending request" -PercentComplete 30
 
         try {
             $currentCommand = $commandName
@@ -277,8 +286,9 @@ function Start-ProxyRepl {
 
         while ( ! $process.hasexited -and ! $failed ) {
             try {
+                write-progress "Waiting for response" -PercentComplete 80
                 $currentLine = $process.StandardOutput.Readline()
-                write-verbose $currentLine
+                if ( $currentLine ) { write-verbose $currentLine }
                 if ( ! $currentLine -or $currentLine[0] -eq '.' ) {
                     write-verbose SKIPPING
                     continue
@@ -291,6 +301,11 @@ function Start-ProxyRepl {
                 $failed = $true
                 break
             }
+        }
+
+        if ( $failed ) {
+            write-progress "Failed" -completed
+            continue;
         }
 
         $decodedOutput = if ( $output ) {
@@ -307,12 +322,20 @@ function Start-ProxyRepl {
 
         write-verbose RECEIVEDOUTPUT
 
-        ProcessOutput $decodedOutput
+        write-progress "Processing response" -percentcomplete 98
 
-        start-sleep 1
+        write-verbose "Received: $decodedOutput"
+
+        try {
+            ProcessOutput $decodedOutput
+        } catch [Modulus.ChatGPS.Models.Proxy.ProxyException] {
+            $_ | write-error -erroraction continue
+        }
+
+        write-progress "Finished processing request" -Completed
     }
 
     if ( $process.hasexited ) {
-        'success'
+        write-verbose 'Successfully detected exit'
     }
 }

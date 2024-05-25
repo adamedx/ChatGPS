@@ -17,12 +17,18 @@ public class CommandRequest
             { "sendchat", typeof(SendChatRequest) }
         };
 
+        CommandRequest.typeToCommand = new Dictionary<Type, string>();
+
         foreach ( var command in CommandRequest.commandToType.Keys )
         {
-            if ( CommandRequest.commandToType[command] is null )
+            var commandType = CommandRequest.commandToType[command];
+
+            if ( commandType is null )
             {
                 throw new ArgumentException($"The command {command} could not be mapped to a valid type");
             }
+
+            CommandRequest.typeToCommand.Add(commandType, command);
         }
     }
 
@@ -33,6 +39,12 @@ public class CommandRequest
         return CommandRequest.commandToType[command];
     }
 
+    public static string? GetCommandNameFromRequestType(Type requestType)
+    {
+        return CommandRequest.typeToCommand[requestType];
+    }
+
     private static Dictionary<string, Type?> commandToType;
+    private static Dictionary<Type, string> typeToCommand;
 }
 

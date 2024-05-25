@@ -7,7 +7,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-public class ProxyResponse
+namespace Modulus.ChatGPS.Models.Proxy;
+
+public class ProxyResponse : ProxyMessage
 {
     public enum ResponseType
     {
@@ -191,6 +193,21 @@ public class ProxyResponse
         return ( this.Content is not null ) ? ( this.Content.ToString() ?? "" ) : "";
     }
 
+    public static CommandResponse? GetCommandResponseFromProxyResponse(ProxyResponse proxyResponse, Type commandType)
+    {
+        proxyResponse.Validate();
+        proxyResponse.ValidateTargetServiceResponse();
+
+        CommandResponse? result = null;
+
+        if ( proxyResponse.Content is not null && proxyResponse.Content[0] is not null )
+        {
+            result = (CommandResponse?) JsonSerializer.Deserialize(proxyResponse.Content[0], commandType, ProxyMessage.jsonOptions);
+        }
+
+        return result;
+    }
+
     private void Validate()
     {
         if ( this.Status == ResponseStatus.Unknown )
@@ -211,6 +228,23 @@ public class ProxyResponse
         if ( this.Type == ResponseType.WhatIf && this.Content is not null )
         {
             throw new ArgumentException("A whatif response may not contain content");
+        }
+    }
+
+    void ValidateTargetServiceResponse()
+    {
+        if ( this.Status != ProxyResponse.ResponseStatus.Success )
+        {
+            Exception? requestException = this.Exceptions != null && this.Exceptions.Length > 0 ? this.Exceptions[0] : null;
+
+            if ( requestException is not null )
+            {
+                throw requestException;
+            }
+            else
+            {
+                throw new ProxyException("The request to the AI service failed for an unknown reason");
+            }
         }
     }
 

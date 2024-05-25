@@ -4,14 +4,22 @@
 // All rights reserved.
 //
 
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+
 namespace Modulus.ChatGPS.Models.Proxy;
 
-public class SendChatResponse
+public class SendChatResponse : CommandResponse
 {
     public SendChatResponse() {}
-    public SendChatResponse( string? chatResponse ) {
-        this.ChatResponse = chatResponse;
+
+    public SendChatResponse( string? responseMessage = null, AuthorRole? role = null )
+    {
+        if ( responseMessage is not null )
+        {
+            this.ChatResponse = new ChatMessageContent( role ?? AuthorRole.Assistant, responseMessage );
+        }
     }
 
-    public string? ChatResponse { get; set; }
+    public ChatMessageContent? ChatResponse { get; set; }
 }

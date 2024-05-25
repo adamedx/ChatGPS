@@ -13,6 +13,8 @@ function CreateSession {
         [parameter(mandatory=$true)]
         [string] $Prompt,
 
+        [string] $AiProxyHostPath = $null,
+
         [string] $functionPrompt = $null,
 
         [switch] $SetCurrent,
@@ -23,7 +25,7 @@ function CreateSession {
         [switch] $NoConnect
     )
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, $TokenStrategy, $functionPrompt, $null)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $functionPrompt, $null)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {

@@ -83,13 +83,13 @@ internal class CommandProcessor
                     responseStatus = ProxyResponse.ResponseStatus.Error;
 
                     var targetException = operation.OperationException ??
-                        new ProxyException("An unspecified error occurred", new ArgumentException("An unexpected error occurred"));
+                        new ProxyException("An unspecified error occurred", new ProxyException(new ArgumentException("An unexpected error occurred")));
                     var errorMessage = targetException.Message ?? "An unspecified error occurred";
                     var exceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
 
                     Logger.Log(exceptionMessage);
 
-                    exceptions.Add( new ProxyException(exceptionMessage, targetException) );
+                    exceptions.Add( new ProxyException(exceptionMessage, new ProxyException(targetException)) );
                 }
             }
             else
@@ -110,12 +110,7 @@ internal class CommandProcessor
             response = new ProxyResponse(requestId, responseStatus, operations);
         }
 
-        var jsonOptions = new JsonSerializerOptions();
-        jsonOptions.IncludeFields = true;
-
-        var result = JsonSerializer.Serialize<ProxyResponse>(response, jsonOptions);
-
-        return result;
+        return response.ToSerializedMessage();
     }
 
     internal string? RequestExit()

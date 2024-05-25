@@ -61,7 +61,7 @@ void Start( bool whatIf, bool noEncodedArguments, int timeout, bool enableDebugO
 
         Logger.Log(string.Format("Started AIProxy in process {0} -- debug output enabled", System.Diagnostics.Process.GetCurrentProcess().Id));
 
-        var proxyApp = new ProxyApp(timeout, whatIf, ! noEncodedArguments);
+        var proxyApp = new ProxyApp(timeout, whatIf);
 
         proxyApp.Run();
 
