@@ -6,6 +6,7 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Models.Proxy;
 
@@ -261,13 +262,42 @@ public class ProxyResponse : ProxyMessage
                 throw new InvalidOperationException("This operation's exception status may not be set more than once.");
             }
 
-            this.exceptions = value;
+            this.exceptions = TranslateExceptions(value);
 
             if ( value is not null && value.Length > 0 )
             {
                 this.Status = ResponseStatus.Error;
             }
         }
+    }
+
+    //
+    // Specific exception types are considered an API contract by upstream callers, so
+    // any ProxyException instances that originated from these types must be reconstituted,
+    // albeit with some information loss.
+    //
+    private ProxyException?[] TranslateExceptions(ProxyException?[] exceptions)
+    {
+        ProxyException?[] result = null;
+
+        if ( exceptions is not null )
+        {
+            result = (ProxyException[]?) exceptions.Clone();
+
+            for ( int exceptionIndex = 0; exceptionIndex < result.Length; exceptionIndex++ )
+            {
+                var proxyException = result[exceptionIndex];
+
+                if ( proxyException.OriginalMessage == typeof(Microsoft.SemanticKernel.HttpOperationException).FullName )
+                {
+                    var newMessage = $"{proxyException.OriginalMessage}\n\n{proxyException.StackTrace}";
+                    var translatedException = new Microsoft.SemanticKernel.HttpOperationException(newMessage, proxyException);
+                    result[exceptionIndex] = new ProxyException(newMessage, translatedException, proxyException);
+                }
+            }
+        }
+
+        return result;
     }
 
     public ResponseStatus Status { get; set; }

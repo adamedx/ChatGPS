@@ -45,7 +45,7 @@ internal class ProxyService : IChatService
 
         var response = await this.proxyTransport.SendAsync(this.proxyConnection, request);
 
-        var sendChatResponse = (SendChatResponse?) ProxyResponse.GetCommandResponseFromProxyResponse(response, typeof(SendChatRequest));
+        var sendChatResponse = (SendChatResponse?) ProxyResponse.GetCommandResponseFromProxyResponse(response, typeof(SendChatResponse));
 
         if ( sendChatResponse is null )
         {

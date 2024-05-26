@@ -46,12 +46,17 @@ internal class ProxyConnection
 
     internal void BindTargetService(Guid targetConnectionId)
     {
+        if ( targetConnectionId == Guid.Empty )
+        {
+            throw new ArgumentException("The specified connection id was an empty guid and not a valid connection identifier");
+        }
+
         if ( this.serviceId is null )
         {
             throw new ArgumentException("The specified target service connection identifier was not specified");
         }
 
-        if ( this.serviceConnectionId == Guid.Empty )
+        if ( this.serviceConnectionId != Guid.Empty )
         {
             throw new InvalidOperationException("The connection is already bound to a target service");
         }
@@ -68,7 +73,7 @@ internal class ProxyConnection
     {
         get
         {
-            return this.serviceConnectionId == Guid.Empty;
+            return this.serviceConnectionId != Guid.Empty;
         }
     }
 

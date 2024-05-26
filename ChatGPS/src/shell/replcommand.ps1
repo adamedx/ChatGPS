@@ -9,6 +9,7 @@ $ReplCommands = @{
     Exit = {param([HashTable] $ReplState) ReplCommandExit}
     History = {param([HashTable] $ReplState) ReplCommandHistory @args}
     Last = {param([HashTable] $ReplState) ReplCommandHistory 1 1}
+    Help = {param([HashTable] $ReplState) ReplCommandHelp}
 }
 
 function InvokeReplCommand {
@@ -72,6 +73,15 @@ function ReplCommandExit {
     ToCommandOutput $null @{Status = 'Exit'}
 }
 
+function ReplCommandHelp {
+    $result = foreach ( $commandName in $ReplCommands.Keys ) {
+        "." + $commandName.ToLower()
+    }
+
+    ToCommandOutput $result
+}
+
+
 function ReplCommandHistory( $LatestCount = -1, $Length = -1) {
     $lastCount = $LatestCount -ge 0 ? $LatestCount : $ReplState.Connection.History.Count
 
@@ -89,8 +99,8 @@ function ReplCommandHistory( $LatestCount = -1, $Length = -1) {
           }
 
           $emittedItem = if ( $_.Role -ne 'system' ) {
-              $received = if ( $_.AdditionalProperties ) {
-                  $timestamp = $_.AdditionalProperties['Timestamp']
+              $received = if ( $_.Metadata ) {
+                  $timestamp = $_.Metadata['Timestamp']
                   if ( $timestamp ) {
                       $timestamp | convertfrom-json
                   }

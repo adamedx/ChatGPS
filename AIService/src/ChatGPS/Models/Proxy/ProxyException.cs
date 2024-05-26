@@ -29,17 +29,27 @@ public class ProxyException : Exception
 
     public ProxyException(string message, ProxyException? proxyException = null) : base(message, proxyException)
     {
+        InitializeFrom(proxyException);
+    }
+
+    public ProxyException(string message, Exception? innerException, ProxyException? proxyException = null) : base(message, innerException)
+    {
+        InitializeFrom(proxyException);
+    }
+
+    public override string ToString()
+    {
+        return $"{this.OriginalMessage}: {base.ToString()}";
+    }
+
+    private void InitializeFrom(ProxyException? proxyException)
+    {
         if ( proxyException is not null )
         {
             this.StackTrace = proxyException.StackTrace;
             this.OriginalMessage = proxyException.OriginalMessage;
             this.OriginalExceptionTypeName = proxyException.OriginalExceptionTypeName;
         }
-    }
-
-    public override string ToString()
-    {
-        return $"{this.OriginalMessage}: {base.ToString()}";
     }
 
     public new string? StackTrace { get; set; }
