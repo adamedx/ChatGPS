@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChatGPSLib\ChatGPSLib.csproj" />
+    <ProjectReference Include="..\AIProxy\AIProxy.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -16,6 +17,7 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.4.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.4.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.4.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.1" />
   </ItemGroup>
 
   <Target Name="AnyTargetDependencies">
@@ -46,7 +48,7 @@
   <Target Name="DevModule" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
     <MakeDir Directories="$(DevLibDirectory)" />
     <ItemGroup>
-      <AssemblyDependencies Include="$(TargetDir)*.dll" Exclude="$(TargetDir)$(ProjectName).dll"/>
+      <AssemblyDependencies Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.runtimeconfig.json;$(TargetDir)*.deps.json" Exclude="$(TargetDir)$(ProjectName).dll;$(TargetDir)/ChatGPS.exe;$(TargetDir)/ChatGPS.*.json"/>
     </ItemGroup>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DevLibDirectory)"/>
     <Copy SourceFiles="@(AssemblyDependencies)" DestinationFolder="$(DevLibDirectory)"/>

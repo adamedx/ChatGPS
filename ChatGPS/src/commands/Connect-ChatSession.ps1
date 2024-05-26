@@ -31,6 +31,8 @@ function Connect-ChatSession {
 
         [switch] $NoConnect,
 
+        [switch] $NoProxy,
+
         [switch] $PassThru
     )
 
@@ -50,7 +52,11 @@ function Connect-ChatSession {
         [PromptBook]::GetDefaultPrompt($SystemPromptId)
     }
 
-    $session = CreateSession $options -Prompt $targetPrompt -AiProxyHostPath "$psscriptroot\..\..\lib\AIProxy.exe" -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy
+    $targetProxyPath = if ( ! $NoProxy.IsPresent ) {
+        "$psscriptroot\..\..\lib\AIProxy.exe"
+    }
+
+    $session = CreateSession $options -Prompt $targetPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy
 
     if ( $PassThru.IsPresent ) {
         $session

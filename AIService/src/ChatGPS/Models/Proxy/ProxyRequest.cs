@@ -47,7 +47,7 @@ public class ProxyRequest : ProxyMessage
         return new ProxyRequest(
             commandName,
             serializedCommandRequest,
-            new Guid(),
+            Guid.NewGuid(),
             targetConnectionId);
     }
 

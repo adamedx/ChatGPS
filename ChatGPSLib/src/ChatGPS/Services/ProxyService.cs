@@ -22,12 +22,12 @@ internal class ProxyService : IChatService
 {
     public ProxyService(ServiceBuilder.ServiceId serviceId, AiOptions options, string proxyHostPath, int idleTimeoutMs = 0, string? logFilePath = null, bool whatIfMode = false)
     {
+        Channel.SetDefaultProxyPath(proxyHostPath);
+
         this.proxyTransport = new Transport();
         this.serviceId = serviceId;
         this.proxyConnection = new ProxyConnection(serviceId, options, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
-
-        Channel.SetDefaultProxyPath(proxyHostPath);
     }
 
     public ChatHistory CreateChat(string prompt)

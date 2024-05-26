@@ -85,7 +85,7 @@ public class Channel : IChannel
                 throw new InvalidOperationException("The proxy host path has not been set; it must be set before a channel can be initialized");
             }
 
-            this.process = new Process($"--timeout {this.idleTimeoutMs}");
+            this.process = new Process(this.proxyHostPath, $"--timeout {this.idleTimeoutMs} --logfile c:\\users\\adame\\proxylog.txt");
         }
 
         this.process.Start();
