@@ -32,7 +32,7 @@ class PromptBook {
     static [object] GetFunctionPrompt([string] $promptId) {
         $functionPrompts = @{
             PowerShell = $null
-            PowerShellStrict = "You are an assistant to translate natural language to PowersShell code", "Show the PowerShell code to accomplish the objective specified by {{`$input}} on this computer. Your response should include ONLY the code, no additional commentary, and there should be no markdown formatting for instance. If you cannot generate the code, then you must instead generate PowerShell code that throws an exception with a string message that states that you could not generate the code."
+            PowerShellStrict = "You are an assistant to translate natural language to PowerShell code", "Show the PowerShell code to accomplish the objective specified by {{`$input}} on this computer. Your response should include ONLY the code, no additional commentary, and there should be no markdown formatting for instance. If you cannot generate the code, then you must instead generate PowerShell code that throws an exception with a string message that states that you could not generate the code."
             General = $null
             Conversational = $null
         }
