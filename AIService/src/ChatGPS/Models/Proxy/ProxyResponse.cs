@@ -164,7 +164,7 @@ public class ProxyResponse : ProxyMessage
         this.Type = ResponseType.WhatIf;
     }
 
-    public ProxyResponse(Guid requestId, ResponseStatus status, string[] serializedResponses, ProxyException[] exceptions)
+    public ProxyResponse(Guid requestId, ResponseStatus status, string[] serializedResponses, SerializableException[] exceptions)
     {
         this.Status = ResponseStatus.Success;
         this.Content = serializedResponses;
@@ -244,12 +244,12 @@ public class ProxyResponse : ProxyMessage
             }
             else
             {
-                throw new ProxyException("The request to the AI service failed for an unknown reason");
+                throw new SerializableException("The request to the AI service failed for an unknown reason");
             }
         }
     }
 
-    public ProxyException[]? Exceptions {
+    public SerializableException[]? Exceptions {
         get
         {
             return this.exceptions;
@@ -273,26 +273,26 @@ public class ProxyResponse : ProxyMessage
 
     //
     // Specific exception types are considered an API contract by upstream callers, so
-    // any ProxyException instances that originated from these types must be reconstituted,
+    // any SerializableException instances that originated from these types must be reconstituted,
     // albeit with some information loss.
     //
-    private ProxyException[]? TranslateExceptions(ProxyException[]? exceptions)
+    private SerializableException[]? TranslateExceptions(SerializableException[]? exceptions)
     {
-        ProxyException[]? result = null;
+        SerializableException[]? result = null;
 
         if ( exceptions is not null )
         {
-            result = (ProxyException[]) exceptions.Clone();
+            result = (SerializableException[]) exceptions.Clone();
 
             for ( int exceptionIndex = 0; exceptionIndex < result.Length; exceptionIndex++ )
             {
-                var proxyException = result[exceptionIndex];
+                var SerializableException = result[exceptionIndex];
 
-                if ( proxyException.OriginalMessage == typeof(Microsoft.SemanticKernel.HttpOperationException).FullName )
+                if ( SerializableException.OriginalMessage == typeof(Microsoft.SemanticKernel.HttpOperationException).FullName )
                 {
-                    var newMessage = $"{proxyException.OriginalMessage}\n\n{proxyException.StackTrace}";
-                    var translatedException = new Microsoft.SemanticKernel.HttpOperationException(newMessage, proxyException);
-                    result[exceptionIndex] = new ProxyException(newMessage, translatedException, proxyException);
+                    var newMessage = $"{SerializableException.OriginalMessage}\n\n{SerializableException.StackTrace}";
+                    var translatedException = new Microsoft.SemanticKernel.HttpOperationException(newMessage, SerializableException);
+                    result[exceptionIndex] = new SerializableException(newMessage, translatedException, SerializableException);
                 }
             }
         }
@@ -306,5 +306,5 @@ public class ProxyResponse : ProxyMessage
     public ExecutionPlan? Plan { get; set; }
     public Guid RequestId { get; set; }
 
-    private ProxyException[]? exceptions;
+    private SerializableException[]? exceptions;
 }

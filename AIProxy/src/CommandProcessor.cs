@@ -63,7 +63,7 @@ internal class CommandProcessor
 
 
         List<string> content = new List<string>();
-        List<ProxyException> exceptions = new List<ProxyException>();
+        List<SerializableException> exceptions = new List<SerializableException>();
 
         ProxyResponse.ResponseStatus responseStatus = ProxyResponse.ResponseStatus.Unknown;
 
@@ -83,13 +83,13 @@ internal class CommandProcessor
                     responseStatus = ProxyResponse.ResponseStatus.Error;
 
                     var targetException = operation.OperationException ??
-                        new ProxyException("An unspecified error occurred", new ProxyException(new ArgumentException("An unexpected error occurred")));
+                        new SerializableException("An unspecified error occurred", new SerializableException(new ArgumentException("An unexpected error occurred")));
                     var errorMessage = targetException.Message ?? "An unspecified error occurred";
                     var exceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
 
                     Logger.Log(exceptionMessage);
 
-                    exceptions.Add( new ProxyException(exceptionMessage, new ProxyException(targetException)) );
+                    exceptions.Add( new SerializableException(exceptionMessage, new SerializableException(targetException)) );
                 }
             }
             else

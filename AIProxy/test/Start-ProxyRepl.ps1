@@ -328,7 +328,7 @@ function Start-ProxyRepl {
 
         try {
             ProcessOutput $decodedOutput
-        } catch [Modulus.ChatGPS.Models.Proxy.ProxyException] {
+        } catch [Modulus.ChatGPS.Models.Proxy.SerializableException] {
             $_ | write-error -erroraction continue
         }
 

@@ -4,17 +4,17 @@
 // All rights reserved.
 //
 
-namespace Modulus.ChatGPS.Models.Proxy;
+namespace Modulus.ChatGPS.Models;
 
-public class ProxyException : Exception
+public class SerializableException : Exception
 {
-    public ProxyException() {}
+    public SerializableException() {}
 
     // In general, exceptions cannot be safely serialized due to security concerns,
     // so we convert exceptions to an instance of this type that carries forward some
     // of the information about the inner exception, though it does not maintain the chain
     // of inner exceptions.
-    public ProxyException(Exception? originalException = null) : base ( "The proxy service encountered an unexpected error." )
+    public SerializableException(Exception? originalException = null) : base ( "An unexpected error was encountered." )
     {
         if ( originalException is not null )
         {
@@ -27,14 +27,14 @@ public class ProxyException : Exception
         }
     }
 
-    public ProxyException(string message, ProxyException? proxyException = null) : base(message, proxyException)
+    public SerializableException(string message, SerializableException? SerializableException = null) : base(message, SerializableException)
     {
-        InitializeFrom(proxyException);
+        InitializeFrom(SerializableException);
     }
 
-    public ProxyException(string message, Exception? innerException, ProxyException? proxyException = null) : base(message, innerException)
+    public SerializableException(string message, Exception? innerException, SerializableException? SerializableException = null) : base(message, innerException)
     {
-        InitializeFrom(proxyException);
+        InitializeFrom(SerializableException);
     }
 
     public override string ToString()
@@ -42,13 +42,13 @@ public class ProxyException : Exception
         return $"{this.OriginalMessage}: {base.ToString()}";
     }
 
-    private void InitializeFrom(ProxyException? proxyException)
+    private void InitializeFrom(SerializableException? SerializableException)
     {
-        if ( proxyException is not null )
+        if ( SerializableException is not null )
         {
-            this.StackTrace = proxyException.StackTrace;
-            this.OriginalMessage = proxyException.OriginalMessage;
-            this.OriginalExceptionTypeName = proxyException.OriginalExceptionTypeName;
+            this.StackTrace = SerializableException.StackTrace;
+            this.OriginalMessage = SerializableException.OriginalMessage;
+            this.OriginalExceptionTypeName = SerializableException.OriginalExceptionTypeName;
         }
     }
 

@@ -49,7 +49,7 @@ internal class ProxyService : IChatService
 
         if ( sendChatResponse is null )
         {
-            throw new ProxyException("A null reference was returned for the chat request by the AI service.");
+            throw new SerializableException("A null reference was returned for the chat request by the AI service.");
         }
 
         var resultList = new List<ChatMessageContent>();
@@ -90,14 +90,14 @@ internal class ProxyService : IChatService
 
             if ( createConnectionResponse is null )
             {
-                throw new ProxyException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid");
+                throw new SerializableException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid");
             }
 
             if ( response.Status != ProxyResponse.ResponseStatus.Success )
             {
                 Exception? innerException = ( response.Exceptions != null && response.Exceptions.Length > 0 ) ? response.Exceptions[0] : null;
 
-                throw new ProxyException("The request to establish a connection to a service proxy failed.", new ProxyException(innerException));
+                throw new SerializableException("The request to establish a connection to a service proxy failed.", new SerializableException(innerException));
             }
 
             this.proxyConnection.BindTargetService(createConnectionResponse.ConnectionId);
