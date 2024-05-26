@@ -276,13 +276,13 @@ public class ProxyResponse : ProxyMessage
     // any ProxyException instances that originated from these types must be reconstituted,
     // albeit with some information loss.
     //
-    private ProxyException?[] TranslateExceptions(ProxyException?[] exceptions)
+    private ProxyException[]? TranslateExceptions(ProxyException[]? exceptions)
     {
-        ProxyException?[] result = null;
+        ProxyException[]? result = null;
 
         if ( exceptions is not null )
         {
-            result = (ProxyException[]?) exceptions.Clone();
+            result = (ProxyException[]) exceptions.Clone();
 
             for ( int exceptionIndex = 0; exceptionIndex < result.Length; exceptionIndex++ )
             {
