@@ -14,7 +14,9 @@ public class SerializableException : Exception
     // so we convert exceptions to an instance of this type that carries forward some
     // of the information about the inner exception, though it does not maintain the chain
     // of inner exceptions.
-    public SerializableException(Exception? originalException = null) : base ( "An unexpected error was encountered." )
+
+    // This extracts serializable data from the sourceException but keeps innerException null
+    protected SerializableException(Exception? originalException = null) : base ( "An unexpected error was encountered." )
     {
         if ( originalException is not null )
         {
@@ -27,14 +29,18 @@ public class SerializableException : Exception
         }
     }
 
-    public SerializableException(string message, SerializableException? SerializableException = null) : base(message, SerializableException)
+    // This allows the inner exception to be set since it is known to be serializable. It also promotes serializable
+    // properties of the inner exception to the newly constructed instance
+    protected SerializableException(string message, SerializableException? serializableInnerException = null) : base(message, serializableInnerException)
     {
-        InitializeFrom(SerializableException);
+        InitializeFrom(serializableInnerException);
     }
 
-    public SerializableException(string message, Exception? innerException, SerializableException? SerializableException = null) : base(message, innerException)
+    // This allows setting the inner exception, but will extract some information
+    // from it and make that accessible via public properties
+    protected SerializableException(string message, Exception? innerException, SerializableException? serializableException = null) : base(message, innerException)
     {
-        InitializeFrom(SerializableException);
+        InitializeFrom(serializableException);
     }
 
     public override string ToString()

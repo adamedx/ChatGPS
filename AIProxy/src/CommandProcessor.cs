@@ -63,7 +63,7 @@ internal class CommandProcessor
 
 
         List<string> content = new List<string>();
-        List<SerializableException> exceptions = new List<SerializableException>();
+        List<AIServiceException> exceptions = new List<AIServiceException>();
 
         ProxyResponse.ResponseStatus responseStatus = ProxyResponse.ResponseStatus.Unknown;
 
@@ -82,14 +82,16 @@ internal class CommandProcessor
                 {
                     responseStatus = ProxyResponse.ResponseStatus.Error;
 
+                    // This is an System.AggregateException, so the inner exception is the real exception
                     var targetException = operation.OperationException ??
-                        new SerializableException("An unspecified error occurred", new SerializableException(new ArgumentException("An unexpected error occurred")));
+                        new AIServiceException("An unspecified error occurred", null);
+
                     var errorMessage = targetException.Message ?? "An unspecified error occurred";
                     var exceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
 
                     Logger.Log(exceptionMessage);
 
-                    exceptions.Add( new SerializableException(exceptionMessage, new SerializableException(targetException)) );
+                    exceptions.Add(new AIServiceException(exceptionMessage, targetException.InnerException));
                 }
             }
             else

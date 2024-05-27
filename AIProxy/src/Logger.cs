@@ -68,9 +68,12 @@ internal class Logger
 
             var entryWithTime = string.Format("{0}\t0x{1:X8}\t{2}\n", DateTimeOffset.Now.LocalDateTime.ToString("u"), managedThreadId, outputString);
 
-            if ( this.fileWriter is not null )
+            lock (this )
             {
-                this.fileWriter.WriteAsync(entryWithTime);
+                if ( this.fileWriter is not null )
+                {
+                    this.fileWriter.Write(entryWithTime);
+                }
             }
 
             if ( this.consoleOutput )
@@ -89,13 +92,28 @@ internal class Logger
             throw new InvalidOperationException("The End method may not be invoked more than once");
         }
 
-        if ( this.fileWriter is not null )
+        lock (this )
         {
-            this.fileWriter.Close();
+            if ( this.fileWriter is not null )
+            {
+                this.fileWriter.Close();
+            }
         }
 
         this.ended = true;
     }
+
+    internal void Flush()
+    {
+        lock (this )
+        {
+            if ( this.fileWriter is not null )
+            {
+                this.fileWriter.Flush();
+            }
+        }
+    }
+
 
     internal static void Log( string outputString )
     {
@@ -105,6 +123,16 @@ internal class Logger
         }
 
         Logger.defaultLogger.Write( outputString );
+    }
+
+    internal static void FlushLog()
+    {
+        if ( Logger.defaultLogger is null )
+        {
+            throw new InvalidOperationException("The type has not been initialized");
+        }
+
+        Logger.defaultLogger.Flush();
     }
 
     internal static void End()

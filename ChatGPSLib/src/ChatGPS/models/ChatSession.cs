@@ -89,7 +89,8 @@ public class ChatSession
 
         string? response = null;
 
-        Microsoft.SemanticKernel.HttpOperationException? tokenException = null;
+        AIServiceException? tokenException = null;
+        
         Exception? lastException = null;
 
         Task<string>? messageTask = null;
@@ -123,9 +124,9 @@ public class ChatSession
                     ( messageTask is not null ) &&
                     ( messageTask.Status == System.Threading.Tasks.TaskStatus.Faulted ) &&
                     ( messageTask.Exception is not null ) ) ?
-                    messageTask.Exception.InnerException as Microsoft.SemanticKernel.HttpOperationException : null;
+                    messageTask.Exception.InnerException as AIServiceException : null;
 
-                if ( messageException is not null && IsTokenLimitException( messageException ) )
+                if ( messageException is not null && messageException.ExceededTokenLimit )
                 {
                     tokenException = messageException;
                     var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
@@ -163,38 +164,6 @@ public class ChatSession
         }
 
         return response;
-    }
-
-    private bool IsTokenLimitException( Microsoft.SemanticKernel.HttpOperationException operationException )
-    {
-        var tokenLimitExceeded = false;
-
-        if ( operationException.ResponseContent is not null )
-        {
-            var responseContent = operationException.ResponseContent;
-
-            JsonNode? jsonNode = null;
-
-            try
-            {
-                jsonNode = JsonNode.Parse(responseContent);
-            }
-            catch
-            {
-            }
-
-            string? responseCode = null;
-
-            if ( ( jsonNode != null ) && jsonNode["error"]!["code"]!.AsValue().TryGetValue<string>( out responseCode ) )
-            {
-                if ( responseCode == "context_length_exceeded" )
-                {
-                    tokenLimitExceeded = true;
-                }
-            }
-        }
-
-        return tokenLimitExceeded;
     }
 
     private void UpdateHistoryWithResponse()

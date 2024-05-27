@@ -67,6 +67,14 @@ internal class Process
         }
     }
 
+    internal bool IsActive
+    {
+        get
+        {
+            return this.processStarted && ! this.process.HasExited;
+        }
+    }
+
     private System.Diagnostics.Process process;
     private string imageFilePath;
     private string? arguments;

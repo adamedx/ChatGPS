@@ -4,22 +4,35 @@
 // All rights reserved.
 //
 
-namespace Modulus.ChatGPS;
-
+using System.IO;
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Services;
 
+namespace Modulus.ChatGPS;
+
 public class ChatGPS
 {
-    public static ChatSession CreateSession(AiOptions options, string? aiProxyHostPath, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, IChatService? chatService = null)
+    public static ChatSession CreateSession(AiOptions options, string? aiProxyHostPath, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, string? logDirectoryPath = null, IChatService? chatService = null)
     {
         var targetChatService = chatService;
+
+        string? proxyLogPath = null;
+
+        if ( logDirectoryPath is not null )
+        {
+            var logDirectoryInfo = new DirectoryInfo(logDirectoryPath);
+
+            if ( logDirectoryInfo.Exists )
+            {
+                proxyLogPath = Path.Join(logDirectoryInfo.FullName, "ChatGPSProxy.log");
+            }
+        }
 
         if ( targetChatService == null )
         {
             targetChatService =
                 aiProxyHostPath is not null ?
-                new ProxyService(ServiceBuilder.ServiceId.AzureOpenAi, options, aiProxyHostPath) :
+                new ProxyService(ServiceBuilder.ServiceId.AzureOpenAi, options, aiProxyHostPath, proxyLogPath) :
                 new OpenAIChatService(options);
         }
 

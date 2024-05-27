@@ -37,12 +37,21 @@ internal class ProxyApp
 
             listener.Stop();
         }
+        catch ( Exception exception )
+        {
+            Logger.Log("***********************************");
+            Logger.Log("***** UNHANDLED EXCEPTION!!! ******");
+            Logger.Log($"***** {exception.GetType().FullName}");
+            Logger.Log($"***** {exception.Message}");
+            Logger.Log(exception.StackTrace ?? "No stack trace available.");
+            Logger.Log("***********************************");
+
+            throw;
+        }
         finally
         {
-            cancellationSource.Dispose();
+            Logger.Log("Finished proxy application");
         }
-
-        Logger.Log("Finished proxy application");
 
         return finished;
     }

@@ -90,7 +90,7 @@ class TokenReducer
                     {
                         AddSummaryToConversation(reducedHistory, chatHistory, lossIndexStart);
                     }
-                    else if ( chatHistory[current + pairIndex].Content == null )
+                    else if ( chatHistory[current + pairIndex].Content is not null )
                     {
                         var sourceMessage = chatHistory[current + pairIndex];
                         var sourceMessageContent = sourceMessage.Content;

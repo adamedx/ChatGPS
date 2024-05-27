@@ -1,5 +1,5 @@
 //
-// Copyright 2023, Adam Edwards
+// Copyright (c), Adam Edwards
 //
 // All rights reserved.
 //
@@ -20,8 +20,9 @@ using Modulus.ChatGPS.Models.Proxy;
 
 internal class ProxyService : IChatService
 {
-    public ProxyService(ServiceBuilder.ServiceId serviceId, AiOptions options, string proxyHostPath, int idleTimeoutMs = 0, string? logFilePath = null, bool whatIfMode = false)
+    public ProxyService(ServiceBuilder.ServiceId serviceId, AiOptions options, string proxyHostPath, string? logFilePath = null, int idleTimeoutMs = 0, bool whatIfMode = false)
     {
+        Channel.SetDefaultLogFilePath(logFilePath);
         Channel.SetDefaultProxyPath(proxyHostPath);
 
         this.proxyTransport = new Transport();
@@ -49,7 +50,7 @@ internal class ProxyService : IChatService
 
         if ( sendChatResponse is null )
         {
-            throw new SerializableException("A null reference was returned for the chat request by the AI service.");
+            throw new AIServiceException("A null reference was returned for the chat request by the AI service.", null);
         }
 
         var resultList = new List<ChatMessageContent>();
@@ -90,14 +91,14 @@ internal class ProxyService : IChatService
 
             if ( createConnectionResponse is null )
             {
-                throw new SerializableException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid");
+                throw new AIServiceException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid", null);
             }
 
             if ( response.Status != ProxyResponse.ResponseStatus.Success )
             {
                 Exception? innerException = ( response.Exceptions != null && response.Exceptions.Length > 0 ) ? response.Exceptions[0] : null;
 
-                throw new SerializableException("The request to establish a connection to a service proxy failed.", new SerializableException(innerException));
+                throw new AIServiceException("The request to establish a connection to a service proxy failed.", innerException);
             }
 
             this.proxyConnection.BindTargetService(createConnectionResponse.ConnectionId);

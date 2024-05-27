@@ -4,14 +4,14 @@
 // All rights reserved.
 //
 
-namespace Modulus.ChatGPS.Services;
-
 using System.Collections.Generic;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
+
+namespace Modulus.ChatGPS.Services;
 
 public class OpenAIChatService : IChatService
 {
@@ -31,12 +31,34 @@ public class OpenAIChatService : IChatService
 
         var requestSettings = new OpenAIPromptExecutionSettings();
 
-        return kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
+        KernelFunction result;
+
+        try
+        {
+            result = kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
+        }
+        catch ( Exception exception )
+        {
+            throw new AIServiceException(exception.Message, exception, null);
+        }
+
+        return result;
     }
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
     {
-        return await GetChatCompletionService().GetChatMessageContentsAsync(history);
+        IReadOnlyList<ChatMessageContent> result;
+
+        try
+        {
+            result = await GetChatCompletionService().GetChatMessageContentsAsync(history);
+        }
+        catch (Exception exception)
+        {
+            throw new AIServiceException(exception.Message, exception, null);
+        }
+
+        return result;
     }
 
     public Kernel GetKernel()

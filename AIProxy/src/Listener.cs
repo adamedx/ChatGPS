@@ -45,6 +45,8 @@ internal class Listener
             throw new InvalidOperationException("Cannot start stop because there is no cancellation token source associated with this listener");
         }
 
+        Logger.FlushLog();
+
         this.cancellationTokenSource.Cancel();
 
         if ( this.readThread is not null )
@@ -73,26 +75,40 @@ internal class Listener
     {
         Logger.Log($"Started wait for {timeout} milliseconds for listener to finish");
 
-        bool signaled = false;
+        bool finishedWaiting = false;
+        bool exitRequested = false;
 
-        while ( ! signaled )
+        while ( ! finishedWaiting )
         {
             this.waitAgain = false;
-            signaled = this.finishedEvent.WaitOne(timeout);
+            exitRequested = this.finishedEvent.WaitOne(timeout);
 
-            Logger.Log($"Listener event exited with:{signaled}, wait again set to {this.waitAgain}");
+            Logger.Log($"Listener event exited with:{exitRequested}, wait again set to {this.waitAgain}");
 
-            if ( signaled && this.waitAgain )
+            // If we haven't been told we're finished but we've been instructed to wait again,
+            // then do so
+            if ( exitRequested )
             {
-                this.finishedEvent.Reset();
-                signaled = false;
-                Logger.Log("Finish waiting event was signaled, but wait again flag was set indicating the timeout has been reset to start again");
+                if ( this.waitAgain )
+                {
+                    this.waitAgain = false;
+                    this.finishedEvent.Reset();
+                    Logger.Log("Finish waiting event was signaled, but wait again flag was set indicating the timeout has been reset to start again");
+                }
+                else
+                {
+                    finishedWaiting = true;
+                }
+            }
+            else
+            {
+                finishedWaiting = true;
             }
         }
 
-        Logger.Log($"Completed wait for listener -- finished:{signaled}");
+        Logger.Log($"Completed wait for listener -- finished:{exitRequested}");
 
-        return signaled;
+        return exitRequested;
     }
 
     private void Listen()

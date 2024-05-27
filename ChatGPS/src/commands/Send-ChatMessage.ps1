@@ -70,7 +70,9 @@ function Send-ChatMessage {
                 $responseObject = $response | ToResponse -role $responseInfo.Role.Label -Received ([DateTime]::now)
                 $transformed = $responseObject | TransformResponseText @formatParameters
                 if ( ! $RawOutput.IsPresent ) {
-                    $transformed | ToResponse -role $responseObject.Role -Received $responseObject.Received
+                    if ( $responseObject ) {
+                        $transformed | ToResponse -role $responseObject.Role -Received $responseObject.Received
+                    }
                 } else {
                     $transformed
                 }

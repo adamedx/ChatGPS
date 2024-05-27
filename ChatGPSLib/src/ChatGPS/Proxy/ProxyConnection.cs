@@ -15,7 +15,7 @@ internal class ProxyConnection
     {
         this.serviceId = serviceId;
         this.idleTimeoutMs = idleTimeoutMs;
-        this.channel = new Channel(idleTimeoutMs);
+        this.channel = Channel.GetActiveChannel(idleTimeoutMs);
         this.options = options;
     }
 
@@ -40,6 +40,11 @@ internal class ProxyConnection
     internal async Task<ProxyResponse> ReadResponseAsync()
     {
         var message = await this.channel.ReadMessageAsync();
+
+        if ( message is null )
+        {
+            throw new AIServiceException("An unexpected response was returned from the proxy -- the connection may have been closed", null);
+        }
 
         return (ProxyResponse) ProxyResponse.FromSerializedMessage(message, typeof(ProxyResponse));
     }

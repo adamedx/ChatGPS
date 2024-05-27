@@ -27,6 +27,8 @@ function Connect-ChatSession {
         [validateset('None', 'Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Summarize',
 
+        [string] $LogDirectory = $null,
+
         [switch] $NoSetCurrent,
 
         [switch] $NoConnect,
@@ -56,7 +58,7 @@ function Connect-ChatSession {
         "$psscriptroot\..\..\lib\AIProxy.exe"
     }
 
-    $session = CreateSession $options -Prompt $targetPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy
+    $session = CreateSession $options -Prompt $targetPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory
 
     if ( $PassThru.IsPresent ) {
         $session

@@ -8,7 +8,7 @@ interface IChannel
 {
     Task SendMessageAsync(string message);
 
-    Task<string> ReadMessageAsync();
+    Task<string?> ReadMessageAsync();
 
     void Reset();
 }

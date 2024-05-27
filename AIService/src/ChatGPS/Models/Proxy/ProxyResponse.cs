@@ -164,7 +164,7 @@ public class ProxyResponse : ProxyMessage
         this.Type = ResponseType.WhatIf;
     }
 
-    public ProxyResponse(Guid requestId, ResponseStatus status, string[] serializedResponses, SerializableException[] exceptions)
+    public ProxyResponse(Guid requestId, ResponseStatus status, string[] serializedResponses, AIServiceException[] exceptions)
     {
         this.Status = ResponseStatus.Success;
         this.Content = serializedResponses;
@@ -244,12 +244,12 @@ public class ProxyResponse : ProxyMessage
             }
             else
             {
-                throw new SerializableException("The request to the AI service failed for an unknown reason");
+                throw new AIServiceException("The request to the AI service failed for an unknown reason", null);
             }
         }
     }
 
-    public SerializableException[]? Exceptions {
+    public AIServiceException[]? Exceptions {
         get
         {
             return this.exceptions;
@@ -262,7 +262,7 @@ public class ProxyResponse : ProxyMessage
                 throw new InvalidOperationException("This operation's exception status may not be set more than once.");
             }
 
-            this.exceptions = TranslateExceptions(value);
+            this.exceptions = value;
 
             if ( value is not null && value.Length > 0 )
             {
@@ -271,40 +271,11 @@ public class ProxyResponse : ProxyMessage
         }
     }
 
-    //
-    // Specific exception types are considered an API contract by upstream callers, so
-    // any SerializableException instances that originated from these types must be reconstituted,
-    // albeit with some information loss.
-    //
-    private SerializableException[]? TranslateExceptions(SerializableException[]? exceptions)
-    {
-        SerializableException[]? result = null;
-
-        if ( exceptions is not null )
-        {
-            result = (SerializableException[]) exceptions.Clone();
-
-            for ( int exceptionIndex = 0; exceptionIndex < result.Length; exceptionIndex++ )
-            {
-                var SerializableException = result[exceptionIndex];
-
-                if ( SerializableException.OriginalMessage == typeof(Microsoft.SemanticKernel.HttpOperationException).FullName )
-                {
-                    var newMessage = $"{SerializableException.OriginalMessage}\n\n{SerializableException.StackTrace}";
-                    var translatedException = new Microsoft.SemanticKernel.HttpOperationException(newMessage, SerializableException);
-                    result[exceptionIndex] = new SerializableException(newMessage, translatedException, SerializableException);
-                }
-            }
-        }
-
-        return result;
-    }
-
     public ResponseStatus Status { get; set; }
     public ResponseType Type { get; set; }
     public string[]? Content { get; set; }
     public ExecutionPlan? Plan { get; set; }
     public Guid RequestId { get; set; }
 
-    private SerializableException[]? exceptions;
+    private AIServiceException[]? exceptions;
 }
