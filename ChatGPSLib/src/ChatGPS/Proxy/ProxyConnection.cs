@@ -11,16 +11,20 @@ namespace Modulus.ChatGPS.Proxy;
 
 internal class ProxyConnection
 {
-    internal ProxyConnection(ServiceBuilder.ServiceId serviceId, AiOptions options, int idleTimeoutMs)
+    internal ProxyConnection(Transport transport, ServiceBuilder.ServiceId serviceId, AiOptions options, int idleTimeoutMs)
     {
+        this.transport = transport;
         this.serviceId = serviceId;
         this.idleTimeoutMs = idleTimeoutMs;
         this.channel = Channel.GetActiveChannel(idleTimeoutMs);
         this.options = options;
+        this.connectionInProgress = false;
     }
 
     internal async Task SendRequestAsync(ProxyRequest request)
     {
+        ConnectAiService();
+
         var connectedRequest = new ProxyRequest(request);
 
         connectedRequest.TargetConnectionId = this.serviceConnectionId;
@@ -39,11 +43,26 @@ internal class ProxyConnection
 
     internal async Task<ProxyResponse> ReadResponseAsync()
     {
-        var message = await this.channel.ReadMessageAsync();
+        string? message = null;
+
+        for ( int attempts = 0; attempts < 3; attempts++ )
+        {
+            message = await this.channel.ReadMessageAsync();
+
+            if ( message is not null )
+            {
+                break;
+            }
+
+            if ( attempts == 2 )
+            {
+                this.channel.Reset();
+            }
+        }
 
         if ( message is null )
         {
-            throw new AIServiceException("An unexpected response was returned from the proxy -- the connection may have been closed", null);
+            throw new AIServiceException("An unexpected response was returned from the proxy after multiple retries-- the connection may have been closed", null);
         }
 
         return (ProxyResponse) ProxyResponse.FromSerializedMessage(message, typeof(ProxyResponse));
@@ -56,22 +75,19 @@ internal class ProxyConnection
             throw new ArgumentException("The specified connection id was an empty guid and not a valid connection identifier");
         }
 
-        if ( this.serviceId is null )
-        {
-            throw new ArgumentException("The specified target service connection identifier was not specified");
-        }
-
         if ( this.serviceConnectionId != Guid.Empty )
         {
             throw new InvalidOperationException("The connection is already bound to a target service");
         }
 
         this.serviceConnectionId = targetConnectionId;
+        this.connectionInProgress = false;
     }
 
     internal void ResetTargetServiceBinding()
     {
         this.serviceConnectionId = Guid.Empty;
+        this.connectionInProgress = false;
     }
 
     internal bool IsConnectedToAiService
@@ -90,11 +106,54 @@ internal class ProxyConnection
         }
     }
 
-    ServiceBuilder.ServiceId? serviceId;
+    private void ConnectAiService()
+    {
+        if ( ! IsConnectedToAiService && ! this.connectionInProgress )
+        {
+            this.connectionInProgress = true;
+
+            try
+            {
+                var createConnectionRequest = new CreateConnectionRequest();
+                createConnectionRequest.ServiceId = this.serviceId;
+                createConnectionRequest.ConnectionOptions = this.ServiceOptions;
+
+                var request = ProxyRequest.FromRequestCommand(createConnectionRequest);
+
+                var task = transport.SendAsync(this, request);
+
+                var response = task.Result;
+
+                var createConnectionResponse = (CreateConnectionResponse?) ProxyResponse.GetCommandResponseFromProxyResponse(response, typeof(CreateConnectionResponse));
+
+                if ( createConnectionResponse is null )
+                {
+                    throw new AIServiceException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid", null);
+                }
+
+                if ( response.Status != ProxyResponse.ResponseStatus.Success )
+                {
+                    Exception? innerException = ( response.Exceptions != null && response.Exceptions.Length > 0 ) ? response.Exceptions[0] : null;
+
+                    throw new AIServiceException("The request to establish a connection to a service proxy failed.", innerException);
+                }
+
+                BindTargetService(createConnectionResponse.ConnectionId);
+            }
+            finally
+            {
+                this.connectionInProgress = false;
+            }
+        }
+    }
+
+    Transport transport;
+    ServiceBuilder.ServiceId serviceId;
     AiOptions options;
     IChannel channel;
     Guid serviceConnectionId;
     int idleTimeoutMs;
+    bool connectionInProgress;
   }
 
 

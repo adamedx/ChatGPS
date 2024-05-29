@@ -27,7 +27,7 @@ internal class ProxyService : IChatService
 
         this.proxyTransport = new Transport();
         this.serviceId = serviceId;
-        this.proxyConnection = new ProxyConnection(serviceId, options, idleTimeoutMs);
+        this.proxyConnection = new ProxyConnection(this.proxyTransport, serviceId, options, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
     }
 
@@ -38,8 +38,6 @@ internal class ProxyService : IChatService
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
     {
-        ConnectAiService();
-
         var sendChatRequest = new SendChatRequest(history);
 
         var request = ProxyRequest.FromRequestCommand(sendChatRequest);
@@ -71,38 +69,6 @@ internal class ProxyService : IChatService
     public Kernel GetKernel()
     {
         throw new NotImplementedException("Not implemented");
-    }
-
-    private void ConnectAiService()
-    {
-        if ( ! this.proxyConnection.IsConnectedToAiService )
-        {
-            var createConnectionRequest = new CreateConnectionRequest();
-            createConnectionRequest.ServiceId = this.serviceId;
-            createConnectionRequest.ConnectionOptions = this.proxyConnection.ServiceOptions;
-
-            var request = ProxyRequest.FromRequestCommand(createConnectionRequest);
-
-            var task = proxyTransport.SendAsync(this.proxyConnection, request);
-
-            var response = task.Result;
-
-            var createConnectionResponse = (CreateConnectionResponse?) ProxyResponse.GetCommandResponseFromProxyResponse(response, typeof(CreateConnectionResponse));
-
-            if ( createConnectionResponse is null )
-            {
-                throw new AIServiceException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid", null);
-            }
-
-            if ( response.Status != ProxyResponse.ResponseStatus.Success )
-            {
-                Exception? innerException = ( response.Exceptions != null && response.Exceptions.Length > 0 ) ? response.Exceptions[0] : null;
-
-                throw new AIServiceException("The request to establish a connection to a service proxy failed.", innerException);
-            }
-
-            this.proxyConnection.BindTargetService(createConnectionResponse.ConnectionId);
-        }
     }
 
     Transport proxyTransport;

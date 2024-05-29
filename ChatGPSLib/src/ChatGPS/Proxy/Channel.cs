@@ -43,7 +43,7 @@ public class Channel : IChannel
         return Channel.activeChannel;
     }
 
-    public Task SendMessageAsync(string message)
+    public async Task SendMessageAsync(string message)
     {
         InitializeChannel();
 
@@ -52,7 +52,17 @@ public class Channel : IChannel
             throw new InvalidOperationException("The channel must be initialized before it is used.");
         }
 
-        return this.process.WriteLineAsync(message);
+        try
+        {
+            await this.process.WriteLineAsync(message);
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Write fault");
+            throw;
+        }
+
+        return;
     }
 
     public void SetProxyHostPath(string proxyHostPathValue)
@@ -72,7 +82,19 @@ public class Channel : IChannel
             throw new InvalidOperationException("The channel must be initialized before it is used.");
         }
 
-        return await this.process.ReadLineAsync();
+        string? result = null;
+
+        try
+        {
+            result = await this.process.ReadLineAsync();
+        }
+        catch (Exception)
+        {
+            Console.WriteLine("Read fault");
+            throw;
+        }
+
+        return result;
     }
 
     public void Reset()
