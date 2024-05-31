@@ -48,7 +48,7 @@ internal class ProxyService : IChatService
 
         if ( sendChatResponse is null )
         {
-            throw new AIServiceException("A null reference was returned for the chat request by the AI service.", null);
+            throw new AIServiceException("A null reference was returned for the chat request by the AI service.");
         }
 
         var resultList = new List<ChatMessageContent>();

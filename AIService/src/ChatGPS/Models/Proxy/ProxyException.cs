@@ -10,7 +10,14 @@ namespace Modulus.ChatGPS.Models.Proxy;
 
 public class ProxyException : SerializableException
 {
+    public enum ExceptionType
+    {
+        BadConnection
+    }
+
     public ProxyException() {}
+
+    public ProxyException(string message, (string key, object value)[]? pairs ) : base ( message, pairs ) {}
 
     public ProxyException(AIServiceException targetServiceException) : base (targetServiceException)
     {

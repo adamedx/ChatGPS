@@ -13,18 +13,36 @@ public class AIServiceException : SerializableException
 {
     public AIServiceException() {}
 
-    public AIServiceException(Exception? sourceException) : base(sourceException) {}
+    public AIServiceException(string message) : base (message) {}
 
-    public AIServiceException(string message, SerializableException? innerException) : base(message, innerException)
+    public AIServiceException(Exception? sourceException) : base(sourceException)
+    {
+        InitializeTokenLimit(sourceException);
+    }
+
+    public AIServiceException(string message, SerializableException innerException) : base(message, innerException)
     {
         InitializeTokenLimit(innerException);
     }
 
-    // Will take relevant information from the serializable exception in preference to the more generic inner exception if
-    // both are specified
-    public AIServiceException(string message, Exception? innerException, SerializableException? sourceException = null) : base(message, null)
+    public static AIServiceException CreateServiceException(string message, Exception? innerException = null)
     {
-        InitializeTokenLimit(sourceException ?? innerException);
+        AIServiceException result;
+
+        var targetException = innerException is not null ? innerException as SerializableException : null;
+
+        if ( targetException is not null )
+        {
+            result = new AIServiceException(message, targetException);
+        }
+        else
+        {
+            result = new AIServiceException(message);
+        }
+
+        result.InitializeTokenLimit(innerException);
+
+        return result;
     }
 
     private void InitializeTokenLimit(Exception? sourceException)

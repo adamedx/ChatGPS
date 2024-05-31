@@ -244,7 +244,7 @@ public class ProxyResponse : ProxyMessage
             }
             else
             {
-                throw new AIServiceException("The request to the AI service failed for an unknown reason", null);
+                throw new AIServiceException("The request to the AI service failed for an unknown reason");
             }
         }
     }

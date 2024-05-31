@@ -33,7 +33,7 @@ internal class ProxyConnection
 
         if ( message is null )
         {
-            throw new ArgumentException("The serialized message was not valid");
+            throw new ProxyException("The request could not be serialized");
         }
 
         await this.channel.SendMessageAsync(message);
@@ -43,26 +43,11 @@ internal class ProxyConnection
 
     internal async Task<ProxyResponse> ReadResponseAsync()
     {
-        string? message = null;
-
-        for ( int attempts = 0; attempts < 3; attempts++ )
-        {
-            message = await this.channel.ReadMessageAsync();
-
-            if ( message is not null )
-            {
-                break;
-            }
-
-            if ( attempts == 2 )
-            {
-                this.channel.Reset();
-            }
-        }
+        var message = await this.channel.ReadMessageAsync();
 
         if ( message is null )
         {
-            throw new AIServiceException("An unexpected response was returned from the proxy after multiple retries-- the connection may have been closed", null);
+            throw new ProxyException("An unexpected response was returned from the proxy");
         }
 
         return (ProxyResponse) ProxyResponse.FromSerializedMessage(message, typeof(ProxyResponse));
@@ -106,6 +91,26 @@ internal class ProxyConnection
         }
     }
 
+    private async Task SendRequestNoRetryAsync(ProxyRequest request)
+    {
+        ConnectAiService();
+
+        var connectedRequest = new ProxyRequest(request);
+
+        connectedRequest.TargetConnectionId = this.serviceConnectionId;
+
+        var message = connectedRequest.ToSerializedMessage();
+
+        if ( message is null )
+        {
+            throw new ArgumentException("The serialized message was not valid");
+        }
+
+        await this.channel.SendMessageAsync(message);
+
+        return;
+    }
+
     private void ConnectAiService()
     {
         if ( ! IsConnectedToAiService && ! this.connectionInProgress )
@@ -128,14 +133,14 @@ internal class ProxyConnection
 
                 if ( createConnectionResponse is null )
                 {
-                    throw new AIServiceException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid", null);
+                    throw new AIServiceException("Unable to create a connection to the service proxy because the proxy response was empty or otherwise invalid");
                 }
 
                 if ( response.Status != ProxyResponse.ResponseStatus.Success )
                 {
                     Exception? innerException = ( response.Exceptions != null && response.Exceptions.Length > 0 ) ? response.Exceptions[0] : null;
 
-                    throw new AIServiceException("The request to establish a connection to a service proxy failed.", innerException);
+                    throw AIServiceException.CreateServiceException("The request to establish a connection to a service proxy failed.", innerException);
                 }
 
                 BindTargetService(createConnectionResponse.ConnectionId);

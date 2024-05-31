@@ -18,6 +18,53 @@ internal class Transport
 
     internal async Task<ProxyResponse> SendAsync(ProxyConnection connection, ProxyRequest requestMessage)
     {
+        var maxAttempts = 2;
+        ProxyResponse? result = null;
+
+        for ( int attempt = 0; attempt < maxAttempts; attempt++ )
+        {
+            try
+            {
+                result = await SendAsyncNoRetry(connection, requestMessage);
+
+                if ( result.Status == ProxyResponse.ResponseStatus.Error )
+                {
+                    if ( ( result.Exceptions is not null && result.Exceptions.Length > 0 ) &&
+                         ( result.Exceptions[0].Properties is not null ) )
+                    {
+                        var properties = result.Exceptions[0].Properties;
+                        if ( properties is not null )
+                        {
+                            if ( properties.ContainsKey( ProxyException.ExceptionType.BadConnection.ToString() ) )
+                            {
+                                connection.ResetTargetServiceBinding();
+                                continue;
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
+            catch
+            {
+                if ( attempt == maxAttempts - 1 )
+                {
+                    throw;
+                }
+            }
+        }
+
+        if ( result is null )
+        {
+            throw new ProxyException("An unexpected error occurred sending a message to the AI Proxy");
+        }
+
+        return result;
+    }
+
+    private async Task<ProxyResponse> SendAsyncNoRetry(ProxyConnection connection, ProxyRequest requestMessage)
+    {
         await connection.SendRequestAsync(requestMessage);
 
         ProxyResponse result;

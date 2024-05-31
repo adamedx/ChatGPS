@@ -39,7 +39,7 @@ public class OpenAIChatService : IChatService
         }
         catch ( Exception exception )
         {
-            throw new AIServiceException(exception.Message, exception, null);
+            throw new AIServiceException(exception);
         }
 
         return result;
@@ -55,7 +55,7 @@ public class OpenAIChatService : IChatService
         }
         catch (Exception exception)
         {
-            throw new AIServiceException(exception.Message, exception, null);
+            throw new AIServiceException(exception);
         }
 
         return result;

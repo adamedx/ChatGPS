@@ -83,15 +83,21 @@ internal class CommandProcessor
                     responseStatus = ProxyResponse.ResponseStatus.Error;
 
                     // This is an System.AggregateException, so the inner exception is the real exception
-                    var targetException = operation.OperationException ??
-                        new AIServiceException("An unspecified error occurred", null);
+                    var responseException = operation.OperationException ??
+                        new AIServiceException("An unspecified error occurred");
 
-                    var errorMessage = targetException.Message ?? "An unspecified error occurred";
+                    var errorMessage = responseException.Message ?? "An unspecified error occurred";
                     var exceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
 
                     Logger.Log(exceptionMessage);
 
-                    exceptions.Add(new AIServiceException(exceptionMessage, targetException.InnerException));
+                    var targetException = responseException is AggregateException ?
+                        responseException.InnerException :
+                        responseException;
+
+                    var resultException = AIServiceException.CreateServiceException(exceptionMessage, targetException);
+
+                    exceptions.Add(resultException);
                 }
             }
             else

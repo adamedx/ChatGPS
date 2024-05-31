@@ -90,7 +90,7 @@ public class ChatSession
         string? response = null;
 
         AIServiceException? tokenException = null;
-        
+
         Exception? lastException = null;
 
         Task<string>? messageTask = null;

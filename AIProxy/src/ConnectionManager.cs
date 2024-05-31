@@ -6,6 +6,7 @@
 
 using Modulus.ChatGPS;
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Models.Proxy;
 using Modulus.ChatGPS.Services;
 
 internal class ConnectionManager
@@ -55,7 +56,8 @@ internal class ConnectionManager
     {
         if ( ! failIfNotFound && ! this.connections.ContainsKey(connectionId) )
         {
-            throw new KeyNotFoundException($"The connection with identifier {connectionId} does not exist");
+            throw new ProxyException($"The connection with identifier {connectionId} does not exist",
+                                     new (string,object)[] { (ProxyException.ExceptionType.BadConnection.ToString(), connectionId) } );
         }
     }
 
