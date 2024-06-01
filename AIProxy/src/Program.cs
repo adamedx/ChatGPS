@@ -59,7 +59,8 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, Logger.LogLevel de
     {
         Logger.InitializeDefaultLogger( logLevel, enableDebugOutput, targetLogFilePath);
 
-        Logger.Log(string.Format("Started AIProxy in process {0} -- debug output enabled", System.Diagnostics.Process.GetCurrentProcess().Id));
+        Logger.Log(string.Format("Started AIProxy in process {0} -- debug loglevel: {1}", System.Diagnostics.Process.GetCurrentProcess().Id, logLevel));
+        Logger.Log(string.Format("Process arguments: {0}", System.Environment.CommandLine));
 
         var proxyApp = new ProxyApp(timeout, whatIf);
 

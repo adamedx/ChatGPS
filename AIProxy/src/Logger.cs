@@ -64,7 +64,7 @@ internal class Logger
 
     internal void Write( string outputString, LogLevel logLevel = LogLevel.Debug )
     {
-        if ( logLevel >= this.logLevel )
+        if ( this.logLevel >= logLevel )
         {
             var managedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
 

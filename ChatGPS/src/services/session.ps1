@@ -20,7 +20,7 @@ function CreateSession {
         [string] $LogDirectory = $null,
 
         [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
-        [string] $LogLevel,
+        [string] $LogLevel = 'Default',
 
         [switch] $SetCurrent,
 

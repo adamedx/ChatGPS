@@ -11,37 +11,12 @@ namespace Modulus.ChatGPS.Proxy;
 
 public class Channel : IChannel
 {
-    private Channel(int idleTimeoutMs = 0, string? proxyHostPath = null, string? logLevel = null, string? logFilePath = null)
+    public Channel(string proxyHostPath, int idleTimeoutMs = 60000, string? logFilePath = null, string? logLevel = null)
     {
-        string? targetImagePath =
-            proxyHostPath is not null ?
-            proxyHostPath :
-            Channel.defaultProxyPath;
-
-        if ( targetImagePath is null )
-        {
-            throw new ArgumentException("The path for the proxy must not be null");
-        }
-
-        var targetLogFilePath =
-            logFilePath is not null ?
-            logFilePath :
-            Channel.defaultLogFilePath;
-
-        this.proxyHostPath = targetImagePath;
-        this.logFilePath = targetLogFilePath;
-        this.logLevel = logLevel ?? Channel.defaultLogLevel;
-        this.idleTimeoutMs = idleTimeoutMs == 0 ? 60000 : idleTimeoutMs;
-    }
-
-    static internal Channel GetActiveChannel(int idleTimeoutMs = 0, string? proxyHostPath = null, string? logLevel = null, string? logFilePath = null, bool forceNewChannel = false)
-    {
-        if ( forceNewChannel || Channel.activeChannel is null )
-        {
-            Channel.activeChannel = new Channel(idleTimeoutMs, proxyHostPath, logLevel, logFilePath);
-        }
-
-        return Channel.activeChannel;
+        this.proxyHostPath = proxyHostPath;
+        this.logFilePath = logFilePath;
+        this.logLevel = logLevel;
+        this.idleTimeoutMs = idleTimeoutMs;
     }
 
     public async Task SendMessageAsync(string message)
@@ -88,24 +63,6 @@ public class Channel : IChannel
         this.process = null;
     }
 
-    internal static void SetDefaultLogLevel(string? logLevel)
-    {
-        Channel.defaultLogLevel = logLevel;
-    }
-
-    internal static void SetDefaultLogFilePath(string? defaultLogFilePath)
-    {
-        if ( defaultLogFilePath is not null )
-        {
-            Channel.defaultLogFilePath = defaultLogFilePath;
-        }
-    }
-
-    internal static void SetDefaultProxyPath(string defaultProxyPath)
-    {
-        Channel.defaultProxyPath = defaultProxyPath;
-    }
-
     void InitializeChannel(bool forceReset = false)
     {
         if ( forceReset )
@@ -128,11 +85,6 @@ public class Channel : IChannel
 
         this.process.Start();
     }
-
-    static string? defaultProxyPath;
-    static string? defaultLogFilePath;
-    static string? defaultLogLevel;
-    static Channel? activeChannel;
 
     Process? process;
     string proxyHostPath;

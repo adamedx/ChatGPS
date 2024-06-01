@@ -75,8 +75,10 @@ internal class CommandProcessor
                 {
                     responseStatus = ProxyResponse.ResponseStatus.Success;
 
-                    content.Add(operation.Result ?? "");
-                    Logger.Log($"Successfully executed {operation.Name} with result: {operation.Result}");
+                    var result = operation.Result ?? "";
+                    content.Add(result);
+                    Logger.Log($"Successfully executed '{operation.Name}' with response of size {result.Length}");
+                    Logger.Log($"Operation {operation.Name} returned result: {result}", Logger.LogLevel.DebugVerbose);
                 }
                 else
                 {
@@ -89,7 +91,7 @@ internal class CommandProcessor
                     var errorMessage = responseException.Message ?? "An unspecified error occurred";
                     var exceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
 
-                    Logger.Log(exceptionMessage);
+                    Logger.Log(exceptionMessage, Logger.LogLevel.Error);
 
                     var targetException = responseException is AggregateException ?
                         responseException.InnerException :
