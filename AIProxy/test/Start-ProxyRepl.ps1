@@ -128,23 +128,18 @@ function Start-ProxyRepl {
 
     $dotnetlocation = get-command $ProxyExecutablePath | select -expandproperty source
 
-    # $dotNetArguments = "-noprofile -command ""& '$dotnetlocation' run --config stuff --debug --timeout 60000 --no-encodedarguments --project $psscriptroot\..\AIProxy.csproj --no-build"""
-
     $dotNetArguments = "run --debug --timeout 60000 --project $psscriptroot\..\AIProxy.csproj --no-build"
 
     $processArguments = "-noprofile -command ""& '$dotnetlocation' $dotNetArguments"""
-    # $processArguments = $dotNetArguments
 
     $process = [System.Diagnostics.Process]::new()
 
     $process.StartInfo.FileName = 'pwsh'
 
     $process.StartInfo.Arguments = $processArguments
-    # $process.StartInfo.RedirectStandardError = $true
     $process.StartInfo.RedirectStandardOutput = $true
     $process.StartInfo.RedirectStandardInput = $true
     $process.StartInfo.UseShellExecute = $false
-    # $process.StartInfo.StandardOutputEncoding = ([System.Text.Encoding]::Utf8)
 
     Register-ObjectEvent -Action {param($i, $e) write-verbose 'EXITING' } -InputObject $process -EventName 'Exited' | out-null
 

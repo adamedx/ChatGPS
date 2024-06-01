@@ -12,9 +12,6 @@ const string DEBUG_FILE_NAME = "AIProxyLog.txt";
 var whatIfOption = new Option<bool>
     (name: "--whatif");
 
-var noEncodedArgumentsOption = new Option<bool>
-    (name: "--no-encodedarguments");
-
 var timeoutOption = new Option<int>
     (name: "--timeout",
      getDefaultValue: () => 10000);
@@ -29,20 +26,19 @@ var logFileOption = new Option<string>
 var thisCommand = new RootCommand("AI service proxy application");
 
 thisCommand.Add(whatIfOption);
-thisCommand.Add(noEncodedArgumentsOption);
 thisCommand.Add(timeoutOption);
 thisCommand.Add(debugOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath) =>
+thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, logFilePath) =>
     {
-    Start(whatIf, noEncodedArguments, timeout, enableDebugOutput, logFilePath);
+    Start(whatIf, timeout, enableDebugOutput, logFilePath);
     },
-    whatIfOption, noEncodedArgumentsOption, timeoutOption, debugOption, logFileOption);
+    whatIfOption, timeoutOption, debugOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( bool whatIf, bool noEncodedArguments, int timeout, bool enableDebugOutput, string? logFilePath )
+void Start( bool whatIf, int timeout, bool enableDebugOutput, string? logFilePath )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
