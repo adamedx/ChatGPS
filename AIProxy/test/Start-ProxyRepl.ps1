@@ -37,7 +37,7 @@ function Start-ProxyRepl {
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
-#        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\ChatGPSLib.dll") | out-null
+        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\ChatGPSLib.dll") | out-null
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\Microsoft.SemanticKernel.Abstractions.dll") | out-null
     }
 

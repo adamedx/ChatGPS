@@ -25,13 +25,11 @@ internal class ProxyApp
 
         var listener = new Modulus.ChatGPS.AIProxy.Listener(Responder);
 
-        CancellationTokenSource cancellationSource = new CancellationTokenSource();
-
         bool finished;
 
         try
         {
-            listener.Start( cancellationSource );
+            listener.Start();
 
             finished = listener.Wait(this.timeout);
 

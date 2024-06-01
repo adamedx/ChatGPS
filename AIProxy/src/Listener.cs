@@ -18,7 +18,7 @@ internal class Listener
         this.finishedEvent = new ManualResetEvent(false);
     }
 
-    internal void Start(CancellationTokenSource cancellationTokenSource)
+    internal void Start(CancellationTokenSource? cancellationTokenSource = null)
     {
         Logger.Log("Attempting to start listener.");
 
@@ -27,7 +27,7 @@ internal class Listener
             throw new InvalidOperationException("This listener has already been started");
         }
 
-        this.cancellationTokenSource = cancellationTokenSource;
+        this.cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
 
         this.readThread = new Thread(() => Listen());
 
@@ -45,9 +45,7 @@ internal class Listener
             throw new InvalidOperationException("Cannot start stop because there is no cancellation token source associated with this listener");
         }
 
-        Logger.FlushLog();
-
-        this.cancellationTokenSource.Cancel();
+        Logger.Log("Signaling read finished...");
 
         if ( this.readThread is not null )
         {
@@ -58,7 +56,9 @@ internal class Listener
             throw new InvalidOperationException("The listener cannot be stopped because it has not been correctly initialized");
         }
 
-        Logger.Log("Successfully signaled listener to stop.");
+        Logger.Log("Issuing cancellation...");
+
+        this.cancellationTokenSource.Cancel();
 
         Logger.Log("Waiting for up to 30s for listener thread to exit.");
 
@@ -68,7 +68,15 @@ internal class Listener
 
         Logger.Log(string.Format("Finished waiting for listener thread to exit, wait for thread to stop was {0}.", isStopped ? "successful" : "unsuccessful"));
 
+        Logger.Log("Closing reader now that the wait for the thread is finished.");
+
+        this.reader.Close();
+
         Logger.Log("Finished attempt to stop the listener.");
+
+        Logger.FlushLog();
+
+        this.cancellationTokenSource.Dispose();
     }
 
     internal bool Wait(int timeout)
@@ -193,8 +201,6 @@ internal class Listener
     void CancelRead()
     {
         Logger.Log("Received request to cancel reading input");
-
-        this.reader.Close();
 
         Logger.Log("Closed reader in order to cancel reading input");
     }

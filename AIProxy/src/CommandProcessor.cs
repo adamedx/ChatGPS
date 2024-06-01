@@ -86,16 +86,20 @@ internal class CommandProcessor
 
                     // This is an System.AggregateException, so the inner exception is the real exception
                     var responseException = operation.OperationException ??
-                        new AIServiceException("An unspecified error occurred");
+                        new AIServiceException("An error occurred but no exception information was provided.");
 
                     var errorMessage = responseException.Message ?? "An unspecified error occurred";
-                    var exceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
-
-                    Logger.Log(exceptionMessage, Logger.LogLevel.Error);
+                    var sourceExceptionMessage = $"Failed to execute {operation.Name} with error: {errorMessage}";
 
                     var targetException = responseException is AggregateException ?
                         responseException.InnerException :
                         responseException;
+
+                    var translatedMessage = targetException is AIServiceException ? ((AIServiceException) targetException).OriginalMessage : sourceExceptionMessage;
+
+                    var exceptionMessage = translatedMessage ?? "An unspecified error occurred from a nested exception.";
+
+                    Logger.Log(exceptionMessage, Logger.LogLevel.Error);
 
                     var resultException = AIServiceException.CreateServiceException(exceptionMessage, targetException);
 

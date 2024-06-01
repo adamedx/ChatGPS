@@ -57,7 +57,7 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, Logger.LogLevel de
 
     try
     {
-        Logger.InitializeDefaultLogger( logLevel, enableDebugOutput, targetLogFilePath);
+        Logger.InitializeDefaultLogger( logLevel, enableDebugOutput, targetLogFilePath );
 
         Logger.Log(string.Format("Started AIProxy in process {0} -- debug loglevel: {1}", System.Diagnostics.Process.GetCurrentProcess().Id, logLevel));
         Logger.Log(string.Format("Process arguments: {0}", System.Environment.CommandLine));

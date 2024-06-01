@@ -53,7 +53,8 @@ internal class Logger
         {
             var options = new FileStreamOptions() {
                 Mode = FileMode.Append,
-                Access = FileAccess.Write
+                Access = FileAccess.Write,
+                Share = FileShare.ReadWrite
             };
 
             this.fileWriter = new StreamWriter(this.logFilePath, options);
@@ -89,20 +90,20 @@ internal class Logger
 
     internal void Close()
     {
-        if ( this.ended )
+        lock ( this )
         {
-            throw new InvalidOperationException("The End method may not be invoked more than once");
-        }
+            if ( this.ended )
+            {
+                throw new InvalidOperationException("The Close method may not be invoked more than once");
+            }
 
-        lock (this )
-        {
             if ( this.fileWriter is not null )
             {
                 this.fileWriter.Close();
             }
-        }
 
-        this.ended = true;
+            this.ended = true;
+        }
     }
 
     internal void Flush()
@@ -139,12 +140,10 @@ internal class Logger
 
     internal static void End()
     {
-        if ( Logger.defaultLogger is null )
+        if ( Logger.defaultLogger is not null )
         {
-            throw new InvalidOperationException("The type has not been initialized");
+            Logger.defaultLogger.Close();
         }
-
-        Logger.defaultLogger.Close();
     }
 
     private static Logger? defaultLogger;
