@@ -12,7 +12,7 @@ namespace Modulus.ChatGPS;
 
 public class ChatGPS
 {
-    public static ChatSession CreateSession(AiOptions options, string? aiProxyHostPath, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, string? logDirectoryPath = null, IChatService? chatService = null)
+    public static ChatSession CreateSession(AiOptions options, string? aiProxyHostPath, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, string? logDirectoryPath = null, string? logLevel = null, IChatService? chatService = null)
     {
         var targetChatService = chatService;
 
@@ -32,7 +32,7 @@ public class ChatGPS
         {
             targetChatService =
                 aiProxyHostPath is not null ?
-                new ProxyService(ServiceBuilder.ServiceId.AzureOpenAi, options, aiProxyHostPath, proxyLogPath) :
+                new ProxyService(ServiceBuilder.ServiceId.AzureOpenAi, options, aiProxyHostPath, proxyLogPath, logLevel) :
                 new OpenAIChatService(options);
         }
 

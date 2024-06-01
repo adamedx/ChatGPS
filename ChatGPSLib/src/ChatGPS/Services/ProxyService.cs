@@ -20,8 +20,9 @@ using Modulus.ChatGPS.Models.Proxy;
 
 internal class ProxyService : IChatService
 {
-    public ProxyService(ServiceBuilder.ServiceId serviceId, AiOptions options, string proxyHostPath, string? logFilePath = null, int idleTimeoutMs = 0, bool whatIfMode = false)
+    public ProxyService(ServiceBuilder.ServiceId serviceId, AiOptions options, string proxyHostPath, string? logFilePath = null, string? logLevel = null, int idleTimeoutMs = 0, bool whatIfMode = false)
     {
+        Channel.SetDefaultLogLevel(logLevel);
         Channel.SetDefaultLogFilePath(logFilePath);
         Channel.SetDefaultProxyPath(proxyHostPath);
 

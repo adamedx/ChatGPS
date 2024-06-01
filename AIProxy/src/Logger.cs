@@ -10,7 +10,9 @@ internal class Logger
     {
         Default,
         None,
-        Debug
+        Error,
+        Debug,
+        DebugVerbose
     }
 
     static internal void InitializeDefaultLogger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null )
@@ -60,9 +62,9 @@ internal class Logger
         this.started = true;
     }
 
-    internal void Write( string outputString )
+    internal void Write( string outputString, LogLevel logLevel = LogLevel.Debug )
     {
-        if ( this.logLevel == LogLevel.Debug )
+        if ( logLevel >= this.logLevel )
         {
             var managedThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
 
@@ -115,14 +117,14 @@ internal class Logger
     }
 
 
-    internal static void Log( string outputString )
+    internal static void Log( string outputString, LogLevel logLevel = Logger.LogLevel.Debug )
     {
         if ( Logger.defaultLogger is null )
         {
             throw new InvalidOperationException("The type has not been initialized");
         }
 
-        Logger.defaultLogger.Write( outputString );
+        Logger.defaultLogger.Write( outputString, logLevel );
     }
 
     internal static void FlushLog()

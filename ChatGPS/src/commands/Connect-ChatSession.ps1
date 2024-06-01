@@ -29,6 +29,9 @@ function Connect-ChatSession {
 
         [string] $LogDirectory = $null,
 
+        [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
+        [string] $LogLevel = 'Default',
+
         [switch] $NoSetCurrent,
 
         [switch] $NoConnect,
@@ -58,7 +61,7 @@ function Connect-ChatSession {
         "$psscriptroot\..\..\lib\AIProxy.exe"
     }
 
-    $session = CreateSession $options -Prompt $targetPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory
+    $session = CreateSession $options -Prompt $targetPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel
 
     if ( $PassThru.IsPresent ) {
         $session

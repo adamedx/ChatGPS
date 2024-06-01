@@ -19,6 +19,9 @@ var timeoutOption = new Option<int>
 var debugOption = new Option<bool>
     (name: "--debug");
 
+var debugLevelOption = new Option<Logger.LogLevel>
+    (name: "--debuglevel") { Arity = ArgumentArity.ZeroOrOne };;
+
 var logFileOption = new Option<string>
     (name: "--logfile",
      getDefaultValue: () => "" ) { Arity = ArgumentArity.ZeroOrOne };
@@ -28,17 +31,18 @@ var thisCommand = new RootCommand("AI service proxy application");
 thisCommand.Add(whatIfOption);
 thisCommand.Add(timeoutOption);
 thisCommand.Add(debugOption);
+thisCommand.Add(debugLevelOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, logFilePath) =>
+thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, debugLevel, logFilePath) =>
     {
-    Start(whatIf, timeout, enableDebugOutput, logFilePath);
+    Start(whatIf, timeout, enableDebugOutput, debugLevel, logFilePath);
     },
-    whatIfOption, timeoutOption, debugOption, logFileOption);
+    whatIfOption, timeoutOption, debugOption, debugLevelOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( bool whatIf, int timeout, bool enableDebugOutput, string? logFilePath )
+void Start( bool whatIf, int timeout, bool enableDebugOutput, Logger.LogLevel debugLevel = Logger.LogLevel.Debug, string? logFilePath = null )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
@@ -47,7 +51,7 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, string? logFilePat
         ( logFilePath.Length > 0 ? logFilePath : null );
 
     var logLevel = ( ( targetLogFilePath is not null ) || enableDebugOutput ) ?
-        Logger.LogLevel.Debug : Logger.LogLevel.Default;
+        debugLevel : Logger.LogLevel.Default;
 
     System.Diagnostics.Debugger.Break();
 
