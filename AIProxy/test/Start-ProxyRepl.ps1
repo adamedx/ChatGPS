@@ -19,6 +19,22 @@ $functionDefinitions = @{
     }
 }
 
+function AddFunction([string] $functionName, [string] $functionDefinition, [string[]] $parameters) {
+    $definition = NewFunctionDefinition $functionDefinition $parameters
+    AddFunctionDefinition $functionName $definition
+}
+
+function AddFunctionDefinition([string] $functionName, [HashTable] $functionDefinition) {
+    $functionDefinitions[$functionName] = $functionDefinition
+}
+
+function NewFunctionDefinition([string] $functionDefinition, [string[]] $parameters) {
+    @{
+        Definition = $functionDefinition
+        Parameters = $parameters
+    }
+}
+
 function Start-ProxyRepl {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -34,6 +50,8 @@ function Start-ProxyRepl {
         [string] $ConfigPath = "$psscriptroot/../../azureopenai.config",
 
         [switch] $NoLoadAssemblies,
+
+        [int32] $IdleTimeout = 120000,
 
         [string] $LogFile,
 
@@ -163,6 +181,12 @@ __Get-Params $functionParameters
 
         $boundParameters = Invoke-Command -ScriptBlock $paramScriptBlock
 
+        write-verbose "Calling function '$functionName'"
+
+        foreach ( $parameter in $boundParameters.keys ) {
+            write-verbose "`t$parameter`t`t = `t$($boundParameters[$parameter])"
+        }
+
         $functionRequest = [Modulus.ChatGPS.Models.Proxy.InvokeFunctionRequest]::new($functionDefinition.Definition, $boundParameters)
         $script:__SESSION_HISTORY.AddMessage('User', $functionParameters)
 
@@ -173,6 +197,39 @@ __Get-Params $functionParameters
         switch ( $localCommand ) {
             '.showconnection' {
                 $script:__TEST_AIPROXY_SESSION_ID
+                break
+            }
+            '.showfunction' {
+                foreach ( $functionName in $script:functionDefinitions.keys ) {
+                    $definition = $script:functionDefinitions[$functionName]
+                    [PSCustomObject] @{
+                        Name = $functionName
+                        Parameters = $definition.Parameters
+                        Definition = $definition.Definition
+                    }
+                }
+                break
+            }
+            '.function' {
+                $functionScriptBlock = [ScriptBlock]::Create(
+@"
+function __Get-Function {param(
+                             [parameter(mandatory=`$true)] [string] `$functionName,
+                             [string[]] `$functionParameters = @(),
+                             [string] `$functionDefinition = ""
+                         )
+    @{
+        Name = `$functionName
+        Parameters = `$functionParameters
+        Definition = `$functionDefinition
+    }
+}
+__Get-Function $arguments
+"@
+                )
+                $newFunction = Invoke-Command -ScriptBlock $functionScriptBlock
+                AddFunction $newFunction.Name $newFunction.Definition $newFunction.Parameters
+                break
             }
             default {
                 break
@@ -198,7 +255,7 @@ __Get-Params $functionParameters
         ""
     }
 
-    $dotNetArguments = "run --debug $logLevelArgument $logFileArgument --timeout 60000 --project $psscriptroot\..\AIProxy.csproj --no-build"
+    $dotNetArguments = "run --debug $logLevelArgument $logFileArgument --timeout $IdleTimeout --project $psscriptroot\..\AIProxy.csproj --no-build"
 
     $processArguments = "-noprofile -command ""& '$dotnetlocation' $dotNetArguments"""
 
@@ -223,7 +280,7 @@ __Get-Params $functionParameters
     $commandName = $null
 
     while ( ! $process.hasexited ) {
-        write-verbose READINPUT
+        write-debug READINPUT
         $proxyCommand = read-host "PX> "
         $invalidCommand = $false
 
@@ -295,7 +352,14 @@ __Get-Params $functionParameters
                         'localcommand'
                         break
                     }
-
+                    '.showfunction' {
+                        'localcommand'
+                        break
+                    }
+                    '.function' {
+                        'localcommand'
+                        break
+                    }
                     default {
                         $invalidCommand = $true
                         break
@@ -375,10 +439,10 @@ __Get-Params $functionParameters
                 $currentLine = $process.StandardOutput.Readline()
                 if ( $currentLine ) { write-verbose $currentLine }
                 if ( ! $currentLine -or $currentLine[0] -eq '.' ) {
-                    write-verbose SKIPPING
+                    write-debug SKIPPING
                     continue
                 }
-                write-verbose KEEPING
+                write-debug KEEPING
                 $output = $currentLine
                 break
             } catch {
@@ -401,11 +465,11 @@ __Get-Params $functionParameters
                 [System.Text.Encoding]::UTF8.GetString($decodedBytes)
             }
         } else {
-            write-verbose reademptyline
+            write-debug reademptyline
             break
         }
 
-        write-verbose RECEIVEDOUTPUT
+        write-debug RECEIVEDOUTPUT
 
         write-progress "Processing response" -percentcomplete 98
 
