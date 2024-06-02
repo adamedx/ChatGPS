@@ -24,7 +24,8 @@ internal class CommandProcessor
         {
             { "createconnection", (connectionId) => { return new CreateConnectionCommand(this); } },
             { "exit", (connectionId) => { return new ExitCommand(this); } },
-            { "sendchat", (connectionId) => { return new SendChatCommand(this, connectionId); } }
+            { "sendchat", (connectionId) => { return new SendChatCommand(this, connectionId); } },
+            { "invokefunction", (connectionId) => { return new InvokeFunctionCommand(this, connectionId); } }
         };
     }
 
@@ -39,8 +40,11 @@ internal class CommandProcessor
 
         ProxyResponse.Operation[] operations;
 
+        Logger.Log($"Received request to execute command '{commandName}'");
+
         if ( this.commandTable.TryGetValue(commandName, out commandFunc) )
         {
+            Logger.Log($"Found command '{commandName}' in known command list");
             var command = commandFunc.Invoke(serviceConnectionId);
 
             try
@@ -55,6 +59,7 @@ internal class CommandProcessor
         }
         else
         {
+            Logger.Log($"Received request to execute non-existent command '{commandName}'");
             var operationException = new ArgumentException($"The specified command {commandName} does not exist.");
             var notFoundOperation = new ProxyResponse.Operation($"InvokeCommand-{commandName}", operationException);
 

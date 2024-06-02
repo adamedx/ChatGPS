@@ -18,6 +18,7 @@ internal class ConversationBuilder
     internal ConversationBuilder(IChatService chatService, string? chatFunctionPrompt = null)
     {
         this.chatFunctionPrompt = chatFunctionPrompt;
+        this.chatFunction = null;
         this.chatService = chatService;
     }
 
@@ -44,7 +45,7 @@ internal class ConversationBuilder
         return results;
     }
 
-    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, string? prompt = null)
+    internal Task<string> InvokeFunctionAsync(ChatHistory chatHistory, string? prompt = null)
     {
         InitializeSemanticFunction();
 
@@ -59,7 +60,7 @@ internal class ConversationBuilder
         {
             AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
         }
-
+/*
         var response = await this.chatService.GetKernel().InvokeAsync(this.chatFunction);
 
         var resultString = response.GetValue<string>();
@@ -69,6 +70,9 @@ internal class ConversationBuilder
         UpdateHistoryWithResponse(chatHistory, targetResult);
 
         return targetResult;
+*/
+
+        throw new NotImplementedException("Not implemented");
     }
 
     internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, IReadOnlyDictionary<string,object?>? messageProperties = null)
@@ -108,7 +112,8 @@ internal class ConversationBuilder
         if ( ( this.chatFunctionPrompt != null ) &&
              ( this.chatFunction == null ) )
         {
-            this.chatFunction = this.chatService.CreateFunction(this.chatFunctionPrompt);
+            throw new NotImplementedException("Not implemented");
+//            this.chatFunction = this.chatService.CreateFunction(this.chatFunctionPrompt);
         }
     }
 

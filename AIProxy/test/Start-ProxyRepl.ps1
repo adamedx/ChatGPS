@@ -12,6 +12,13 @@ $jsonOptions = [System.Text.Json.JsonSerializerOptions]::new()
 $jsonOptions.IncludeFields = $true
 
 
+$functionDefinitions = @{
+    PowerShell = @{
+        Definition = "Show the PowerShell code to accomplish the objective specified by {{`$input}} on this computer. Your response should include ONLY the code, no additional commentary, and there should be no markdown formatting for instance. If you cannot generate the code, then you must instead generate PowerShell code that throws an exception with a string message that states that you could not generate the code."
+        Parameters = @('input')
+    }
+}
+
 function Start-ProxyRepl {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -28,6 +35,11 @@ function Start-ProxyRepl {
 
         [switch] $NoLoadAssemblies,
 
+        [string] $LogFile,
+
+        [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
+        [string] $LogLevel,
+
         [string] $SystemPrompt = 'You are an assistant who provides support and encouragement for people to understand mathematics, science, and technology topics.',
 
         [switch] $Reset
@@ -36,9 +48,9 @@ function Start-ProxyRepl {
     $currentCommand = $null
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
-        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
-        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\ChatGPSLib.dll") | out-null
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\Microsoft.SemanticKernel.Abstractions.dll") | out-null
+        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\Microsoft.SemanticKernel.dll") | out-null
+        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
     }
 
     if ( $Reset.IsPresent -or (get-variable __TEST_AIPROXY_SESSION -erroraction ignore ) -eq $null ) {
@@ -93,6 +105,17 @@ function Start-ProxyRepl {
                             $script:__SESSION_HISTORY.AddMessage('Assistant', $chatMessage)
                             $chatMessage
                         }
+                        break
+                    }
+                    '.invoke' {
+                        $functionContent = $response -ne $null ? $response.Content : $null
+                        if ( $functionContent ) {
+                            $functionResponse = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.InvokeFunctionResponse]($functionContent, $jsonOptions)
+                            $chatMessage = $functionResponse.Output.Result
+                            $script:__SESSION_HISTORY.AddMessage('Assistant', $chatMessage)
+                            $chatMessage
+                        }
+                        break
                     }
                     default {
                         break
@@ -103,12 +126,47 @@ function Start-ProxyRepl {
     }
 
     function CreateSendChatRequest($message) {
-        $requestId = [Guid]::NewGuid()
         $chatRequest = [Modulus.ChatGPS.Models.Proxy.SendChatRequest]::new()
         $script:__SESSION_HISTORY.AddMessage('User', $message)
         $chatRequest.History = $script:__SESSION_HISTORY
 
         [System.Text.Json.JsonSerializer]::Serialize($chatRequest, $chatRequest.GetType(), $jsonOptions)
+    }
+
+    function CreateInvokeFunctionRequest([string] $functionName, $functionParameters) {
+        $functionDefinition = $functionDefinitions[$functionName]
+
+        if ( ! $functionDefinition ) {
+            throw "There is no defined function named '$functionName'"
+        }
+
+        $boundParameters = @{}
+
+        $paramList = if ( $functionDefinition.Parameters.Length -gt 0 ) {
+            $functionDefinition.Parameters | Join-String -outputprefix '$' -Separator ',$'
+        } else {
+            ""
+        }
+
+        $paramScriptBlock = [ScriptBlock]::Create(
+@"
+function __Get-Params {param($paramList)
+    `$result=[System.Collections.Generic.Dictionary[string,object]]::new()
+    `$PSBoundParameters.keys | foreach {
+        `$result.Add( `$_, `$PSBoundParameters[`$_])
+    }
+    `$result
+}
+__Get-Params $functionParameters
+"@
+        )
+
+        $boundParameters = Invoke-Command -ScriptBlock $paramScriptBlock
+
+        $functionRequest = [Modulus.ChatGPS.Models.Proxy.InvokeFunctionRequest]::new($functionDefinition.Definition, $boundParameters)
+        $script:__SESSION_HISTORY.AddMessage('User', $functionParameters)
+
+        [System.Text.Json.JsonSerializer]::Serialize($functionRequest, $functionRequest.GetType(), $jsonOptions)
     }
 
     function ProcessLocalCommand ($localCommand, $arguments) {
@@ -128,7 +186,19 @@ function Start-ProxyRepl {
 
     $dotnetlocation = get-command $ProxyExecutablePath | select -expandproperty source
 
-    $dotNetArguments = "run --debug --timeout 60000 --project $psscriptroot\..\AIProxy.csproj --no-build"
+    $logLevelArgument = if ( $LogLevel ) {
+        "--debuglevel $LogLevel"
+    } else {
+        ""
+    }
+
+    $logFileArgument = if ( $LogFile ) {
+        "--logfile '$LogFile'"
+    } else {
+        ""
+    }
+
+    $dotNetArguments = "run --debug $logLevelArgument $logFileArgument --timeout 60000 --project $psscriptroot\..\AIProxy.csproj --no-build"
 
     $processArguments = "-noprofile -command ""& '$dotnetlocation' $dotNetArguments"""
 
@@ -205,6 +275,22 @@ function Start-ProxyRepl {
                         'sendchat'
                         break
                     }
+                    '.invoke' {
+                        if ( $script:__TEST_AIPROXY_SESSION_ID -eq $null ) {
+                            throw "Cannot invoke function because no connection id was specified"
+                        }
+
+                        $splitArguments = $commandArguments -split ' '
+
+                        $functionName = $splitArguments[0]
+
+                        $functionParameters = if ( $splitArguments.Length -gt 1 ) {
+                            $commandArguments.SubString($functionName.Length, $commandArguments.Length - $functionName.Length).Trim()
+                        }
+
+                        $proxyCommandArguments = CreateInvokeFunctionRequest $functionName $functionParameters
+                        'invokefunction'
+                    }
                     '.showconnection' {
                         'localcommand'
                         break
@@ -269,8 +355,12 @@ function Start-ProxyRepl {
             $currentCommand = $commandName
             $process.standardInput.WriteLine($commandRequest)
         } catch {
+            write-verbose "Failed to write output"
+            $_ | write-verbose
             $failed = $true
         }
+
+        write-verbose "Request sent"
 
         # Read until you get a failure (quit) or then find a line not starting with '.'
         # The '.' only exists for debug output that is sent to standard output, so it is not
@@ -323,7 +413,7 @@ function Start-ProxyRepl {
 
         try {
             ProcessOutput $decodedOutput
-        } catch [Modulus.ChatGPS.Models.Proxy.SerializableException] {
+        } catch [Modulus.ChatGPS.Models.SerializableException] {
             $_ | write-error -erroraction continue
         }
 

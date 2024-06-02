@@ -58,6 +58,11 @@ internal class ProxyService : IChatService
         return new ReadOnlyCollection<ChatMessageContent>(resultList);
     }
 
+    public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?> parameters)
+    {
+        throw new AIServiceException("Not implemented");
+    }
+
     public KernelFunction CreateFunction(string definitionPrompt)
     {
         throw new NotImplementedException("Not implemented");

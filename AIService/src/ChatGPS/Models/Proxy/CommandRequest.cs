@@ -14,7 +14,8 @@ public class CommandRequest
         {
             { "createconnection", typeof(CreateConnectionRequest) },
             { "exit", typeof(ExitRequest) },
-            { "sendchat", typeof(SendChatRequest) }
+            { "sendchat", typeof(SendChatRequest) },
+            { "invokefunction", typeof(InvokeFunctionRequest) }
         };
 
         CommandRequest.typeToCommand = new Dictionary<Type, string>();
