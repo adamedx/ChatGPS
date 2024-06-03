@@ -62,7 +62,11 @@ function Send-ChatMessage {
                 GetCurrentSession $true
             }
 
+            write-progress "Sending message" -percentcomplete 35
+
             $response = SendMessage $targetConnection $currentMessage $ForceChat.IsPresent
+
+            write-progress "Response received, transforming" -percentcomplete 70
 
             $responseInfo = $targetConnection.History | select -last 1
 
@@ -82,6 +86,8 @@ function Send-ChatMessage {
                 }
             }
 
+            write-progress "Processing optional reply" -percentcomplete 80
+
             $replyData = GetChatReply -SourceMessage $response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
 
             $currentMessage = if ( $replyData ) {
@@ -95,6 +101,8 @@ function Send-ChatMessage {
                     $targetSound.Play()
                 }
             }
+
+            write-progress "Processing completed" -percentcomplete 100 -completed
         }
     }
 
