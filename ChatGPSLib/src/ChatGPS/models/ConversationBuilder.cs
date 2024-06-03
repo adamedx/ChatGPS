@@ -18,7 +18,6 @@ internal class ConversationBuilder
     internal ConversationBuilder(IChatService chatService, string? chatFunctionPrompt = null)
     {
         this.chatFunctionPrompt = chatFunctionPrompt;
-        this.chatFunction = null;
         this.chatService = chatService;
     }
 
@@ -97,15 +96,6 @@ internal class ConversationBuilder
         AddMessageToConversation(chatHistory, AuthorRole.Assistant, response);
     }
 
-    private void InitializeSemanticFunction()
-    {
-        if ( ( this.chatFunctionPrompt != null ) &&
-             ( this.chatFunction == null ) )
-        {
-            throw new NotImplementedException("Not implemented");
-//            this.chatFunction = this.chatService.CreateFunction(this.chatFunctionPrompt);
-        }
-    }
 
     private ReadOnlyDictionary<string,object?>? CreateMessageProperties()
     {
@@ -123,6 +113,4 @@ internal class ConversationBuilder
     private int messageIndex = 0;
 
     private string? chatFunctionPrompt;
-    private KernelFunction? chatFunction;
-
 }

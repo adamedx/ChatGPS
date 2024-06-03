@@ -25,26 +25,6 @@ public class OpenAIChatService : IChatService
         return new ChatHistory(prompt);
     }
 
-    public KernelFunction CreateFunction(string definitionPrompt)
-    {
-        var kernel = GetKernel();
-
-        var requestSettings = new OpenAIPromptExecutionSettings();
-
-        KernelFunction result;
-
-        try
-        {
-            result = kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
-        }
-        catch ( Exception exception )
-        {
-            throw new AIServiceException(exception);
-        }
-
-        return result;
-    }
-
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
     {
         IReadOnlyList<ChatMessageContent> result;
@@ -72,7 +52,27 @@ public class OpenAIChatService : IChatService
         return new FunctionOutput(result);
     }
 
-    public Kernel GetKernel()
+        private KernelFunction CreateFunction(string definitionPrompt)
+    {
+        var kernel = GetKernel();
+
+        var requestSettings = new OpenAIPromptExecutionSettings();
+
+        KernelFunction result;
+
+        try
+        {
+            result = kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
+        }
+        catch ( Exception exception )
+        {
+            throw new AIServiceException(exception);
+        }
+
+        return result;
+    }
+
+    private Kernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -113,7 +113,7 @@ public class OpenAIChatService : IChatService
         return newKernel;
     }
 
-    IChatCompletionService GetChatCompletionService()
+    private IChatCompletionService GetChatCompletionService()
     {
         if ( this.chatCompletionService is null )
         {
