@@ -58,19 +58,27 @@ internal class ProxyService : IChatService
         return new ReadOnlyCollection<ChatMessageContent>(resultList);
     }
 
-    public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?> parameters)
+    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?> parameters)
     {
-        throw new AIServiceException("Not implemented");
-    }
+        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, parameters);
 
-    public KernelFunction CreateFunction(string definitionPrompt)
-    {
-        throw new NotImplementedException("Not implemented");
-    }
+        var request = ProxyRequest.FromRequestCommand(invokeFunctionRequest);
 
-    public Kernel GetKernel()
-    {
-        throw new NotImplementedException("Not implemented");
+        var response = await this.proxyTransport.SendAsync(this.proxyConnection, request);
+
+        var invokeFunctionResponse = (InvokeFunctionResponse?) ProxyResponse.GetCommandResponseFromProxyResponse(response, typeof(InvokeFunctionResponse));
+
+        if ( invokeFunctionResponse is null )
+        {
+            throw new AIServiceException("A null reference was returned for the function request by the AI service.");
+        }
+
+        if ( invokeFunctionResponse.Output is null )
+        {
+            throw new AIServiceException("The proxy returned a response for a function invocation but its result was a null reference");
+        }
+
+        return invokeFunctionResponse.Output;
     }
 
     Transport proxyTransport;

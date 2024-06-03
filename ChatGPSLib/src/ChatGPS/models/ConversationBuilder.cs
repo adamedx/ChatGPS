@@ -45,34 +45,24 @@ internal class ConversationBuilder
         return results;
     }
 
-    internal Task<string> InvokeFunctionAsync(ChatHistory chatHistory, string? prompt = null)
+    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, Function chatFunction, string? prompt = null)
     {
-        InitializeSemanticFunction();
-
-        if ( this.chatFunction == null )
-        {
-            throw new ArgumentException("Unable to generate a function response -- this chat session does not have an optional associated chat function");
-        }
-
         var targetPrompt = prompt is not null ? prompt : chatHistory[chatHistory.Count - 1].Content;
 
         if ( prompt is not null )
         {
             AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
         }
-/*
-        var response = await this.chatService.GetKernel().InvokeAsync(this.chatFunction);
 
-        var resultString = response.GetValue<string>();
+        var response = await this.chatService.InvokeFunctionAsync(chatFunction.Definition, new () { ["input"] = targetPrompt } );
+
+        var resultString = response.Result;
 
         var targetResult = resultString is not null ? resultString : "I was unable to respond to your message.";
 
         UpdateHistoryWithResponse(chatHistory, targetResult);
 
         return targetResult;
-*/
-
-        throw new NotImplementedException("Not implemented");
     }
 
     internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, IReadOnlyDictionary<string,object?>? messageProperties = null)

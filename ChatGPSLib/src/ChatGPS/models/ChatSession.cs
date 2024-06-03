@@ -15,11 +15,12 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
     {
         this.Id = new Guid();
 
         this.chatFunctionPrompt = chatFunctionPrompt;
+        this.chatFunction = chatFunctionPrompt is not null ? new Function(chatFunctionParameters, chatFunctionPrompt) : null;
         this.conversationBuilder = new ConversationBuilder(chatService, chatFunctionPrompt);
 
         this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
@@ -104,7 +105,12 @@ public class ChatSession
 
                 if ( isFunction )
                 {
-                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory);
+                    if ( this.chatFunction is null )
+                    {
+                        throw new ArgumentException("Attempt to invoke a function when the session does not contain one");
+                    }
+
+                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, this.chatFunction);
                 }
                 else
                 {
@@ -175,6 +181,7 @@ public class ChatSession
     private ChatHistory chatHistory;
     private ChatHistory totalChatHistory;
     private string? chatFunctionPrompt;
+    private Function? chatFunction;
     private TokenReducer tokenReducer;
 }
 
