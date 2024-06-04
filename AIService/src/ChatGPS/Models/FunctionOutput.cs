@@ -21,7 +21,7 @@ public class FunctionOutput
         this.Result = functionResult.GetValue<string>();
         this.Metadata = functionResult.Metadata is not null ?  new Dictionary<string,object?>(functionResult.Metadata) : null;
         this.ValueTypeName = functionResult.ValueType?.FullName;
-        this.RenderedPrompt = functionResult.RenderedPrompt;
+        this.RenderedPrompt = null;
     }
 
     public string? Result {get; set;}
