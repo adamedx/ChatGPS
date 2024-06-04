@@ -31,7 +31,7 @@ public class ChatGPS
         if ( targetChatService == null )
         {
             targetChatService =
-                aiProxyHostPath is not null ?
+                aiProxyHostPath is not null && aiProxyHostPath.Length > 0 ?
                 new ProxyService(ServiceBuilder.ServiceId.AzureOpenAi, options, aiProxyHostPath, proxyLogPath, logLevel) :
                 new OpenAIChatService(options);
         }
