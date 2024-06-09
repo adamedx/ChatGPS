@@ -21,16 +21,13 @@ InModuleScope ChatGPS {
             . ([ScriptBlock]::Create(
 @'
 class MockChatService : Modulus.ChatGPS.Services.IChatService {
-    [Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory] CreateChat([string] $prompt) {
-        return [Microsoft.SemanticKernel.AI.ChatCompletion.ChatHistory]::new()
+    [Microsoft.SemanticKernel.ChatCompletion.ChatHistory] CreateChat([string] $prompt) {
+        return [Microsoft.SemanticKernel.ChatCompletion.ChatHistory]::new()
     }
-    [Microsoft.SemanticKernel.AI.ChatCompletion.IChatCompletion] GetChatCompletion() {
+    [System.Threading.Tasks.Task[System.Collections.Generic.IReadOnlyList[Microsoft.SemanticKernel.ChatMessageContent]]] GetChatCompletionAsync([Microsoft.SemanticKernel.ChatCompletion.ChatHistory] $history) {
         return $null
     }
-    [Microsoft.SemanticKernel.ISKFunction] CreateFunction([string] $definitionPrompt) {
-        return $null
-    }
-    [Microsoft.SemanticKernel.IKernel] GetKernel() {
+    [System.Threading.Tasks.Task[Modulus.ChatGPS.Models.FunctionOutput]] InvokeFunctionAsync([string] $definitionPrompt, [System.Collections.Generic.Dictionary[string,object]] $parameters) {
         return $null
     }
 }
