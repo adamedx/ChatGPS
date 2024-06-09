@@ -10,6 +10,46 @@ All Rights Reserved.
   <ViewDefinitions>
 
     <View>
+      <Name>ChatHistory</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.PowerShell.ChatHistory</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Width>24</Width>
+            <Label>Received</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Width>20</Width>
+            <Label>Role</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Width>1024</Width>
+            <Label>Response</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                 <PropertyName>Received</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Role</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Response</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
       <Name>ChatResponse</Name>
       <ViewSelectedBy>
         <TypeName>Modulus.ChatGPS.PowerShell.ChatResponse</TypeName>

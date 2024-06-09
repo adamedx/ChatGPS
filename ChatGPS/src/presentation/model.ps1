@@ -98,7 +98,7 @@ function RegisterTypeData([string] $typeName) {
 
 function SetObjectType([PSCustomObject] $customObject, [string] $typeName) {
     if ( $customObject.pstypenames -notcontains $typeName ) {
-        $customObject.pstypenames.Add($typeName) | out-null
+        $customObject.pstypenames.Insert(0, $typeName) | out-null
     }
 }
 

@@ -13,7 +13,16 @@ function CreateSession {
         [parameter(mandatory=$true)]
         [string] $Prompt,
 
-        [string] $functionPrompt = $null,
+        [string] $AiProxyHostPath = $null,
+
+        [string] $FunctionPrompt = $null,
+
+        [string[]] $FunctionParameters = $null,
+
+        [string] $LogDirectory = $null,
+
+        [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
+        [string] $LogLevel = 'Default',
 
         [switch] $SetCurrent,
 
@@ -21,9 +30,13 @@ function CreateSession {
         [string] $TokenStrategy = 'Truncate',
 
         [switch] $NoConnect
-    )
+        )
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, $TokenStrategy, $functionPrompt, $null)
+        $targetLogDirectory = if ( $LogDirectory ) {
+            (Get-Item $LogDirectory).FullName
+        }
+
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $functionPrompt, $functionParameters, $targetLogDirectory, $LogLevel, $null)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {

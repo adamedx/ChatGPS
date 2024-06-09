@@ -11,13 +11,16 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
     {
+        this.Id = new Guid();
+
         this.chatFunctionPrompt = chatFunctionPrompt;
+        this.chatFunction = chatFunctionPrompt is not null ? new Function(chatFunctionParameters, chatFunctionPrompt) : null;
         this.conversationBuilder = new ConversationBuilder(chatService, chatFunctionPrompt);
 
         this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
@@ -76,6 +79,8 @@ public class ChatSession
          }
      }
 
+    public Guid Id { get; private set; }
+
     private string GenerateMessageInternal(string prompt, bool isFunction)
     {
         var newMessageRole = AuthorRole.User;
@@ -85,7 +90,8 @@ public class ChatSession
 
         string? response = null;
 
-        Microsoft.SemanticKernel.Diagnostics.HttpOperationException? tokenException = null;
+        AIServiceException? tokenException = null;
+
         Exception? lastException = null;
 
         Task<string>? messageTask = null;
@@ -99,7 +105,12 @@ public class ChatSession
 
                 if ( isFunction )
                 {
-                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory);
+                    if ( this.chatFunction is null )
+                    {
+                        throw new ArgumentException("Attempt to invoke a function when the session does not contain one");
+                    }
+
+                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, this.chatFunction);
                 }
                 else
                 {
@@ -119,9 +130,9 @@ public class ChatSession
                     ( messageTask is not null ) &&
                     ( messageTask.Status == System.Threading.Tasks.TaskStatus.Faulted ) &&
                     ( messageTask.Exception is not null ) ) ?
-                    messageTask.Exception.InnerException as Microsoft.SemanticKernel.Diagnostics.HttpOperationException : null;
+                    messageTask.Exception.InnerException as AIServiceException : null;
 
-                if ( messageException is not null && IsTokenLimitException( messageException ) )
+                if ( messageException is not null && messageException.ExceededTokenLimit )
                 {
                     tokenException = messageException;
                     var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
@@ -161,38 +172,6 @@ public class ChatSession
         return response;
     }
 
-    private bool IsTokenLimitException( Microsoft.SemanticKernel.Diagnostics.HttpOperationException operationException )
-    {
-        var tokenLimitExceeded = false;
-
-        if ( operationException.ResponseContent is not null )
-        {
-            var responseContent = operationException.ResponseContent;
-
-            JsonNode? jsonNode = null;
-
-            try
-            {
-                jsonNode = JsonNode.Parse(responseContent);
-            }
-            catch
-            {
-            }
-
-            string? responseCode = null;
-
-            if ( ( jsonNode != null ) && jsonNode["error"]!["code"]!.AsValue().TryGetValue<string>( out responseCode ) )
-            {
-                if ( responseCode == "context_length_exceeded" )
-                {
-                    tokenLimitExceeded = true;
-                }
-            }
-        }
-
-        return tokenLimitExceeded;
-    }
-
     private void UpdateHistoryWithResponse()
     {
         ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
@@ -202,6 +181,7 @@ public class ChatSession
     private ChatHistory chatHistory;
     private ChatHistory totalChatHistory;
     private string? chatFunctionPrompt;
+    private Function? chatFunction;
     private TokenReducer tokenReducer;
 }
 

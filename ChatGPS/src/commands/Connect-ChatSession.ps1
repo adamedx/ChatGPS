@@ -25,11 +25,18 @@ function Connect-ChatSession {
         [int32] $TokenLimit = 4096,
 
         [validateset('None', 'Truncate', 'Summarize')]
-        [string] $TokenStrategy = 'Truncate',
+        [string] $TokenStrategy = 'Summarize',
+
+        [string] $LogDirectory = $null,
+
+        [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
+        [string] $LogLevel = 'Default',
 
         [switch] $NoSetCurrent,
 
         [switch] $NoConnect,
+
+        [switch] $NoProxy,
 
         [switch] $PassThru
     )
@@ -41,16 +48,27 @@ function Connect-ChatSession {
     $options.ApiKey = $ApiKey
     $options.TokenLimit = $TokenLimit
 
-    $functionPrompt = $null
+    $functionInfo = $null
+    $functionDefinition = $null
+    $functionParameters = $null
 
     $targetPrompt = if ( $Prompt ) {
         $Prompt
     } else {
-        $functionPrompt = [string] ([PromptBook]::GetFunctionPrompt($SystemPromptId))
+        $functionInfo = ([PromptBook]::GetFunctionInfo($SystemPromptId))
         [PromptBook]::GetDefaultPrompt($SystemPromptId)
     }
 
-    $session = CreateSession $options -Prompt $targetPrompt -FunctionPrompt $functionPrompt -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy
+    if ( $functionInfo ) {
+        $functionParameters = [string] $functionInfo.Parameters
+        $functionDefinition = [string] $functionInfo.Definition
+    }
+
+    $targetProxyPath = if ( ! $NoProxy.IsPresent ) {
+        "$psscriptroot\..\..\lib\AIProxy.exe"
+    }
+
+    $session = CreateSession $options -Prompt $targetPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionDefinition -FunctionParameters $functionParameters -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel
 
     if ( $PassThru.IsPresent ) {
         $session

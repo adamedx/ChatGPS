@@ -11,8 +11,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Orchestration;
-using Microsoft.SemanticKernel.AI.ChatCompletion;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 internal class ConversationBuilder
 {
@@ -20,12 +19,6 @@ internal class ConversationBuilder
     {
         this.chatFunctionPrompt = chatFunctionPrompt;
         this.chatService = chatService;
-        this.completionService = chatService.GetChatCompletion();
-
-        if ( this.completionService == null )
-        {
-            throw new ArgumentException("Specified chat service did not provide a chat completion interface.");
-        }
     }
 
     internal ChatHistory CreateConversationHistory(string systemPrompt)
@@ -35,22 +28,24 @@ internal class ConversationBuilder
 
     internal async Task<string> SendMessageAsync(ChatHistory chatHistory)
     {
-        string response = await this.completionService.GenerateMessageAsync(chatHistory);
+        var responses = await this.chatService.GetChatCompletionAsync(chatHistory);
 
-        UpdateHistoryWithResponse(chatHistory, response);
+        string results = "";
 
-        return response;
-    }
-
-    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, string? prompt = null)
-    {
-        InitializeSemanticFunction();
-
-        if ( this.chatFunction == null )
+        foreach ( var response in responses )
         {
-            throw new ArgumentException("Unable to generate a function response -- this chat session does not have an optional associated chat function");
+            if ( response is not null && response.Content is not null )
+            {
+                results += response.Content;
+                UpdateHistoryWithResponse(chatHistory, response.Content);
+            }
         }
 
+        return results;
+    }
+
+    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, Function chatFunction, string? prompt = null)
+    {
         var targetPrompt = prompt is not null ? prompt : chatHistory[chatHistory.Count - 1].Content;
 
         if ( prompt is not null )
@@ -58,9 +53,9 @@ internal class ConversationBuilder
             AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
         }
 
-        var response = await this.chatFunction.InvokeAsync(targetPrompt, this.chatService.GetKernel());
+        var response = await this.chatService.InvokeFunctionAsync(chatFunction.Definition, new () { ["input"] = targetPrompt } );
 
-        var resultString = response.GetValue<string>();
+        var resultString = response.Result;
 
         var targetResult = resultString is not null ? resultString : "I was unable to respond to your message.";
 
@@ -69,10 +64,10 @@ internal class ConversationBuilder
         return targetResult;
     }
 
-    internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, IDictionary<string,string>? messageProperties = null)
+    internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, IReadOnlyDictionary<string,object?>? messageProperties = null)
     {
         var targetProperties = messageProperties is not null ? messageProperties : CreateMessageProperties();
-        chatHistory.AddMessage(role, prompt, targetProperties);
+        chatHistory.AddMessage(role, prompt, null, targetProperties);
     }
 
     static internal void CopyMessageToConversation(ChatHistory destinationHistory, ChatHistory sourceHistory, int messageIndex)
@@ -86,7 +81,14 @@ internal class ConversationBuilder
             throw new ArgumentException(String.Format("Mismatch in destination {0}. Target = {1}, Source = {2}", targetRole, targetMessage, sourceMessage));
         }
 
-        destinationHistory.AddMessage(sourceHistory[messageIndex].Role, sourceHistory[messageIndex].Content, sourceHistory[messageIndex].AdditionalProperties);
+        var  content = sourceHistory[messageIndex].Content;
+
+        if ( content is null )
+        {
+            throw new ArgumentException("Unexpected null content in message");
+        }
+
+        destinationHistory.AddMessage(sourceHistory[messageIndex].Role, content, null, sourceHistory[messageIndex].Metadata);
     }
 
     internal void UpdateHistoryWithResponse(ChatHistory chatHistory, string response)
@@ -94,30 +96,21 @@ internal class ConversationBuilder
         AddMessageToConversation(chatHistory, AuthorRole.Assistant, response);
     }
 
-    private void InitializeSemanticFunction()
-    {
-        if ( ( this.chatFunctionPrompt != null ) &&
-             ( this.chatFunction == null ) )
-        {
-            this.chatFunction = this.chatService.CreateFunction(this.chatFunctionPrompt);
-        }
-    }
 
-    private Dictionary<string,string> CreateMessageProperties()
+    private ReadOnlyDictionary<string,object?>? CreateMessageProperties()
     {
-        return new Dictionary<string,string>
+        var dictionary = new Dictionary<string,object?>
         {
             { "Timestamp", JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
             { "MessageIndex", JsonSerializer.Serialize<int>(this.messageIndex++) }
         };
+
+        return new ReadOnlyDictionary<string,object?>(dictionary);
     }
 
     private IChatService chatService;
-    private IChatCompletion completionService;
 
     private int messageIndex = 0;
 
     private string? chatFunctionPrompt;
-    private ISKFunction? chatFunction;
-
 }

@@ -61,6 +61,8 @@ function Start-ChatREPL {
             @{}
         }
 
+        $replState = [ReplState]::new($connectionArgument.Connection, 'NaturalLanguage')
+
         $soundParameters = @{}
         if ( $MessageSound.IsPresent ) { $soundParameters['MessageSound'] = $MessageSound }
         if ( $SoundPath ) { $soundParameters['SoundPath'] = $SoundPath }
@@ -150,7 +152,22 @@ function Start-ChatREPL {
 
             $forceChat = $false
 
-            if ( ( ! $inputText ) -or ( $inputText.Trim() -eq '.exit' ) ) {
+            $replCommandResult = if ( $inputText ) {
+                InvokeReplCommand $inputText $replState.GetState()
+            }
+
+            if ( $replCommandResult ) {
+                $replState.Update($replCommandResult.UpdatedReplState)
+
+                if ( $replState.Status -eq [ReplStatus]::Exited ) {
+                    break
+                } else {
+                    $replCommandResult.Result
+                    continue
+                }
+            }
+
+            if ( ! $inputText ) {
                 break
             } elseif ( $inputText.Trim().StartsWith('.chat ') ) {
                 $keywordLength = '.chat '.Length
@@ -158,11 +175,12 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters -RawOutput:$RawOutput.IsPresent
 
             $lastResponse = $result
 
             if ( $result ) {
+                write-host
                 $result
             }
         }
