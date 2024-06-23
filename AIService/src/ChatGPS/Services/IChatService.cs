@@ -15,5 +15,5 @@ public interface IChatService
 {
     public ChatHistory CreateChat(string prompt);
     public Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history);
-    public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string, object?> parameters);
+    public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string, object?>? parameters);
 }

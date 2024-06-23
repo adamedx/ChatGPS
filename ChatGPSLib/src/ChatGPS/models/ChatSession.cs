@@ -27,6 +27,10 @@ public class ChatSession
         this.totalChatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
 
         this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
+
+        this.SessionFunctions = new FunctionTable();
+
+        this.AIService = chatService;
     }
 
     public string GenerateMessage(string prompt)
@@ -37,6 +41,15 @@ public class ChatSession
     public string GenerateFunctionResponse(string prompt)
     {
         return GenerateMessageInternal(prompt, true);
+    }
+
+    public Function CreateFunction(string name, string[] parameters, string definition, bool replace = false)
+    {
+        var function = new Function(name, parameters, definition);
+
+        this.SessionFunctions.AddFunction(function, replace);
+
+        return function;
     }
 
     public ChatHistory History
@@ -80,6 +93,10 @@ public class ChatSession
      }
 
     public Guid Id { get; private set; }
+
+    public FunctionTable SessionFunctions { get; private set; }
+
+    public IChatService AIService {get; private set; }
 
     private string GenerateMessageInternal(string prompt, bool isFunction)
     {
