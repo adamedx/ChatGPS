@@ -4,7 +4,6 @@ Roadmap for ChatGPS
 ## To-do items
 
 * Generate ps functions from chat functions
-* Generalize function invocation for function chats vs. pure functions
 * Plugin creation
 * Skill creation
 * Planner definition
@@ -22,3 +21,4 @@ Roadmap for ChatGPS
 * Function invocation
 * Function deletion
 * Function enumeration
+* Generalize function invocation for function chats vs. pure functions
