@@ -57,7 +57,7 @@ Copyright = '(c) Adam Edwards. All rights reserved.'
 RequiredAssemblies = @('./lib/AIService.dll', './lib/ChatGPSLib.dll')
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# ScriptsToProcess = @()
+ScriptsToProcess = @('./src/init/ModuleParentEnvironment.ps1')
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -79,6 +79,7 @@ FormatsToProcess = @('./src/format/format.ps1xml')
     'Invoke-ChatFunction'
     'New-ChatFunction'
     'New-ChatVoice'
+    'New-ChatScriptBlock'
     'Out-ChatVoice'
     'Remove-ChatFunction'
     'Send-ChatMessage'
@@ -122,6 +123,7 @@ FileList = @(
     './src/commands/Out-ChatVoice.ps1'
     './src/commands/New-ChatFunction.ps1'
     './src/commands/New-ChatVoice.ps1'
+    './src/commands/New-ChatScriptBlock.ps1'
     './src/commands/Remove-ChatFunction.ps1'
     './src/commands/Send-ChatMessage.ps1'
     './src/commands/Set-ChatCurrentVoice.ps1'
@@ -129,6 +131,7 @@ FileList = @(
     './src/format/format.ps1xml'
     './src/function.ps1'
     './src/function/function.ps1'
+    './src/init/ModuleParentEnvironemtn.ps1'
     './src/intent.ps1'
     './src/intent/PromptBook.ps1'
     './src/presentation.ps1'

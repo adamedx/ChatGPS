@@ -15,6 +15,7 @@ $commands = @(
     'Invoke-ChatFunction'
     'New-ChatFunction'
     'New-ChatVoice'
+    'New-ChatScriptBlock'
     'Out-ChatVoice'
     'Remove-ChatFunction'
     'Send-ChatMessage'

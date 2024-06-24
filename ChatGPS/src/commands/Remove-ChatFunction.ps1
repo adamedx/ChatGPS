@@ -27,7 +27,7 @@ function Remove-ChatFunction {
 
     process {
         $targetId = if ( $Name ) {
-            $sessionFunctions.GetFunctionByName($Name).Id;
+            $sessionFunctions.GetFunctionByName($Name).Id
         } else {
             $Id
         }
