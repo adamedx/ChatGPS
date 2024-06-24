@@ -131,7 +131,7 @@ FileList = @(
     './src/format/format.ps1xml'
     './src/function.ps1'
     './src/function/function.ps1'
-    './src/init/ModuleParentEnvironemtn.ps1'
+    './src/init/ModuleParentEnvironment.ps1'
     './src/intent.ps1'
     './src/intent/PromptBook.ps1'
     './src/presentation.ps1'

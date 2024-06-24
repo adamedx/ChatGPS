@@ -14,7 +14,7 @@ public class FunctionTable
     public FunctionTable()
     {
         this.functionById = new Dictionary<Guid,Function>();
-        this.functionByName = new SortedDictionary<string, Function>();
+        this.functionByName = new SortedDictionary<string, Function>(StringComparer.InvariantCultureIgnoreCase);
     }
 
     public void AddFunction(Function function, bool replace = false)
@@ -38,7 +38,7 @@ public class FunctionTable
 
             if ( hasName && function.Name is not null )
             {
-                this.functionByName.Add(function.Name, function);
+                this.functionByName[function.Name] = function;
             }
         }
     }
