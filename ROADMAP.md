@@ -3,7 +3,6 @@ Roadmap for ChatGPS
 
 ## To-do items
 
-* Add auto-complete for chat functions
 * Add types to function parameters
 * Provide a type for function output
 * Support json schema for function output: https://github.com/microsoft/semantic-kernel/blob/main/dotnet/src/SemanticKernel.Abstractions/Functions/KernelJsonSchema.cs
@@ -27,3 +26,4 @@ Roadmap for ChatGPS
 * Function enumeration
 * Generalize function invocation for function chats vs. pure functions
 * Generate ps functions from chat functions
+* Add auto-complete for chat functions

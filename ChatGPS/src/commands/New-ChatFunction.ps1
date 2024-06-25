@@ -35,5 +35,4 @@ function New-ChatFunction {
 
     end {
     }
-
 }

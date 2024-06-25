@@ -75,3 +75,5 @@ function Invoke-ChatFunction {
     }
 
 }
+
+[Function]::RegisterFunctionNameCompleter('Invoke-ChatFunction', 'Name')

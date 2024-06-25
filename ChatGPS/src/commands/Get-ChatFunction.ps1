@@ -39,3 +39,5 @@ function Get-ChatFunction {
     }
 
 }
+
+[Function]::RegisterFunctionNameCompleter('Get-ChatFunction', 'Name')

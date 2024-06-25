@@ -61,7 +61,7 @@ function New-ChatScriptBlock {
             "[parameter(valuefrompipeline=`$true)] `$$_"
         }
         $firstParameter = $false
-    }
+    } 
 
     $argumentString = $argumentList | Join-string -Separator ','
 
@@ -79,3 +79,5 @@ function New-ChatScriptBlock {
         $scriptBlock
     }
 }
+
+[Function]::RegisterFunctionNameCompleter('New-ChatScriptBlock', 'BindToFunctionName')

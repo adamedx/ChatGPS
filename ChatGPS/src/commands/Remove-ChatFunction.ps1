@@ -38,3 +38,5 @@ function Remove-ChatFunction {
     end {
     }
 }
+
+[Function]::RegisterFunctionNameCompleter('Remove-ChatFunction', 'Name')
