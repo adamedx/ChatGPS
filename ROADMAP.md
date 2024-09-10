@@ -5,8 +5,10 @@ Roadmap for ChatGPS
 
 * Add types to function parameters
 * Provide a type for function output
+* Non-repl: Include command history in context
+* Non-repl: Include command output in context
 * Support json schema for function output: https://github.com/microsoft/semantic-kernel/blob/main/dotnet/src/SemanticKernel.Abstractions/Functions/KernelJsonSchema.cs
-* Structured output
+* Structured output: https://learn.microsoft.com/en-us/dotnet/api/microsoft.semantickernel.connectors.openai.openaipromptexecutionsettings.responseformat?view=semantic-kernel-dotnet#microsoft-semantickernel-connectors-openai-openaipromptexecutionsettings-responseformat
 * Plugin creation
 * Skill creation
 * Planner definition
