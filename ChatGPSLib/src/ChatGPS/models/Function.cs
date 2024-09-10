@@ -6,12 +6,13 @@
 
 using System.Collections.Generic;
 using Microsoft.SemanticKernel;
+using  Modulus.ChatGPS.Services;
 
-namespace Modulus.ChatGPS.Services;
+namespace Modulus.ChatGPS.Models;
 
-internal class Function
+public class Function
 {
-    internal Function(string[]? parameters = null, string? definition = null )
+    public Function(string[]? parameters = null, string? definition = null )
     {
         // Apparently I have to duplicate code in the actual constructor block itself -- it's not
         // enough for it to be initialized in a method invoked from the constructor??!!!!
@@ -20,27 +21,27 @@ internal class Function
         Initialize(null, parameters, definition);
     }
 
-    internal Function(string name, string[]? parameters = null, string? definition = null )
+    public Function(string? name, string[]? parameters = null, string? definition = null )
     {
         this.Definition = definition ?? ""; // Should not have to do this!
         this.Parameters = new SortedList<string,string>();
         Initialize(name, parameters, definition);
     }
 
-    internal KernelArguments? GetArguments(Dictionary<string,object?>? boundParameters)
+    public KernelArguments? GetArguments(Dictionary<string,object?>? boundParameters)
     {
-        if ( boundParameters is not null )
-        {
-            foreach ( var parameterName in boundParameters.Keys )
-            {
-                if ( ! this.Parameters.ContainsKey(parameterName) )
-                {
-                    throw new ArgumentException($"The specified parameter {parameterName} is not defined for the specified function");
-                }
-            }
-        }
+        ValidateParameters(boundParameters);
 
         return boundParameters is not null ? new KernelArguments(boundParameters) : null;
+    }
+
+    public async Task<string> InvokeFunctionAsync(IChatService chatService, Dictionary<string,object?>? boundParameters)
+    {
+        ValidateParameters(boundParameters);
+
+        var response = await chatService.InvokeFunctionAsync(this.Definition, boundParameters);
+
+        return response.Result ?? "";
     }
 
     private void Initialize(string? name, string[]? parameters = default, string? definition = default )
@@ -57,8 +58,22 @@ internal class Function
         }
     }
 
-    internal Guid Id { get; private set; }
-    internal string? Name { get; private set; }
-    internal string Definition { get; private set; }
-    internal SortedList<string,string> Parameters { get; private set; }
+    private void ValidateParameters(Dictionary<string,object?>? boundParameters)
+    {
+        if ( boundParameters is not null )
+        {
+            foreach ( var parameterName in boundParameters.Keys )
+            {
+                if ( ! this.Parameters.ContainsKey(parameterName) )
+                {
+                    throw new ArgumentException($"The specified parameter {parameterName} is not defined for the specified function");
+                }
+            }
+        }
+    }
+
+    public Guid Id { get; private set; }
+    public string? Name { get; private set; }
+    public string Definition { get; private set; }
+    public SortedList<string,string> Parameters { get; private set; }
 }

@@ -58,9 +58,9 @@ internal class ProxyService : IChatService
         return new ReadOnlyCollection<ChatMessageContent>(resultList);
     }
 
-    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?> parameters)
+    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
     {
-        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, parameters);
+        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, parameters ?? new Dictionary<string,object?>());
 
         var request = ProxyRequest.FromRequestCommand(invokeFunctionRequest);
 

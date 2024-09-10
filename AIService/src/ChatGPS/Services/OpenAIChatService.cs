@@ -41,11 +41,11 @@ public class OpenAIChatService : IChatService
         return result;
     }
 
-    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?> parameters)
+    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
     {
         var kernelFunction = GetKernel().CreateFunctionFromPrompt(definitionPrompt);
 
-        var kernelArguments = new KernelArguments(parameters);
+        var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>());
 
         var result = await GetKernel().InvokeAsync(kernelFunction, kernelArguments);
 

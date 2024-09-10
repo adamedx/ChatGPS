@@ -57,7 +57,7 @@ Copyright = '(c) Adam Edwards. All rights reserved.'
 RequiredAssemblies = @('./lib/AIService.dll', './lib/ChatGPSLib.dll')
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# ScriptsToProcess = @()
+ScriptsToProcess = @('./src/init/ModuleParentEnvironment.ps1')
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -69,14 +69,19 @@ FormatsToProcess = @('./src/format/format.ps1xml')
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @(
+ FunctionsToExport = @(
     'Connect-ChatSession'
     'Get-ChatConnection'
     'Get-ChatCurrentSession'
     'Get-ChatCurrentVoice'
+    'Get-ChatFunction'
     'Get-ChatVoiceName'
+    'Invoke-ChatFunction'
+    'New-ChatFunction'
     'New-ChatVoice'
+    'New-ChatScriptBlock'
     'Out-ChatVoice'
+    'Remove-ChatFunction'
     'Send-ChatMessage'
     'Set-ChatCurrentVoice'
     'Start-ChatREPL'
@@ -112,18 +117,30 @@ FileList = @(
     './src/commands/Get-ChatConnection.ps1'
     './src/commands/Get-ChatCurrentSession.ps1'
     './src/commands/Get-ChatCurrentVoice.ps1'
+    './src/commands/Get-ChatFunction.ps1'
     './src/commands/Get-ChatVoiceName.ps1'
+    './src/commands/Invoke-ChatFunction.ps1'
     './src/commands/Out-ChatVoice.ps1'
+    './src/commands/New-ChatFunction.ps1'
     './src/commands/New-ChatVoice.ps1'
+    './src/commands/New-ChatScriptBlock.ps1'
+    './src/commands/Remove-ChatFunction.ps1'
     './src/commands/Send-ChatMessage.ps1'
     './src/commands/Set-ChatCurrentVoice.ps1'
     './src/commands/Start-ChatREPL.ps1'
     './src/format/format.ps1xml'
+    './src/function.ps1'
+    './src/function/function.ps1'
+    './src/init/ModuleParentEnvironment.ps1'
+    './src/intent.ps1'
     './src/intent/PromptBook.ps1'
+    './src/presentation.ps1'
     './src/presentation/model.ps1'
     './src/presentation/reply.ps1'
     './src/presentation/voice.ps1'
+    './src/services.ps1'
     './src/services/session.ps1'
+    './src/shell.ps1'
     './src/shell/ReplCommand.ps1'
     './src/shell/ReplState.ps1'
 )

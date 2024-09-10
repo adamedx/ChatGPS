@@ -53,9 +53,7 @@ internal class ConversationBuilder
             AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
         }
 
-        var response = await this.chatService.InvokeFunctionAsync(chatFunction.Definition, new () { ["input"] = targetPrompt } );
-
-        var resultString = response.Result;
+        var resultString = await chatFunction.InvokeFunctionAsync(this.chatService, new () { ["input"] = targetPrompt } );
 
         var targetResult = resultString is not null ? resultString : "I was unable to respond to your message.";
 

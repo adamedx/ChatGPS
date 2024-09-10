@@ -7,45 +7,46 @@
 using System.Collections.Generic;
 using Microsoft.SemanticKernel;
 
-namespace Modulus.ChatGPS.Services;
+namespace Modulus.ChatGPS.Models;
 
-internal class FunctionTable
+public class FunctionTable
 {
-    internal FunctionTable()
+    public FunctionTable()
     {
         this.functionById = new Dictionary<Guid,Function>();
-        this.functionByName = new SortedDictionary<string, Function>();
+        this.functionByName = new SortedDictionary<string, Function>(StringComparer.InvariantCultureIgnoreCase);
     }
 
-    internal void AddFunction(Function function, bool replace = false)
+    public void AddFunction(Function function, bool replace = false)
     {
         lock (this)
         {
-            bool hasName = function.Name is not null;
+            bool hasName = function.Name is not null && function.Name.Length > 0;
 
             bool checkForExisting = ! replace && hasName;
 
             // Repeated use of null check here because the compiler's nullable check couldn't traverse variable assignments.
-            if ( checkForExisting && function.Name is not null  && this.functionByName.ContainsKey(function.Name) )
+            if ( checkForExisting &&
+                 function.Name is not null &&
+                 hasName &&
+                 this.functionByName.ContainsKey(function.Name) )
             {
                 throw new ArgumentException($"The function named '{function.Name}' is already defined");
             }
 
             this.functionById.Add(function.Id, function);
 
-            if ( function.Name is not null )
+            if ( hasName && function.Name is not null )
             {
-                this.functionByName.Add(function.Name, function);
+                this.functionByName[function.Name] = function;
             }
         }
     }
 
-    internal void RemoveFunction(Guid functionId)
+    public void RemoveFunction(Guid functionId)
     {
         lock (this)
         {
-            var targetFucntion = functionById[functionId];
-
             string? functionName = this.functionById[functionId]?.Name;
 
             if ( functionName is not null )
@@ -57,7 +58,7 @@ internal class FunctionTable
         }
     }
 
-    internal Function GetFunctionById(Guid functionId)
+    public Function GetFunctionById(Guid functionId)
     {
         Function targetFunction;
 
@@ -69,11 +70,11 @@ internal class FunctionTable
         return targetFunction;
     }
 
-    internal Function? GetFunctionByName(string name, bool ignoreMissing)
+    public Function? GetFunctionByName(string name, bool ignoreMissing = false)
     {
         Function? targetFunction = null;
 
-        if ( ! functionByName.TryGetValue(name, out targetFunction) && ignoreMissing )
+        if ( ! functionByName.TryGetValue(name, out targetFunction) && ! ignoreMissing )
         {
             throw new KeyNotFoundException($"The specified function named {name} was not found");
         }
@@ -81,12 +82,12 @@ internal class FunctionTable
         return targetFunction;
     }
 
-    internal IEnumerable<Function> GetFunctions()
+    public IEnumerable<Function> GetFunctions()
     {
-        return functionByName.Values;
+        return functionById.Values;
     }
 
-    internal IEnumerable<Function> GetNamedFunctions()
+    public IEnumerable<Function> GetNamedFunctions()
     {
         return functionById.Values;
     }
