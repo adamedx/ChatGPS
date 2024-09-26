@@ -79,27 +79,52 @@ public class OpenAIChatService : IChatService
             return this.serviceKernel;
         }
 
-        if ( this.options.ApiEndpoint == null )
-        {
-            throw new ArgumentException("An API endpoint must be specified.");
-        }
-
         if ( this.options.ModelIdentifier == null )
         {
             throw new ArgumentException("An identifier for the language model must be specified.");
         }
 
-        if ( this.options.ApiKey == null )
-        {
-            throw new ArgumentException("An API key for the AI service must be specified.");
-        }
-
         var builder = Kernel.CreateBuilder();
 
-        builder.AddAzureOpenAIChatCompletion(
-            this.options.ModelIdentifier,
-            this.options.ApiEndpoint.ToString(),
-            this.options.ApiKey);
+        if ( this.options.Provider is null || this.options.Provider == ModelProvider.AzureOpenAI )
+        {
+            if ( this.options.ApiEndpoint == null )
+            {
+                throw new ArgumentException("An API endpoint must be specified.");
+            }
+
+            if ( this.options.ApiKey == null )
+            {
+                throw new ArgumentException("An API key for the AI service must be specified.");
+            }
+
+            builder.AddAzureOpenAIChatCompletion(
+                this.options.ModelIdentifier,
+                this.options.ApiEndpoint.ToString(),
+                this.options.ApiKey);
+        }
+        else if ( this.options.Provider == ModelProvider.LocalOnnx )
+        {
+            if ( this.options.LocalModelPath == null )
+            {
+                throw new ArgumentException("A file system path must be specified.");
+            }
+
+            #pragma warning disable SKEXP0070
+            builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
+            #pragma warning restore SKEXP0070
+
+            var assemblyLoader = new OnnxProviderAssemblyLoader();
+
+            if ( ! assemblyLoader.IsSupportedOnCurrentPlatform )
+            {
+                throw new PlatformNotSupportedException("This application does not support the use of Onnx local models on the current system platform.");
+            }
+        }
+        else
+        {
+            throw new ArgumentException($"An model of unknown type '{this.options.Provider}' was specified.");
+        }
 
         var newKernel = builder.Build();
 
@@ -117,9 +142,25 @@ public class OpenAIChatService : IChatService
     {
         if ( this.chatCompletionService is null )
         {
-            var kernel = GetKernel();
+            Kernel kernel;
 
-            this.chatCompletionService = kernel.GetAllServices<IChatCompletionService>().FirstOrDefault();
+            try
+            {
+                kernel = GetKernel();
+            }
+            catch (Exception exception)
+            {
+                throw new AIServiceException(exception);
+            }
+
+            try
+            {
+                this.chatCompletionService = kernel.GetAllServices<IChatCompletionService>().FirstOrDefault();
+            }
+            catch (Exception exception)
+            {
+                throw new AIServiceException(exception);
+            }
         }
 
         if ( this.chatCompletionService is null )

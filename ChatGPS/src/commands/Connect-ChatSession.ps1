@@ -12,17 +12,20 @@ function Connect-ChatSession {
         [validateset('PowerShell', 'PowerShellStrict', 'General', 'Conversational')]
         [string] $SystemPromptId = 'PowerShell',
 
-        [parameter(valuefrompipelinebypropertyname=$true,mandatory=$true)]
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true,mandatory=$true)]
         [Uri] $ApiEndpoint,
 
-        [parameter(valuefrompipelinebypropertyname=$true,mandatory=$true)]
-        [string] $ModelId,
+        [parameter(valuefrompipelinebypropertyname=$true, mandatory=$true)]
+        [string] $ModelIdentifier,
 
-        [parameter(valuefrompipelinebypropertyname=$true,mandatory=$true)]
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true,mandatory=$true)]
         [string] $ApiKey,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
         [int32] $TokenLimit = 4096,
+
+        [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
+        [string] $LocalModelPath,
 
         [validateset('None', 'Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Summarize',
@@ -44,9 +47,16 @@ function Connect-ChatSession {
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
 
     $options.ApiEndpoint = $ApiEndpoint
-    $options.ModelIdentifier = $ModelId
+    $options.ModelIdentifier = $ModelIdentifier
     $options.ApiKey = $ApiKey
     $options.TokenLimit = $TokenLimit
+    $options.LocalModelPath = $LocalModelPath
+
+    if ( $options.LocalModelPath ) {
+        $options.Provider = 'LocalOnnx'
+    } else {
+        $options.Provider = 'AzureOpenAI'
+    }
 
     $functionInfo = $null
     $functionDefinition = $null

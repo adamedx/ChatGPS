@@ -6,6 +6,7 @@
 set-strictmode -version 2
 $erroractionpreference = 'stop'
 
+. (join-path $psscriptroot native.ps1)
 . (join-path $psscriptroot services.ps1)
 . (join-path $psscriptroot intent.ps1)
 . (join-path $psscriptroot presentation.ps1)

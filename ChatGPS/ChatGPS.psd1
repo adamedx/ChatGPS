@@ -110,6 +110,7 @@ FileList = @(
     './src/ChatGPS.ps1'
     './src/commands.ps1'
     './src/intent.ps1'
+    './src/native.ps1'
     './src/presentation.ps1'
     './src/services.ps1'
     './src/shell.ps1'

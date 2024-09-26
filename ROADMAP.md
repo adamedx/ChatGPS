@@ -3,6 +3,7 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Make config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
 * Non-repl: Include command history in context

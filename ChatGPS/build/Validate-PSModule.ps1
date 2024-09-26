@@ -17,4 +17,6 @@ $moduleManifestPath = Find-ModuleManifestPath -ModuleDirectory $ModuleDirectory
 
 Test-ModuleManifest $moduleManifestPath -erroraction stop | out-null
 
-import-module $moduleManifestPath -erroraction stop | out-null
+$global:__ChatGPSSkipNative = $true
+
+import-module $moduleManifestPath -force -erroraction stop | out-null

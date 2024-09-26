@@ -29,7 +29,7 @@ internal class ConnectionManager
         }
 
         var newService = new OpenAIChatService(options);
-        var connection = new Connection( Guid.NewGuid(), newService);
+        var connection = new Connection( Guid.NewGuid(), newService );
 
         connections.Add(connection.Id, connection);
 

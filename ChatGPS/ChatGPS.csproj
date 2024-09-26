@@ -44,9 +44,11 @@
     <MakeDir Directories="$(DevLibDirectory)" />
     <ItemGroup>
       <AssemblyDependencies Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.runtimeconfig.json;$(TargetDir)*.deps.json" Exclude="$(TargetDir)$(ProjectName).dll;$(TargetDir)/ChatGPS.exe;$(TargetDir)/ChatGPS.*.json"/>
+      <AssemblyIndirectDependencies Include="$(TargetDir)/runtimes/**/*"/>
     </ItemGroup>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DevLibDirectory)"/>
     <Copy SourceFiles="@(AssemblyDependencies)" DestinationFolder="$(DevLibDirectory)"/>
+    <Copy SourceFiles="@(AssemblyIndirectDependencies)" DestinationFolder="$(DevLibDirectory)/runtimes/%(RecursiveDir)"/>
   </Target>
 
   <Target Name="ValidateDevModule" AfterTargets="DevModule" DependsOnTargets="AnyTargetDependencies">
