@@ -13,9 +13,9 @@ using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
-public class OpenAIChatService : ChatService
+public class LocalAIChatService : ChatService
 {
-    internal OpenAIChatService(AiOptions options) : base(options) { }
+    internal LocalAIChatService(AiOptions options) : base(options) { }
 
     protected override Kernel GetKernel()
     {
@@ -31,20 +31,21 @@ public class OpenAIChatService : ChatService
 
         var builder = Kernel.CreateBuilder();
 
-        if ( this.options.ApiEndpoint == null )
+        if ( this.options.LocalModelPath == null )
         {
-            throw new ArgumentException("An API endpoint must be specified.");
+            throw new ArgumentException("A file system path must be specified.");
         }
 
-        if ( this.options.ApiKey == null )
-        {
-            throw new ArgumentException("An API key for the AI service must be specified.");
-        }
+#pragma warning disable SKEXP0070
+        builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
+#pragma warning restore SKEXP0070
 
-        builder.AddAzureOpenAIChatCompletion(
-            this.options.ModelIdentifier,
-            this.options.ApiEndpoint.ToString(),
-            this.options.ApiKey);
+        var assemblyLoader = new OnnxProviderAssemblyLoader();
+
+        if ( ! assemblyLoader.IsSupportedOnCurrentPlatform )
+        {
+            throw new PlatformNotSupportedException("This application does not support the use of Onnx local models on the current system platform.");
+        }
 
         var newKernel = builder.Build();
 

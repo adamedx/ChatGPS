@@ -16,24 +16,23 @@ internal class ConnectionManager
         this.connections = new Dictionary<Guid, Connection>();
     }
 
-    internal Connection NewConnection(ServiceBuilder.ServiceId serviceId, AiOptions? options)
+    internal Connection NewConnection(AiOptions? options)
     {
-        if ( serviceId != ServiceBuilder.ServiceId.AzureOpenAi )
-        {
-            throw new ArgumentException($"The specified service {serviceId} is not supported");
-        }
-
         if ( options is null )
         {
-            throw new ArgumentException($"No connection options were specified for connecting to the service 'serviceId'.");
+            throw new ArgumentException($"No connection options were specified for connecting to the service.");
         }
 
-        var newService = new OpenAIChatService(options);
+        ServiceBuilder builder = ServiceBuilder.CreateBuilder();
+
+        builder.WithOptions(options);
+
+        var newService = builder.Build();
         var connection = new Connection( Guid.NewGuid(), newService );
 
         connections.Add(connection.Id, connection);
 
-        Logger.Log($"Added new connection with id {connection.Id} for service id {serviceId}");
+        Logger.Log($"Added new connection with id {connection.Id} for provider {options.Provider}");
 
         return connection;
     }

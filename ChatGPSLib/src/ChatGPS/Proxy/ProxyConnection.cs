@@ -11,10 +11,9 @@ namespace Modulus.ChatGPS.Proxy;
 
 internal class ProxyConnection
 {
-    internal ProxyConnection(Transport transport, ServiceBuilder.ServiceId serviceId, AiOptions options, string proxyHostPath, string? logFilePath = null, string? logLevel = null, int idleTimeoutMs = 60000)
+    internal ProxyConnection(Transport transport, AiOptions options, string proxyHostPath, string? logFilePath = null, string? logLevel = null, int idleTimeoutMs = 60000)
     {
         this.transport = transport;
-        this.serviceId = serviceId;
         this.idleTimeoutMs = idleTimeoutMs;
         this.channel = new Channel(proxyHostPath, idleTimeoutMs, logFilePath, logLevel);
         this.options = options;
@@ -120,7 +119,6 @@ internal class ProxyConnection
             try
             {
                 var createConnectionRequest = new CreateConnectionRequest();
-                createConnectionRequest.ServiceId = this.serviceId;
                 createConnectionRequest.ConnectionOptions = this.ServiceOptions;
 
                 var request = ProxyRequest.FromRequestCommand(createConnectionRequest);
@@ -153,7 +151,7 @@ internal class ProxyConnection
     }
 
     Transport transport;
-    ServiceBuilder.ServiceId serviceId;
+
     AiOptions options;
     IChannel channel;
     Guid serviceConnectionId;

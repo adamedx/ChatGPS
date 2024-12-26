@@ -20,11 +20,10 @@ using Modulus.ChatGPS.Models.Proxy;
 
 internal class ProxyService : IChatService
 {
-    public ProxyService(ServiceBuilder.ServiceId serviceId, AiOptions options, string proxyHostPath, string? logFilePath = null, string? logLevel = null, int idleTimeoutMs = 60000, bool whatIfMode = false)
+    public ProxyService(AiOptions options, string proxyHostPath, string? logFilePath = null, string? logLevel = null, int idleTimeoutMs = 60000, bool whatIfMode = false)
     {
         this.proxyTransport = new Transport();
-        this.serviceId = serviceId;
-        this.proxyConnection = new ProxyConnection(this.proxyTransport, serviceId, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
+        this.proxyConnection = new ProxyConnection(this.proxyTransport, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
     }
 
@@ -82,7 +81,7 @@ internal class ProxyService : IChatService
     }
 
     Transport proxyTransport;
-    ServiceBuilder.ServiceId serviceId;
+
     bool whatIfMode;
 
     ProxyConnection proxyConnection;

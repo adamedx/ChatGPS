@@ -39,7 +39,7 @@ internal class CreateConnectionCommand : Command
             throw new ArgumentException("No connection arguments were specified");
         }
 
-        var newConnection = this.processor.Connections.NewConnection(this.connectionArguments.ServiceId, this.connectionArguments.ConnectionOptions);
+        var newConnection = this.processor.Connections.NewConnection(this.connectionArguments.ConnectionOptions);
         var response = new CreateConnectionResponse(newConnection.Id);
 
         var jsonOptions = new JsonSerializerOptions();

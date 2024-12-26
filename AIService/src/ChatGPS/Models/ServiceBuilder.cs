@@ -9,11 +9,6 @@ using Modulus.ChatGPS.Services;
 
 public class ServiceBuilder
 {
-    public enum ServiceId
-    {
-        AzureOpenAi
-    }
-
     public static ServiceBuilder CreateBuilder()
     {
         return new ServiceBuilder();
@@ -21,11 +16,6 @@ public class ServiceBuilder
 
     public IChatService Build()
     {
-        if ( this.serviceId is null )
-        {
-            throw new ArgumentException("A service identifier must be specified to build a service");
-        }
-
         if ( this.options is null )
         {
             throw new ArgumentException("No service configuration options were specified");
@@ -33,28 +23,19 @@ public class ServiceBuilder
 
         IChatService newService;
 
-        switch ( this.serviceId )
+        switch ( this.options.Provider )
         {
-            case ServiceId.AzureOpenAi:
+            case ModelProvider.AzureOpenAI:
                 newService = new OpenAIChatService( this.options );
                 break;
+            case ModelProvider.LocalOnnx:
+                newService = new LocalAIChatService( this.options );
+                break;
             default:
-                throw new NotImplementedException($"Support for the specified service id {serviceId} is not yet implemented");
+                throw new NotImplementedException($"Support for the model provider id {options.Provider} is not yet implemented");
         }
 
         return newService;
-    }
-
-    public ServiceBuilder WithServiceId( ServiceId serviceId )
-    {
-        if ( this.serviceId is not null )
-        {
-            throw new ArgumentException("A service identifier has already been specified for this service");
-        }
-
-        this.serviceId = serviceId;
-
-        return this;
     }
 
     public ServiceBuilder WithOptions( AiOptions options )
@@ -71,6 +52,5 @@ public class ServiceBuilder
 
     private ServiceBuilder() {}
 
-    private ServiceId? serviceId;
     private AiOptions? options;
 }

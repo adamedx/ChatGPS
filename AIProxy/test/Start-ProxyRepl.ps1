@@ -45,7 +45,7 @@ function Start-ProxyRepl {
 
         [string[]] $ProxyExecutableParameters,
 
-        [string] $AssemblyPath = "$psscriptroot/../bin/debug/net7.0",
+        [string] $AssemblyPath = "$psscriptroot/../bin/debug/net8.0",
 
         [string] $ConfigPath = "$psscriptroot/../../azureopenai.config",
 
@@ -84,7 +84,6 @@ function Start-ProxyRepl {
             [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.AiOptions]($connectionOptionsJson, $jsonOptions)
         }
         $newConnection = [Modulus.ChatGPS.Models.Proxy.CreateConnectionRequest]::new()
-        $newConnection.ServiceId = ([ServiceBuilder+ServiceId]::AzureOpenAi)
         $newConnection.ConnectionOptions = $aioptions
 
         $commandArguments = [System.Text.Json.JsonSerializer]::Serialize($newConnection, $newConnection.GetType(), $jsonOptions)
