@@ -113,8 +113,21 @@ public class ChatSession
 
         Task<string>? messageTask = null;
 
-        for ( int attempt = 0; attempt < 3; attempt++ )
+        int retryWaitMs = 0;
+        int nextRetryWaitMs = 0;
+
+        for ( int attempt = 0; attempt < 4; attempt++ )
         {
+            // There is a retry here to handle throttling from the service; currently
+            // the retry timeout value returned by the service is not accessible through the SDK,
+            // so we implement a form of exponential backoff after the first retry.
+            if ( retryWaitMs > 0 )
+            {
+                System.Threading.Thread.Sleep(retryWaitMs);
+                retryWaitMs = 0;
+                nextRetryWaitMs = Math.Min(nextRetryWaitMs * 2, 120000);
+            }
+
             try
             {
                 tokenException = null;
@@ -149,18 +162,33 @@ public class ChatSession
                     ( messageTask.Exception is not null ) ) ?
                     messageTask.Exception.InnerException as AIServiceException : null;
 
-                if ( messageException is not null && messageException.ExceededTokenLimit )
+                if ( messageException is not null )
                 {
-                    tokenException = messageException;
-                    var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
+                    if ( messageException.ExceededTokenLimit )
+                    {
+                        tokenException = messageException;
+                        var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
 
-                    if ( reducedHistory != null )
-                    {
-                        this.chatHistory = reducedHistory;
+                        if ( reducedHistory != null )
+                        {
+                            this.chatHistory = reducedHistory;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
-                    else
+                    else if ( messageException.ThrottleRetryMsHint > 0 )
                     {
-                        break;
+                        if ( nextRetryWaitMs == 0 )
+                        {
+                            // We use the retry value from the exception only on the first try since it is
+                            // merely a hint due to limitations the current SDK. Subsequent retries will
+                            // layer a backoff strategy on top of this first timeout.
+                            nextRetryWaitMs = messageException.ThrottleRetryMsHint;
+                        }
+
+                        retryWaitMs = nextRetryWaitMs;
                     }
                 }
             }
