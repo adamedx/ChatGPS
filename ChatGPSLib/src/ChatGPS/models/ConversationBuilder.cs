@@ -123,9 +123,9 @@ internal class ConversationBuilder
     {
         var dictionary = new Dictionary<string,object?>
         {
-            { "Timestamp", JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
-            { "MessageIndex", JsonSerializer.Serialize<int>(this.messageIndex++) },
-            { "Duration", JsonSerializer.Serialize<TimeSpan?>(duration) }
+            { ChatMessage.MetadataKeys.Timestamp.ToString(), JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
+            { ChatMessage.MetadataKeys.MessageIndex.ToString(), JsonSerializer.Serialize<int>(this.messageIndex++) },
+            { ChatMessage.MetadataKeys.Duration.ToString(), JsonSerializer.Serialize<TimeSpan?>(duration) }
         };
 
         return new ReadOnlyDictionary<string,object?>(dictionary);

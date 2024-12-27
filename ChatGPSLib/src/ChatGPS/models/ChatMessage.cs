@@ -15,6 +15,13 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatMessage
 {
+    internal enum MetadataKeys
+    {
+        MessageIndex,
+        Timestamp,
+        Duration
+    }
+
     public ChatMessage(ChatMessageContent sourceMessage)
     {
         this.sourceMessage = sourceMessage;
@@ -62,7 +69,7 @@ public class ChatMessage
             {
                 object? duration = null;
 
-                if ( this.sourceMessage.Metadata.TryGetValue("Duration", out duration) )
+                if ( this.sourceMessage.Metadata.TryGetValue(MetadataKeys.Duration.ToString(), out duration) )
                 {
                     if ( duration is not null )
                     {
