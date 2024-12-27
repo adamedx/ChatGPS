@@ -8,7 +8,7 @@ Roadmap for ChatGPS
 * Additional model providers
 * SecureString parameters
 * Response duration output
-* Make config file support multiple entries and a default
+* Make an official config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
 * Non-repl: Include command history in context
@@ -35,3 +35,4 @@ Roadmap for ChatGPS
 * Generalize function invocation for function chats vs. pure functions
 * Generate ps functions from chat functions
 * Add auto-complete for chat functions
+* Remove semantic kernel's ChatHistory and ChatMessageContent types from public interfaces

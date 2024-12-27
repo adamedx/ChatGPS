@@ -26,6 +26,9 @@ public class ChatSession
         this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
         this.totalChatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
 
+        this.publicChatHistory = new ChatMessageHistory(this.chatHistory);
+        this.publicTotalChatHistory = new ChatMessageHistory(this.totalChatHistory);
+
         this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
 
         this.SessionFunctions = new FunctionTable();
@@ -52,19 +55,19 @@ public class ChatSession
         return function;
     }
 
-    public ChatHistory History
+    public ChatMessageHistory History
     {
         get
         {
-            return this.totalChatHistory;
+            return this.publicTotalChatHistory;
         }
     }
 
-    public ChatHistory CurrentHistory
+    public ChatMessageHistory CurrentHistory
     {
         get
         {
-            return this.chatHistory;
+            return this.publicChatHistory;
         }
     }
 
@@ -225,6 +228,8 @@ public class ChatSession
     private ConversationBuilder conversationBuilder;
     private ChatHistory chatHistory;
     private ChatHistory totalChatHistory;
+    private ChatMessageHistory publicChatHistory;
+    private ChatMessageHistory publicTotalChatHistory;
     private string? chatFunctionPrompt;
     private Function? chatFunction;
     private TokenReducer tokenReducer;
