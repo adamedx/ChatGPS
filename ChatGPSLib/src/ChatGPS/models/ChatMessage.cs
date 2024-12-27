@@ -43,7 +43,7 @@ public class ChatMessage
         }
     }
 
-    public System.Collections.Generic.IReadOnlyDictionary<string,object?>? Metadata
+    private System.Collections.Generic.IReadOnlyDictionary<string,object?>? Metadata
     {
         get
         {

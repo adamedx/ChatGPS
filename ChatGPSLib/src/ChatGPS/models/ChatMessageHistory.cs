@@ -73,12 +73,6 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
     {
         this.sourceHistory = sourceHistory;
         this.privateToPublicMap = new System.Collections.Generic.Dictionary<ChatMessageContent, ChatMessage>();
-
-        foreach ( var sourceChatMessage in this.sourceHistory )
-        {
-            var publicChatMessage = new ChatMessage(sourceChatMessage);
-            this.privateToPublicMap.Add(sourceChatMessage, publicChatMessage);
-        }
     }
 
     public ChatMessage this[int index] {

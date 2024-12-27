@@ -71,7 +71,7 @@ function Send-ChatMessage {
             $responseInfo = $targetConnection.History | select -last 1
 
             if ( ! $NoOutput.IsPresent ) {
-                $responseObject = $response | ToResponse -role $responseInfo.Role.Label -Received ([DateTime]::now)
+                $responseObject = $response | ToResponse -role $responseInfo.Role.Label -Received $responseInfo.Timestamp
                 $transformed = $responseObject | TransformResponseText @formatParameters
                 if ( ! $RawOutput.IsPresent ) {
                     if ( $responseObject ) {

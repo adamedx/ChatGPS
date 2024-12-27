@@ -99,16 +99,12 @@ function ReplCommandHistory( $LatestCount = -1, $Length = -1) {
           }
 
           $emittedItem = if ( $_.Role -ne 'system' ) {
-              $received = if ( $_.Metadata ) {
-                  $timestamp = $_.Metadata['Timestamp']
-                  if ( $timestamp ) {
-                      $timestamp | convertfrom-json
-                  }
-                  else
-                  {
-                      '------'
-                  }
+              $received = if ( $_.Timestamp ) {
+                  $_.Timestamp
+              } else {
+                  '------'
               }
+
               $responseParams = @{Role=$_.Role.Label}
 
               if ( $received ) {
