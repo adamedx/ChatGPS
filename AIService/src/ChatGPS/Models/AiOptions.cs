@@ -14,6 +14,7 @@ public enum OutputType
 
 public enum ModelProvider
 {
+    Unspecified,
     AzureOpenAI,
     LocalOnnx
 }
@@ -22,12 +23,12 @@ public sealed class AiOptions
 {
     public AiOptions() { this.TokenLimit = 400; }
 
-    public ModelProvider? Provider {get; set;}
+    public string? Provider {get; set;}
     public Uri? ApiEndpoint { get; set; }
     public string? LocalModelPath { get; set; }
     public string? ModelIdentifier { get; set; }
     public int? TokenLimit { get; set; }
     public string? ApiKey { get; set; }
 
-    public OutputType? OutputType {get; set;}
+    public string? OutputType {get; set;}
 }

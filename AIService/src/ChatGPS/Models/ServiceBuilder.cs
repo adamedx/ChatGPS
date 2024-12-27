@@ -16,14 +16,27 @@ public class ServiceBuilder
 
     public IChatService Build()
     {
+        ModelProvider provider;
+
         if ( this.options is null )
         {
             throw new ArgumentException("No service configuration options were specified");
         }
+        else if ( this.options.Provider is not null )
+        {
+            if ( ! ModelProvider.TryParse(this.options.Provider, out provider) )
+            {
+                provider = ModelProvider.Unspecified;
+            }
+        }
+        else
+        {
+            provider = ModelProvider.Unspecified;
+        }
 
         IChatService newService;
 
-        switch ( this.options.Provider )
+        switch ( provider )
         {
             case ModelProvider.AzureOpenAI:
                 newService = new OpenAIChatService( this.options );
@@ -32,7 +45,7 @@ public class ServiceBuilder
                 newService = new LocalAIChatService( this.options );
                 break;
             default:
-                throw new NotImplementedException($"Support for the model provider id {options.Provider} is not yet implemented");
+                throw new NotImplementedException($"Support for the model provider id '{options.Provider}' is not yet implemented");
         }
 
         return newService;

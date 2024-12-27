@@ -24,6 +24,10 @@ function Connect-ChatSession {
         [parameter(valuefrompipelinebypropertyname=$true)]
         [int32] $TokenLimit = 4096,
 
+        [parameter(valuefrompipelinebypropertyname=$true)]
+        [validateset('AzureOpenAI', 'LocalOnnx')]
+        [string] $Provider,
+
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [string] $LocalModelPath,
 
@@ -52,10 +56,14 @@ function Connect-ChatSession {
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
 
-    if ( $options.LocalModelPath ) {
-        $options.Provider = 'LocalOnnx'
+    if ( $Provider ) {
+        $options.Provider = $Provider
     } else {
-        $options.Provider = 'AzureOpenAI'
+        if ( $options.LocalModelPath ) {
+            $options.Provider = 'LocalOnnx'
+        } else {
+            $options.Provider = 'AzureOpenAI'
+        }
     }
 
     $functionInfo = $null

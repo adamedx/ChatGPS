@@ -3,6 +3,11 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Show-ChatHistory command
+* Connection management: Get-ChatSession, Remove-ChatSession
+* Additional model providers
+* SecureString parameters
+* Response duration output
 * Make config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
