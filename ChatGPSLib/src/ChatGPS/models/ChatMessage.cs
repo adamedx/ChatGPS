@@ -82,6 +82,29 @@ public class ChatMessage
         }
     }
 
+    public DateTimeOffset Timestamp
+    {
+        get
+        {
+            DateTimeOffset result = DateTimeOffset.MinValue;
+
+            if ( this.sourceMessage.Metadata is not null )
+            {
+                object? timestamp = null;
+
+                if ( this.sourceMessage.Metadata.TryGetValue(MetadataKeys.Timestamp.ToString(), out timestamp) )
+                {
+                    if ( timestamp is not null )
+                    {
+                        result = JsonSerializer.Deserialize<DateTimeOffset>((string) timestamp);
+                    }
+                }
+            }
+
+            return result;
+        }
+    }
+
     internal ChatMessageContent SourceChatMessageContent
     {
         get
