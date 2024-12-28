@@ -10,7 +10,7 @@ All Rights Reserved.
   <ViewDefinitions>
 
     <View>
-      <Name>ChatHistory</Name>
+      <Name>ReplChatHistory</Name>
       <ViewSelectedBy>
         <TypeName>Modulus.ChatGPS.PowerShell.ChatHistory</TypeName>
       </ViewSelectedBy>
@@ -27,7 +27,7 @@ All Rights Reserved.
           </TableColumnHeader>
           <TableColumnHeader>
             <Width>1024</Width>
-            <Label>Response</Label>
+            <Label>Message</Label>
           </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -47,6 +47,83 @@ All Rights Reserved.
           </TableRowEntry>
         </TableRowEntries>
       </TableControl>
+    </View>
+
+    <View>
+      <Name>ChatHistoryItem</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Models.ChatMessage</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Received</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Role</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Elapsed (ms)</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Response</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                <ScriptBlock>$_.Timestamp.DateTime</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Role</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <Alignment>Right</Alignment>
+                <ScriptBlock>if ( $_.Duration) {[Math]::Ceiling($_.Duration.TotalMilliseconds)}</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Content</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>ChatMessageDetail</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Models.ChatMessage</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Received</Label>
+                <PropertyName>Timestamp</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>Role</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Message</Label>
+                <PropertyName>Content</PropertyName>
+              </ListItem>
+              <ListItem>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.Duration</ScriptBlock>
+                </ItemSelectionCondition>
+                <Label>Elapsed</Label>
+                <PropertyName>Duration</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
     </View>
 
     <View>

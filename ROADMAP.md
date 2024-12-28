@@ -3,11 +3,10 @@ Roadmap for ChatGPS
 
 ## To-do items
 
-* Show-ChatHistory command
 * Connection management: Get-ChatSession, Remove-ChatSession
+* Standardize on naming of Session instead of Connection
 * Additional model providers
 * SecureString parameters
-* Response duration output
 * Make an official config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
@@ -20,7 +19,6 @@ Roadmap for ChatGPS
 * Planner definition
 * Plugin management
 * Built-in plugins
-* Multi-model support
 * Model provisioning
   * Service-based
   * Local
@@ -35,4 +33,7 @@ Roadmap for ChatGPS
 * Generalize function invocation for function chats vs. pure functions
 * Generate ps functions from chat functions
 * Add auto-complete for chat functions
+* Multi-model support
 * Remove semantic kernel's ChatHistory and ChatMessageContent types from public interfaces
+* Response duration output
+* Get-ChatHistory command

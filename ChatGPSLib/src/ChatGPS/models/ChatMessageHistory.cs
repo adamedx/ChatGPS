@@ -75,7 +75,8 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         this.privateToPublicMap = new System.Collections.Generic.Dictionary<ChatMessageContent, ChatMessage>();
     }
 
-    public ChatMessage this[int index] {
+    public ChatMessage this[int index]
+    {
         get
         {
             var privateItem = this.sourceHistory[index];
