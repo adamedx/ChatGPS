@@ -85,9 +85,9 @@ function Start-ChatREPL {
             }
         } elseif ( $connectionArgument.Connection ) {
             $lastMessage = $connectionArgument.Connection.History | select -last 1
-            $initialResponse = if ( $lastMessage.Role.Label -eq 'assistant' ) {
+            $initialResponse = if ( $lastMessage.Role -eq 'assistant' ) {
                 $lastMessage.Content |
-                  ToResponse -role $lastMessage.Role.Label -Received ([DateTime]::now)
+                  ToResponse -role $lastMessage.Role -Received ([DateTime]::now)
             }
         }
 

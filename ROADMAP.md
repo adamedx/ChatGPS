@@ -37,3 +37,4 @@ Roadmap for ChatGPS
 * Remove semantic kernel's ChatHistory and ChatMessageContent types from public interfaces
 * Response duration output
 * Get-ChatHistory command
+* Fix throttling errors not propagating in proxy mode

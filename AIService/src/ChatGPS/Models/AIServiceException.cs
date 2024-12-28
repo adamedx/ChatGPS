@@ -24,6 +24,7 @@ public class AIServiceException : SerializableException
     public AIServiceException(string message, SerializableException innerException) : base(message, innerException)
     {
         InitializeTokenLimit(innerException);
+        InitializeThrottleInformation(innerException);
     }
 
     public static AIServiceException CreateServiceException(string message, Exception? innerException = null)
@@ -42,6 +43,7 @@ public class AIServiceException : SerializableException
         }
 
         result.InitializeTokenLimit(innerException);
+        result.InitializeThrottleInformation(innerException);
 
         return result;
     }
@@ -57,23 +59,10 @@ public class AIServiceException : SerializableException
 
     private void InitializeThrottleInformation(Exception? sourceException)
     {
-        this.ThrottleRetryMsHint = 0;
+        var serviceException = sourceException is not null ? sourceException as AIServiceException : null;
 
-        if ( sourceException is not null )
-        {
-            var httpException = sourceException as Microsoft.SemanticKernel.HttpOperationException;
-
-            if ( httpException is not null && httpException.StatusCode == System.Net.HttpStatusCode.TooManyRequests )
-            {
-                // Currently the HttpOperation class in SemanticKernel does not inherit from a standard http
-                // exception, and it is missing key properties such as the complete response, which contains
-                // the headers. The retry value is actually found in the `retry-after` header, so the fact that the
-                // exception exposes no headers and does not otherwise surface this value as a property means we just...
-                // guess at a time out. The actual error handling code can (and probably should) treat this value as a
-                // hint and add additional heuristics for reliability until this limitation is fixed.
-                this.ThrottleRetryMsHint = 15000;
-            }
-        }
+        this.ThrottleRetryMsHint = serviceException is not null ?
+            serviceException.ThrottleRetryMsHint : GetThrottleRetryHint( sourceException as Microsoft.SemanticKernel.HttpOperationException );
     }
 
     private bool IsTokenLimitException( Microsoft.SemanticKernel.HttpOperationException? operationException )
@@ -107,6 +96,25 @@ public class AIServiceException : SerializableException
 
         return tokenLimitExceeded;
     }
+
+    private int GetThrottleRetryHint(Microsoft.SemanticKernel.HttpOperationException? operationException)
+    {
+        int retryMsHint = 0;
+
+        if ( operationException is not null && operationException.StatusCode == System.Net.HttpStatusCode.TooManyRequests )
+        {
+            // Currently the HttpOperation class in SemanticKernel does not inherit from a standard http
+            // exception, and it is missing key properties such as the complete response, which contains
+            // the headers. The retry value is actually found in the `retry-after` header, so the fact that the
+            // exception exposes no headers and does not otherwise surface this value as a property means we just...
+            // guess at a time out. The actual error handling code can (and probably should) treat this value as a
+            // hint and add additional heuristics for reliability until this limitation is fixed.
+            retryMsHint = 15000;
+        }
+
+        return retryMsHint;
+    }
+
 
     public bool ExceededTokenLimit { get; set; }
     public int ThrottleRetryMsHint { get; set; }

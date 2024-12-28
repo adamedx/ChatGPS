@@ -22,16 +22,43 @@ public class ChatMessage
         Duration
     }
 
+    public enum SenderRole
+    {
+        Assistant,
+        System,
+        Tool,
+        User,
+        Unknown
+    }
+
+    static ChatMessage()
+    {
+        ChatMessage.roleMap = new Dictionary<AuthorRole,SenderRole>()
+        {
+            { AuthorRole.Assistant, SenderRole.Assistant },
+            { AuthorRole.System, SenderRole.System },
+            { AuthorRole.Tool, SenderRole.Tool },
+            { AuthorRole.User, SenderRole.User }
+        };
+    }
+
     public ChatMessage(ChatMessageContent sourceMessage)
     {
         this.sourceMessage = sourceMessage;
     }
 
-    public AuthorRole Role
+    public SenderRole Role
     {
         get
         {
-            return this.sourceMessage.Role;
+            SenderRole senderRole;
+
+            if ( ! ChatMessage.roleMap.TryGetValue(this.sourceMessage.Role, out senderRole) )
+            {
+                senderRole = SenderRole.Unknown;
+            }
+
+            return senderRole;
         }
     }
 
@@ -114,4 +141,6 @@ public class ChatMessage
     }
 
     private ChatMessageContent sourceMessage;
+
+    private static IDictionary<AuthorRole, SenderRole> roleMap;
 }
