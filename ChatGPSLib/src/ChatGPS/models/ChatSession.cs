@@ -33,9 +33,9 @@ public class ChatSession
 
         this.SessionFunctions = new FunctionTable();
 
-        this.AIService = chatService;
+        this.chatService = chatService;
 
-        this.AiOptions = new AiProviderOptions(this.AIService.ServiceOptions);
+        this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
     }
 
     public string GenerateMessage(string prompt)
@@ -55,6 +55,13 @@ public class ChatSession
         this.SessionFunctions.AddFunction(function, replace);
 
         return function;
+    }
+
+    public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
+    {
+        var function = this.SessionFunctions.GetFunctionById(functionId);
+
+        return await function.InvokeFunctionAsync(this.chatService, boundParameters);
     }
 
     public ChatMessageHistory History
@@ -103,11 +110,7 @@ public class ChatSession
 
     public AiProviderOptions AiOptions { get; private set; }
 
-    internal IChatService AIService {get; private set; }
-
-
-
-    private string GenerateMessageInternal(string prompt, bool isFunction)
+    private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
     {
         var newMessageRole = AuthorRole.User;
 
@@ -142,7 +145,7 @@ public class ChatSession
                 tokenException = null;
                 lastException = null;
 
-                if ( isFunction )
+                if ( promptAsFunctionInput )
                 {
                     if ( this.chatFunction is null )
                     {
@@ -239,5 +242,6 @@ public class ChatSession
     private string? chatFunctionPrompt;
     private Function? chatFunction;
     private TokenReducer tokenReducer;
+    private IChatService chatService;
 }
 

@@ -74,9 +74,12 @@ public class FunctionTable
     {
         Function? targetFunction = null;
 
-        if ( ! functionByName.TryGetValue(name, out targetFunction) && ! ignoreMissing )
+        lock (this )
         {
-            throw new KeyNotFoundException($"The specified function named {name} was not found");
+            if ( ! functionByName.TryGetValue(name, out targetFunction) && ! ignoreMissing )
+            {
+                throw new KeyNotFoundException($"The specified function named {name} was not found");
+            }
         }
 
         return targetFunction;

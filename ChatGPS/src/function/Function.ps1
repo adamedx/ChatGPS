@@ -6,7 +6,7 @@
 
 class Function {
     hidden static [string] $captureGroupName = 'param'
-    hidden static [System.Text.RegularExpressions.RegEx] $parameterMatcher = [System.Text.RegularExpressions.RegEx]::new("\{\{[`$](?<$([Function]::captureGroupName)>[a-zA-Z_][a-zA-Z0-9_]+)\}\}")
+    hidden static [System.Text.RegularExpressions.RegEx] $parameterMatcher = [System.Text.RegularExpressions.RegEx]::new('\{\{\$(?<' + ([Function]::captureGroupName) + '>([a-z]|[A-Z]|[0-9]|_)+)\}\}')
     hidden static [ScriptBlock] $FunctionNameCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
@@ -28,12 +28,18 @@ class Function {
         # Find any pattern that looks like {{$somename}}
         $matchResults = [Function]::parameterMatcher.Matches($definition)
         $parameters = if ( $matchResults ) {
-            $matchResults | foreach {
-                $_.groups[[Function]::captureGroupName].Value
-            }
+            $matchResults.groups |
+              where name -eq ([Function]::captureGroupName) |
+              select-object -expandproperty value
         }
 
-        return $parameters | select-object -unique
+        if ( $parameters ) {
+            # Parameters may be referenced more than once in a function definition, so ensure
+            # we return only one name for each parameter.
+            return $parameters | select-object -unique
+        } else {
+            return [string[]]::new(0)
+        }
     }
 
     static [void] RegisterFunctionNameCompleter([string] $command, [string] $parameterName) {
