@@ -25,12 +25,15 @@ internal class ProxyService : IChatService
         this.proxyTransport = new Transport();
         this.proxyConnection = new ProxyConnection(this.proxyTransport, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
+        this.ServiceOptions = new AiOptions(options);
     }
 
     public ChatHistory CreateChat(string prompt)
     {
         return new ChatHistory(prompt);
     }
+
+    public AiOptions ServiceOptions { get; private set; }
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
     {

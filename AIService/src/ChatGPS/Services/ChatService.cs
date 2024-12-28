@@ -25,6 +25,14 @@ public abstract class ChatService : IChatService
         return new ChatHistory(prompt);
     }
 
+    public AiOptions ServiceOptions
+    {
+        get
+        {
+            return this.options;
+        }
+    }
+
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
     {
         IReadOnlyList<ChatMessageContent> result;

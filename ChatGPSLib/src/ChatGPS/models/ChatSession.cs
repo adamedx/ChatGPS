@@ -17,7 +17,7 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
     {
-        this.Id = new Guid();
+        this.Id = Guid.NewGuid();
 
         this.chatFunctionPrompt = chatFunctionPrompt;
         this.chatFunction = chatFunctionPrompt is not null ? new Function(chatFunctionParameters, chatFunctionPrompt) : null;
@@ -34,6 +34,8 @@ public class ChatSession
         this.SessionFunctions = new FunctionTable();
 
         this.AIService = chatService;
+
+        this.AiOptions = new AiProviderOptions(this.AIService.ServiceOptions);
     }
 
     public string GenerateMessage(string prompt)
@@ -99,7 +101,11 @@ public class ChatSession
 
     public FunctionTable SessionFunctions { get; private set; }
 
-    public IChatService AIService {get; private set; }
+    public AiProviderOptions AiOptions { get; private set; }
+
+    internal IChatService AIService {get; private set; }
+
+
 
     private string GenerateMessageInternal(string prompt, bool isFunction)
     {

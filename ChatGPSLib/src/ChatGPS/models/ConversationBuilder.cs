@@ -27,6 +27,14 @@ internal class ConversationBuilder
         return this.chatService.CreateChat(systemPrompt);
     }
 
+    internal IChatService AIService
+    {
+        get
+        {
+            return this.chatService;
+        }
+    }
+
     internal async Task<string> SendMessageAsync(ChatHistory chatHistory)
     {
         var stopWatch = new Stopwatch();
@@ -68,7 +76,7 @@ internal class ConversationBuilder
 
         stopWatch.Stop();
 
-        var targetResult = resultString is not null ? resultString : "I was unable to respond to your message.";
+        string targetResult = resultString is not null ? resultString : "I was unable to respond to your message.";
 
         UpdateHistoryWithResponse(chatHistory, targetResult, stopWatch.Elapsed);
 

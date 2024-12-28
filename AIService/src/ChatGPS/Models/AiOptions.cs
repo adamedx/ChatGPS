@@ -19,16 +19,33 @@ public enum ModelProvider
     LocalOnnx
 }
 
-public sealed class AiOptions
+public class AiProviderOptions
 {
-    public AiOptions() { this.TokenLimit = 400; }
+    public AiProviderOptions() { this.TokenLimit = 400; }
+
+    public AiProviderOptions( AiProviderOptions options )
+    {
+        this.Provider = options.Provider;
+        this.ApiEndpoint = options.ApiEndpoint;
+        this.LocalModelPath = options.LocalModelPath;
+        this.ModelIdentifier = options.ModelIdentifier;
+        this.TokenLimit = options.TokenLimit;
+        this.OutputType = options.OutputType;
+    }
 
     public string? Provider {get; set;}
     public Uri? ApiEndpoint { get; set; }
     public string? LocalModelPath { get; set; }
     public string? ModelIdentifier { get; set; }
     public int? TokenLimit { get; set; }
-    public string? ApiKey { get; set; }
 
     public string? OutputType {get; set;}
+}
+
+public sealed class AiOptions : AiProviderOptions
+{
+    public AiOptions() {}
+    public AiOptions(AiProviderOptions sourceOptions) : base(sourceOptions) {}
+
+    public string? ApiKey { get; set; }
 }

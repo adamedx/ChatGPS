@@ -105,7 +105,7 @@ function ReplCommandHistory( $LatestCount = -1, $Length = -1) {
                   '------'
               }
 
-              $responseParams = @{Role=$_.Role.Label}
+              $responseParams = @{Role=$_.Role}
 
               if ( $received ) {
                   $responseParams['Received'] = $received

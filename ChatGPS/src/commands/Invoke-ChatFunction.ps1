@@ -66,7 +66,7 @@ function Invoke-ChatFunction {
             $boundParameters
         }
 
-        $result = $function.InvokeFunctionAsync($targetConnection.AIService, $targetParameters)
+        $result = $function.InvokeFunctionAsync($targetConnection, $targetParameters)
 
         $result.Result
     }
