@@ -12,11 +12,7 @@ function Get-ChatHistory {
     )
 
     begin {
-        $targetSession = if ( $Session ) {
-            $Session
-        } else {
-            GetCurrentSession $true
-        }
+        $targetSession = GetTargetSession $Session
 
         $targetHistory = if ( $CurrentContextOnly.IsPresent ) {
             $targetSession.CurrentHistory
