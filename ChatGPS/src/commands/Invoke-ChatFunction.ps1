@@ -113,20 +113,16 @@ function Invoke-ChatFunction {
         [string] $Name,
 
         [parameter(parametersetname='name', position=1)]
-        [parameter(parametersetname='id')]
+        [parameter(parametersetname='id', position=0)]
         [object] $Parameters = $null,
 
         [Modulus.ChatGPS.Models.ChatSession] $Session
     )
 
     begin {
-        $targetSession = if ( $Session ) {
-            $Session
-        } else {
-            GetCurrentSession $true
-        }
+        $targetSession = GetTargetSession $Session
 
-        $sessionFunctions = $targetSession.SessionFunctions
+        $sessionFunctions = GetSessionFunctions $targetSession
 
         $parameterValues = [System.Collections.Generic.Dictionary[string,object]]::new()
 

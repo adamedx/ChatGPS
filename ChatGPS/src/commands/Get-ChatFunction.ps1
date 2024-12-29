@@ -70,13 +70,7 @@ function Get-ChatFunction {
     )
 
     begin {
-        $targetSession = if ( $Session ) {
-            $Session
-        } else {
-            GetCurrentSession $true
-        }
-
-        $sessionFunctions = $targetSession.SessionFunctions
+        $sessionFunctions = GetSessionFunctions $Session
     }
 
     process {

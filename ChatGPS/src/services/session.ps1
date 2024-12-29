@@ -61,6 +61,20 @@ function GetCurrentSession($failIfNotFound) {
     $session
 }
 
+function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false) {
+    $targetSession = if ( $userSpecifiedSession ) {
+        $userSpecifiedSession
+    } else {
+        GetCurrentSession
+    }
+
+    if ( $failIfNotFound -and (! $targetSession ) ) {
+        throw "No current session exists -- use Connect-ChatSession to create a session"
+    }
+
+    $targetSession
+}
+
 function SendMessage($session, $prompt, $forceChat) {
     $response = if ( $session.HasFunction -and ! $forceChat ) {
         $session.GenerateFunctionResponse($prompt)

@@ -55,18 +55,31 @@ went, running
 This example is similar to the previous one, except that the input is passed using the pipeline rather than the generated parameter name:
 
 PS > $verbExtractor = New-ChatScriptBlock 'Extract all the verbs from the text {{$text}} and only the verbs -- do not emit any additional text or explanations.' not emit any additional text or explanations.'
-PS > 'I ran to the store', 'I wrote PowerShell code', 'I went running.' | foreach { $_ | . $verbExtractor }
+PS > 'I ran to the store', 'I wrote PowerShell code', 'I went running.' | . $verbExtractor
 
 ran
 wrote
 went, running
 
 .EXAMPLE
-In this example, New-ScriptBlock is used with the BindToNativeFunctionName parameter to define a new PowerShell function Translate-Text. This powershell function has the same parameters as the chat function specified in the Definition parameter of New-ChatScriptBlock, and specifying those parameters via the function has the same effect as specifying them to the chat function when it is invoked:
+In this example, New-ScriptBlock is used with the BindToNativeFunctionName parameter to define a new PowerShell function Translate-Text. This powershell function has the same parameters as the chat function specified in the Definition parameter of New-ChatScriptBlock, and specifying those parameters via the function has the same effect as specifying them to the chat function when it is invoked.
 
-PS > New-ChatScriptBlock 'Translate the text {{$sourcetext}} into the language {{$language}} and respond withoutput only that language.' -BindToNativeFunctionName Translate-Text
+PS > New-ChatScriptBlock 'Translate the text {{$sourcetext}} into the language {{$language}} and respond with output only in that language.' -BindToNativeFunctionName Translate-Text
 PS > Translate-Text -sourcetext 'I can translate text using PowerShell!' -language Spanish
 ¡Puedo traducir texto usando PowerShell!
+
+.EXAMPLE
+As in the example above, the generated function also takes input from the pipeline, so output from one command can be sent to the command for processing. In this example, script
+
+PS > New-ChatScriptBlock -BindToNativeFunctionName Classify-Text 'Classify the input text {{$inputtext}} according to what human or computer languages are contained in it, and respond with a comma separated list of these languages in order of descending prominence of each language in the text. Do not respond with anything else other than the comma separated list of languages.' | Out-Null
+PS > Get-ChildItem -File * | foreach { $_ | Get-Content | Out-String } | Classify-Text
+
+C#, JSON
+English, JSON
+JSON, HTML
+JSON
+Visual Studio Solution File, C#
+PowerShell, JSON, Markdown
 
 .EXAMPLE
 The BindToNativeFunctionName parameter can be used to create a PowerShell function that can be used to execute the chat function instead of the less elegant Invoke-ChatFunction command -- in this example, a chat function that summarizes the functionality of PowerShell script code is turned into a PowerShell function, which is then executed as a command:
@@ -111,6 +124,8 @@ function New-ChatScriptBlock {
 
         [switch] $NoInputObject,
 
+        [switch] $SimplePipeline,
+
         [string] $BindToNativeFunctionName,
 
         [switch] $Force,
@@ -118,59 +133,77 @@ function New-ChatScriptBlock {
         [Modulus.ChatGPS.Models.ChatSession] $Session
     )
 
-    # Note that this implementation has a dependency on both the interface AND semantics
-    # of the Invoke-ChatFunction command
+    begin {
 
-    $targetSession = if ( $Session ) {
-        $Session
-    } else {
-        GetCurrentSession $true
-    }
+        # Note that this implementation has a dependency on both the interface AND semantics
+        # of the Invoke-ChatFunction command
 
-    $sessionFunctions = $targetSession.SessionFunctions
+        $sessionFunctions = GetSessionFunctions $Session
 
-    $functionSpecifier = $null
+        $blockStart = ""
+        $blockEnd = ""
 
-    $function = if ( $FromChatFunctionName ) {
-        $functionSpecifier = "-Name '$FromChatFunctionName'"
-        $sessionFunctions.GetFunctionByName($FromChatFunctionName)
-    } else {
-        $functionById = if ($Id) {
-            $sessionFunctions.GetFunctionById($Id)
-        } else {
-            New-ChatFunction $Definition
-        }
-        $functionSpecifier = "-Id $($functionById.Id)"
-        $functionById
-    }
-
-    $firstParameter = $true
-
-    # By default, we want the first parameter of the generated scriptblock to come from pipeline input
-    # as a usability enhancement, but the user can turn this off or specify a different parameter to take the input
-    $argumentList = $function.Parameters.Keys | foreach {
-        if ( $NoInputObject.IsPresent -or ( ! $firstParameter -and $_ -ne $InputObjectParameterName ) ) {
-            "`$$_"
-        } else {
-            "[parameter(valuefrompipeline=`$true)] `$$_"
-        }
-        $firstParameter = $false
-    }
-
-    $argumentString = $argumentList | Join-string -Separator ','
-
-    # The cast of PSBoundParameters to HashTable is required because apparently it has a different
-    # type at different times with different casting behavior
-    $scriptBlock = [ScriptBlock]::Create(
-@"
-        param( $argumentString )
-        Invoke-ChatFunction $functionSpecifier -Parameters ([HashTable] `$PSBoundParameters)
+        if ( ! $SimplePipeline.IsPresent ) {
+            $blockStart = @"
+    begin { }
+    process {
 "@
-                                        )
-    if ( $BindToNativeFunctionName ) {
-        . $__ChatGPS_ModuleParentFunctionBuilder $BindToNativeFunctionName $scriptBlock $Force.IsPresent
-    } else {
-        $scriptBlock
+            $blockEnd = @"
+    }
+    end { }
+"@
+        }
+    }
+
+    process {
+        $functionSpecifier = $null
+
+        $function = if ( $FromChatFunctionName ) {
+            $functionSpecifier = "-Name '$FromChatFunctionName'"
+            $sessionFunctions.GetFunctionByName($FromChatFunctionName)
+        } else {
+            $functionById = if ($Id) {
+                $sessionFunctions.GetFunctionById($Id)
+            } else {
+                New-ChatFunction $Definition
+            }
+            $functionSpecifier = "-Id $($functionById.Id)"
+            $functionById
+        }
+
+        $firstParameter = $true
+
+        # By default, we want the first parameter of the generated scriptblock to come from pipeline input
+        # as a usability enhancement, but the user can turn this off or specify a different parameter to take the input
+        $argumentList = $function.Parameters.Keys | foreach {
+            if ( $NoInputObject.IsPresent -or ( ! $firstParameter -and $_ -ne $InputObjectParameterName ) ) {
+                "`$$_"
+            } else {
+                "[parameter(valuefrompipeline=`$true)] `$$_"
+            }
+            $firstParameter = $false
+        }
+
+        $argumentString = $argumentList | Join-string -Separator ','
+
+        # The cast of PSBoundParameters to HashTable is required because apparently it has a different
+        # type at different times with different casting behavior
+        $scriptBlock = [ScriptBlock]::Create(
+            @"
+    param( $argumentString )
+$blockStart
+    Invoke-ChatFunction $functionSpecifier -Parameters ([HashTable] `$PSBoundParameters)
+$blockEnd
+"@
+        )
+        if ( $BindToNativeFunctionName ) {
+            . $__ChatGPS_ModuleParentFunctionBuilder $BindToNativeFunctionName $scriptBlock $Force.IsPresent
+        } else {
+            $scriptBlock
+        }
+    }
+
+    end {
     }
 }
 

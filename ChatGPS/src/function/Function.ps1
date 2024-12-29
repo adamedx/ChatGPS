@@ -47,3 +47,8 @@ class Function {
     }
 }
 
+function GetSessionFunctions($userSpecifiedSession) {
+    $targetSession = GetTargetSession $userSpecifiedSession $true
+
+    $targetSession.SessionFunctions
+}
