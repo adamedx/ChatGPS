@@ -23,7 +23,7 @@ An identifier corresponding to one of the built-in system prompts to be used for
 Allows the user to specify a custom system prompt to steer converation and response output instead of using one of the prompts specified by the SystemPromptId parameter.
 
 .PARAMETER Provider
-Specifies the language model provider. Currently supported values are LocalOnnx for Onnx (https://onnx.ai/) models hosted on the local file system, or AzureOpenAI for models accessed through the Azure OpenAI Service (https://azure.microsoft.com/en-us/products/ai-services/openai-service). The default value is AzureOpenAI.
+Specifies the language model provider. Currently supported values are LocalOnnx for Onnx (https://onnx.ai/) models hosted on the local file system, or AzureOpenAI for models accessed through the Azure OpenAI Service (https://azure.microsoft.com/en-us/products/ai-services/openai-service). The default value is AzureOpenAI. Note that LocalOnnx currently requires that this command is invoked on the Windows operating system using the x64 or arm64 processor architectures.
 
 .PARAMETER ApiEndpoint
 For remotely hosted models, the API URI that enables access to the model.
@@ -267,7 +267,7 @@ function Connect-ChatSession {
     }
 
     $targetProxyPath = if ( ! $NoProxy.IsPresent ) {
-        "$psscriptroot\..\..\lib\AIProxy.exe"
+        "$psscriptroot/../../lib/AIProxy.exe"
     }
 
     $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionDefinition -FunctionParameters $functionParameters -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel

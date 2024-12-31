@@ -44,7 +44,13 @@ public class LocalAIChatService : ChatService
 
         if ( ! assemblyLoader.IsSupportedOnCurrentPlatform )
         {
-            throw new PlatformNotSupportedException("This application does not support the use of Onnx local models on the current system platform.");
+            var osVersion = System.Environment.OSVersion.ToString();
+            var processArch = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture;
+
+            throw new PlatformNotSupportedException($"This application does not support the use of Onnx local models " +
+                                                    "on the current system platform '{osVersion}, {processArch}'. " +
+                                                    "Onnx support currently requires the Windows operating system executing " +
+                                                    "on the x64 or arm64 processor architectures.");
         }
 
         var newKernel = builder.Build();

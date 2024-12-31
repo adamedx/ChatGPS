@@ -28,6 +28,10 @@ public class OnnxProviderAssemblyLoader
 
     private void InitializePlatformInfo()
     {
+        // Note that an unsupported platform is not a fatal error in general -- it just
+        // means the specific features for Onnx support are unavailable. Higher level
+        // error messages will indicate to users which platforms are supported.
+
         var osFragment = OperatingSystem.IsLinux() ?
             "linux" : (
                 OperatingSystem.IsMacOS() ?

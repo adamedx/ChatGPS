@@ -81,6 +81,7 @@ The module supports the following language models via the `Provider` parameter o
 
 * Azure OpenAI: Specify `AzureOpenAI` to use the [Azure OpenAI service](https://azure.microsoft.com/en-us/products/ai-services/openai-service) which provides access to cloud-hosted large language models such as GPT4.
 * Local Onnx: Specify `LocalOnnx` to use a locally hosted model in the [Onnx](https://onnx.ai/) model format. The [Phi 3.5 model](https://azure.microsoft.com/en-us/products/phi/) is an example.
+  * This module currently requires the Windows OS for Onnx support, specifically the x64 and arm64 processor architectures.
   * Such models must be [installed to the local file system](https://aka.ms/generatetutorial) in order be used with this module.
   * If you specify the `LocalModelPath` parameter required for this model, you can actually omit the `Provider` parameter
 
