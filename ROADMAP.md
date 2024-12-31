@@ -3,6 +3,14 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Enable CI pipeline
+* Delegated auth for Azure
+* Pull request template
+* Contributing
+* Code of conduct
+* License
+* Docs
+* Samples
 * Make a simple configuration file option
 * Session names
 * Add embedding support
