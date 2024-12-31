@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.Extensions.DependencyInjection;
+using Azure.AI.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
@@ -41,10 +43,31 @@ public class OpenAIChatService : ChatService
             throw new ArgumentException("An API key for the AI service must be specified.");
         }
 
+        // Apparently the only way to configure the client timeout is to
+        // explicitly construct the AzureOpenAI client object and
+        // provide that to SK.
+        var clientOptions = new AzureOpenAIClientOptions();
+
+        clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
+
+        var apiClient = new AzureOpenAIClient(
+            this.options.ApiEndpoint,
+            new Azure.AzureKeyCredential(this.options.ApiKey),
+            clientOptions);
+
         builder.AddAzureOpenAIChatCompletion(
-            this.options.ModelIdentifier,
-            this.options.ApiEndpoint.ToString(),
-            this.options.ApiKey);
+            deploymentName: this.options.ModelIdentifier,
+            azureOpenAIClient: apiClient);
+
+        // Configure throttling retry behavior
+        builder.Services.ConfigureHttpClientDefaults(c =>
+        {
+            c.AddStandardResilienceHandler(o =>
+            {
+                o.Retry.ShouldRetryAfterHeader = true;
+                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
+            });
+        });
 
         var newKernel = builder.Build();
 

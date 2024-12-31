@@ -35,6 +35,12 @@ function NewFunctionDefinition([string] $functionDefinition, [string[]] $paramet
     }
 }
 
+function ValidateConnection {
+    if ( ! $script:__TEST_AIPROXY_SESSION_ID ) {
+        write-error "No connection exists -- use .connect to establish a connection and retry this command."
+    }
+}
+
 function Start-ProxyRepl {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -323,18 +329,14 @@ __Get-Function $arguments
                         break
                     }
                     '.sendchat' {
-                        if ( $script:__TEST_AIPROXY_SESSION_ID -eq $null ) {
-                            throw "Cannot send chat message because no connection id was specified"
-                        }
+                        ValidateConnection
 
                         $proxyCommandArguments = CreateSendChatRequest $commandArguments
                         'sendchat'
                         break
                     }
                     '.invoke' {
-                        if ( $script:__TEST_AIPROXY_SESSION_ID -eq $null ) {
-                            throw "Cannot invoke function because no connection id was specified"
-                        }
+                        ValidateConnection
 
                         $splitArguments = $commandArguments -split ' '
 
@@ -365,6 +367,7 @@ __Get-Function $arguments
                     }
                 }
             } else {
+                ValidateConnection
                 $proxyCommandArguments = CreateSendChatRequest $proxyCommand.Trim()
                 $commandName = '.sendchat'
                 'sendchat'

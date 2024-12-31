@@ -164,6 +164,11 @@ function Invoke-ChatFunction {
 
         $result = $targetSession.InvokeFunctionAsync($function.Id, $targetParameters)
 
+        if ( $result.IsFaulted ) {
+            $exception = $result.Exception
+            throw [ApplicationException]::new("An unexpected error occurred invoking the chat function", $exception)
+        }
+
         $result.Result
     }
 
