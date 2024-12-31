@@ -20,7 +20,7 @@ function Send-ChatMessage {
         [int32] $MaxReplies = 1,
 
         [Modulus.ChatGPS.Models.ChatSession]
-        $Connection,
+        $Session,
 
         [switch] $RawOutput,
 
@@ -50,28 +50,24 @@ function Send-ChatMessage {
 
             [System.Media.SoundPlayer]::new($targetSoundPath)
         }
+
+        $targetSession = GetTargetSession $Session $true
     }
 
     process {
 
         while ( $currentMessage ) {
 
-            $targetConnection = if ( $Connection ) {
-                $Connection
-            } else {
-                GetCurrentSession $true
-            }
-
             write-progress "Sending message" -percentcomplete 35
 
-            $response = SendMessage $targetConnection $currentMessage $ForceChat.IsPresent
+            $response = SendMessage $targetSession $currentMessage $ForceChat.IsPresent
 
             write-progress "Response received, transforming" -percentcomplete 70
 
-            $responseInfo = $targetConnection.History | select -last 1
+            $responseInfo = $targetSession.History | select -last 1
 
             if ( ! $NoOutput.IsPresent ) {
-                $responseObject = $response | ToResponse -role $responseInfo.Role.Label -Received ([DateTime]::now)
+                $responseObject = $response | ToResponse -role $responseInfo.Role -Received $responseInfo.Timestamp
                 $transformed = $responseObject | TransformResponseText @formatParameters
                 if ( ! $RawOutput.IsPresent ) {
                     if ( $responseObject ) {

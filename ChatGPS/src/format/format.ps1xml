@@ -10,7 +10,7 @@ All Rights Reserved.
   <ViewDefinitions>
 
     <View>
-      <Name>ChatHistory</Name>
+      <Name>ReplChatHistory</Name>
       <ViewSelectedBy>
         <TypeName>Modulus.ChatGPS.PowerShell.ChatHistory</TypeName>
       </ViewSelectedBy>
@@ -22,12 +22,12 @@ All Rights Reserved.
             <Label>Received</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Width>20</Width>
+            <Width>12</Width>
             <Label>Role</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Width>1024</Width>
-            <Label>Response</Label>
+            <Label>Message</Label>
           </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -47,6 +47,150 @@ All Rights Reserved.
           </TableRowEntry>
         </TableRowEntries>
       </TableControl>
+    </View>
+
+    <View>
+      <Name>ChatHistoryItem</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Models.ChatMessage</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Width>24</Width>
+            <Label>Received</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Width>10</Width>
+            <Label>Role</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Width>12</Width>
+            <Label>Elapsed (ms)</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Width>1024</Width>
+            <Label>Response</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                <ScriptBlock>$_.Timestamp.DateTime</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Role</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <Alignment>Right</Alignment>
+                <ScriptBlock>if ( $_.Duration) {[Math]::Ceiling($_.Duration.TotalMilliseconds)}</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Content</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>ChatMessageDetail</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Models.ChatMessage</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Received</Label>
+                <PropertyName>Timestamp</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>Role</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Message</Label>
+                <PropertyName>Content</PropertyName>
+              </ListItem>
+              <ListItem>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.Duration</ScriptBlock>
+                </ItemSelectionCondition>
+                <Label>Elapsed</Label>
+                <PropertyName>Duration</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+
+    <View>
+      <Name>ChatSessionDetails</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Models.ChatSession</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Id</Label>
+                <PropertyName>Id</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Provider</Label>
+                <ScriptBlock>$_.AiOptions.Provider</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>API Endpoint</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.ApiEndpoint</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.AiOptions.ApiEndpoint</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Local Model Path</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Token Limit</Label>
+                <ScriptBlock>$_.AiOptions.TokenLimit</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Model Identifier</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.ModelIdentifier</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.AiOptions.ModelIdentifier</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>DeploymentName</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.DeploymentName</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.AiOptions.DeploymentName</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Total Message Count</Label>
+                <ScriptBlock>if ( $_.History) {$_.History.Count}</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Current Message Count</Label>
+                <ScriptBlock>if ( $_.History) {$_.CurrentHistory.Count}</ScriptBlock>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
     </View>
 
     <View>

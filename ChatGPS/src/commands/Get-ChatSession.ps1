@@ -4,7 +4,7 @@
 # All rights reserved.
 
 
-function Get-ChatConnection {
+function Get-ChatSession {
     [cmdletbinding(positionalbinding=$false)]
     param()
 

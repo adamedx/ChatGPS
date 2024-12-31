@@ -12,17 +12,11 @@ function Remove-ChatFunction {
         [parameter(parametersetname='name', position=0, mandatory=$true)]
         [string] $Name,
 
-        [Modulus.ChatGPS.Models.ChatSession] $Connection
+        [Modulus.ChatGPS.Models.ChatSession] $Session
     )
 
     begin {
-        $targetConnection = if ( $Connection ) {
-            $Connection
-        } else {
-            GetCurrentSession $true
-        }
-
-        $sessionFunctions = $targetConnection.SessionFunctions
+        $sessionFunctions = GetSessionFunctions $Session
     }
 
     process {

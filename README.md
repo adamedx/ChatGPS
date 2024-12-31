@@ -8,16 +8,16 @@ ChatGPS
 * Integrate AI into your PowerShell script library
 * Get help / "how-to" advice about PowerShell in the context of your existing PowerShell session
 * Create AI chatbots, whether purely conversational or focused on a specialization of your choosing
-* Automate AI testing of various AI models
+* Automate testing of various AI models
 
-ChatGPS allows you to choose the AI model that powers its experience and supports both remotely hosted models such as those provided by Azure OpenAI, Open AI, etc., as well as locally hosted models like Phi3.
+ChatGPS allows you to choose the AI model that powers its experience and supports both remotely hosted models such as those provided by Azure OpenAI, Open AI, etc., as well as locally hosted models like Phi 3.
 
 ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic-kernel), and therefore should work well with any models and AI capabilities supported by SK.
 
 # System requirements
 
 * [PowerShell](https://github.com/PowerShell/PowerShell) 7.4 and higher on Windows, Linux, or MacOS
-* Models
+* Models -- bring your own!
   * Remote: valid account credentials to a service like Azure OpenAI, OpenAI, etc.
   * Local: for locally hosted models, GPU or NPU capabilities may be needed, see specific model requirements
 
@@ -54,36 +54,78 @@ invoke-pester
 
 Once you successfully execute the build step mentioned above you can test resulting PowerShell module build output.
 
-#### Configure a model
-
-Currently only the Azure OpenAI service is supported -- to configure an Azure OpenAI large language model, create a configuration file
-that contains your Azure OpenAI model connection information. Because this information includes credentials, you should create this
-file in a secure file system location accessible only to you and no other users or applications:
+The standard pattern for using the module is to first create a "chat session" context using the `Connect-ChatSession` command,
+and then issue a command such as `Send-ChatMessage` to send a single message within the curretn session context
+and receive a response:
 
 ```powershell
+
+Connect-ChatSession -LocalModelPath /models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128
+Send-ChatMessage 'Hello!'
+
+Received                 Response
+--------                 --------
+9/15/2024 3:44:07 PM     Hello there! It's great to have a friendly chat with you. I'm Phi, your conversational
+                         companion. I don't have hopes or dreams, but I'm here to help you share yours and make our
+                         interaction meaningful. What's on your mind today?
+```
+
+In this example, a session was created using a locally hosted model stored at the file system path specified by the `LocalModelPath`
+parameter. Additional invocations of `Send-ChatMessage` can be used to continue the conversation with further messages.
+
+The `Start-ChatRepl`
+
+#### Configuring the language model
+
+The module supports the following language models via the `Provider` parameter of `Connect-ChatSession`:
+
+* Azure OpenAI: Specify `AzureOpenAI` to use the [Azure OpenAI service](https://azure.microsoft.com/en-us/products/ai-services/openai-service) which provides access to cloud-hosted large language models such as GPT4.
+* Local Onnx: Specify `LocalOnnx` to use a locally hosted model in the [Onnx](https://onnx.ai/) model format. The [Phi 3.5 model](https://azure.microsoft.com/en-us/products/phi/) is an example.
+  * This module currently requires the Windows OS for Onnx support, specifically the x64 and arm64 processor architectures.
+  * Such models must be [installed to the local file system](https://aka.ms/generatetutorial) in order be used with this module.
+  * If you specify the `LocalModelPath` parameter required for this model, you can actually omit the `Provider` parameter
+
+Note that for externally hosted models such as those from Azure OpenAI a credential is required for access via the `ApiKey` parameter,
+and because of this, it may be safer to to specify the parameter to the command indirectly so that the secret is not present in command history. Options include:
+
+* Reading the credential from a file stored in a secure location and assigning the file content to a variable, then specifying that variable as the `ApiKey`
+  parameter for the `Connect-ChatSession` command
+* Reading all parameters for `Connect-ChatSession` from a file stored securely, and piping it into the `Connect-ChatSession` command which accepts all required
+  parameters as input from the pipeline. In general you can choose to specify some parameters via the pipeline, and some via the command line.
+
+The latter approach of reading the session parameters from a file and sending them through the pipeline is illustrated below:
+
+```powershell
+# Create this file just once
 $securelocation = '<your-secure-folder>'
 $configfolder = mkdir "$securelocation/chatgpsconfig"
 $configpath = "$configfolder/azureopenai.config"
 
 '
 {
+  "Provider": "AzureOpenAI",
   "ApiEndpoint": "<your-azureopenai-resource-uri>",
   "ModelIdentifier": "<yourmodelname>",
   "ApiKey": "<your-azureopenai-key>"
 }
-' | out-file $configpath
-```
+' | Set-Content $configpath
 
-You'll use the file created above to connect ChatGPS to Azure OpenAI.
+
+# Create a session using this file below at any time in the future --
+# saves typing and keeps sensitive secrets out of command history
+Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
+```
 
 #### Use the module
 
-To experience the actual module, you'll need to import it into your session *after you've built it* as described earlier:
+To experience the actual module, you'll need to import it into your session *after you've built it* as described earlier.
+The example below uses the `Start-ChatRepl` command to create an interactive chat below -- this is useful for extended
+human or automated engagement with the model, as opposed to one-off interactions:
 
 ```powershell
 cd <your-chatgps-repositoryroot>
 import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS.psd1
-Get-Content $configpath | convertfrom-json | Connect-ChatSession
+Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
 Start-ChatRepl # This starts a "Read-Eval-Print-Loop (REPL)" as your interactive chat session
 ```
 
@@ -108,12 +150,20 @@ Received                 Response
 
 To exit the REPL, enter the command `.exit`.
 
+Note that `Send-Chat` and `Start-ChatRepl` contribute to the same session, so you can use one, then switch to the other,
+and of course switch again, and the conversation will simply continue.
+
+Whenever you need a fresh or separate conversation session, use `Connect-ChatSession` to create a new session -- specify
+the `NoSetCurrent` parameter and save the output of the command in a variable to capture this new session connection. Commands
+like `Send-ChatMessage` and `Start-ChatRepl` accept a `Connection` parameter to which this variable can be specified to
+support multiple parallel conversations.
+
 ## General usage
 
 You can use the `Get-Module` command to see a list of all the commands supported by the module:
 
 ```powershell
-get-module chatgps | select -ExpandProperty ExportedFunctions
+Get-Module chatgps | Select-Object -ExpandProperty ExportedFunctions
 ```
 
 License and authors

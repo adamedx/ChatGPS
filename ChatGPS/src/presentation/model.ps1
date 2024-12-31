@@ -50,7 +50,7 @@ function ToResponse {
         [parameter(valuefrompipeline=$true, mandatory=$true)]
         [object] $response,
         [string] $role,
-        [DateTime] $received,
+        [DateTimeOffset] $received,
         [switch] $AsString
     )
 
@@ -61,7 +61,7 @@ function ToResponse {
             $response
         } else {
             HashTableToObject -TypeName $ChatResponseTypeName -Table @{
-                Received = $received
+                Received = $received.DateTime
                 Role = $role
                 Response = $response
             }

@@ -43,25 +43,24 @@ function Start-ChatREPL {
         [string] $SoundPath,
 
         [Modulus.ChatGPS.Models.ChatSession]
-        $Connection
+        $Session
     )
 
     begin {
         $currentReplies = $MaxReplies
 
-        $connectionArgument = if ( $Connection ) {
-            @{Connection = $Connection}
-        } elseif ( ! $NoAutoConnect.IsPresent ) {
-            $currentSession = GetCurrentSession
-            if ( ! $currentSession ) {
+        $targetSession = GetTargetSession $Session
+
+        $sessionArgument = if ( ! $NoAutoConnect.IsPresent ) {
+            if ( ! $targetSession ) {
                 throw "No current session exists -- please execute Connect-ChatSession and retry"
             }
-            @{Connection=$currentSession}
+            @{Session = $targetSession}
         } else {
             @{}
         }
 
-        $replState = [ReplState]::new($connectionArgument.Connection, 'NaturalLanguage')
+        $replState = [ReplState]::new($sessionArgument.Session, 'NaturalLanguage')
 
         $soundParameters = @{}
         if ( $MessageSound.IsPresent ) { $soundParameters['MessageSound'] = $MessageSound }
@@ -76,18 +75,18 @@ function Start-ChatREPL {
         $initialResponse = $null
 
         if ( $InitialPrompt ) {
-            $initialResponse = Send-ChatMessage $InitialPrompt @connectionArgument @soundParameters
+            $initialResponse = Send-ChatMessage $InitialPrompt @sessionArgument @soundParameters
 
             if ( ! $HideInitialPrompt.IsPresent ) {
                 $conversationTitle = "Conversation: '$InitialPrompt'"
                 "`n$($conversationTitle)" | write-host -foregroundcolor cyan
                 ( '-' * $conversationTitle.Length ) | write-host -foregroundcolor cyan
             }
-        } elseif ( $connectionArgument.Connection ) {
-            $lastMessage = $connectionArgument.Connection.History | select -last 1
-            $initialResponse = if ( $lastMessage.Role.Label -eq 'assistant' ) {
+        } elseif ( $sessionArgument.Session ) {
+            $lastMessage = $sessionArgument.Session.History | select -last 1
+            $initialResponse = if ( $lastMessage.Role -eq 'assistant' ) {
                 $lastMessage.Content |
-                  ToResponse -role $lastMessage.Role.Label -Received ([DateTime]::now)
+                  ToResponse -role $lastMessage.Role -Received ([DateTime]::now)
             }
         }
 
@@ -175,7 +174,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @connectionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters -RawOutput:$RawOutput.IsPresent
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @sessionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters -RawOutput:$RawOutput.IsPresent
 
             $lastResponse = $result
 

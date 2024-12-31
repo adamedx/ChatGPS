@@ -8,85 +8,34 @@ using System.Collections.Generic;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.Extensions.DependencyInjection;
+using Azure.AI.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
-public class OpenAIChatService : IChatService
+public class OpenAIChatService : ChatService
 {
-    public OpenAIChatService(AiOptions options)
-    {
-        this.options = options;
-    }
+    internal OpenAIChatService(AiOptions options) : base(options) { }
 
-    public ChatHistory CreateChat(string prompt)
-    {
-        return new ChatHistory(prompt);
-    }
-
-    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
-    {
-        IReadOnlyList<ChatMessageContent> result;
-
-        try
-        {
-            result = await GetChatCompletionService().GetChatMessageContentsAsync(history);
-        }
-        catch (Exception exception)
-        {
-            throw new AIServiceException(exception);
-        }
-
-        return result;
-    }
-
-    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
-    {
-        var kernelFunction = GetKernel().CreateFunctionFromPrompt(definitionPrompt);
-
-        var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>());
-
-        var result = await GetKernel().InvokeAsync(kernelFunction, kernelArguments);
-
-        return new FunctionOutput(result);
-    }
-
-        private KernelFunction CreateFunction(string definitionPrompt)
-    {
-        var kernel = GetKernel();
-
-        var requestSettings = new OpenAIPromptExecutionSettings();
-
-        KernelFunction result;
-
-        try
-        {
-            result = kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
-        }
-        catch ( Exception exception )
-        {
-            throw new AIServiceException(exception);
-        }
-
-        return result;
-    }
-
-    private Kernel GetKernel()
+    protected override Kernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
             return this.serviceKernel;
         }
 
+        if ( this.options.DeploymentName == null )
+        {
+            throw new ArgumentException("A deployment name for the language model must be specified.");
+        }
+
+        var builder = Kernel.CreateBuilder();
+
         if ( this.options.ApiEndpoint == null )
         {
             throw new ArgumentException("An API endpoint must be specified.");
-        }
-
-        if ( this.options.ModelIdentifier == null )
-        {
-            throw new ArgumentException("An identifier for the language model must be specified.");
         }
 
         if ( this.options.ApiKey == null )
@@ -94,12 +43,31 @@ public class OpenAIChatService : IChatService
             throw new ArgumentException("An API key for the AI service must be specified.");
         }
 
-        var builder = Kernel.CreateBuilder();
+        // Apparently the only way to configure the client timeout is to
+        // explicitly construct the AzureOpenAI client object and
+        // provide that to SK.
+        var clientOptions = new AzureOpenAIClientOptions();
+
+        clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
+
+        var apiClient = new AzureOpenAIClient(
+            this.options.ApiEndpoint,
+            new Azure.AzureKeyCredential(this.options.ApiKey),
+            clientOptions);
 
         builder.AddAzureOpenAIChatCompletion(
-            this.options.ModelIdentifier,
-            this.options.ApiEndpoint.ToString(),
-            this.options.ApiKey);
+            deploymentName: this.options.DeploymentName,
+            azureOpenAIClient: apiClient);
+
+        // Configure throttling retry behavior
+        builder.Services.ConfigureHttpClientDefaults(c =>
+        {
+            c.AddStandardResilienceHandler(o =>
+            {
+                o.Retry.ShouldRetryAfterHeader = true;
+                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
+            });
+        });
 
         var newKernel = builder.Build();
 
@@ -112,25 +80,4 @@ public class OpenAIChatService : IChatService
 
         return newKernel;
     }
-
-    private IChatCompletionService GetChatCompletionService()
-    {
-        if ( this.chatCompletionService is null )
-        {
-            var kernel = GetKernel();
-
-            this.chatCompletionService = kernel.GetAllServices<IChatCompletionService>().FirstOrDefault();
-        }
-
-        if ( this.chatCompletionService is null )
-        {
-            throw new InvalidOperationException("A null result was obtained for the chat completion service");
-        }
-
-        return this.chatCompletionService;
-    }
-
-    private Kernel? serviceKernel;
-    private IChatCompletionService? chatCompletionService;
-    private AiOptions options;
 }

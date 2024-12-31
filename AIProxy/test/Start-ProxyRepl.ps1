@@ -35,6 +35,12 @@ function NewFunctionDefinition([string] $functionDefinition, [string[]] $paramet
     }
 }
 
+function ValidateConnection {
+    if ( ! $script:__TEST_AIPROXY_SESSION_ID ) {
+        write-error "No connection exists -- use .connect to establish a connection and retry this command."
+    }
+}
+
 function Start-ProxyRepl {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -45,7 +51,7 @@ function Start-ProxyRepl {
 
         [string[]] $ProxyExecutableParameters,
 
-        [string] $AssemblyPath = "$psscriptroot/../bin/debug/net7.0",
+        [string] $AssemblyPath = "$psscriptroot/../bin/debug/net8.0",
 
         [string] $ConfigPath = "$psscriptroot/../../azureopenai.config",
 
@@ -84,7 +90,6 @@ function Start-ProxyRepl {
             [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.AiOptions]($connectionOptionsJson, $jsonOptions)
         }
         $newConnection = [Modulus.ChatGPS.Models.Proxy.CreateConnectionRequest]::new()
-        $newConnection.ServiceId = ([ServiceBuilder+ServiceId]::AzureOpenAi)
         $newConnection.ConnectionOptions = $aioptions
 
         $commandArguments = [System.Text.Json.JsonSerializer]::Serialize($newConnection, $newConnection.GetType(), $jsonOptions)
@@ -324,18 +329,14 @@ __Get-Function $arguments
                         break
                     }
                     '.sendchat' {
-                        if ( $script:__TEST_AIPROXY_SESSION_ID -eq $null ) {
-                            throw "Cannot send chat message because no connection id was specified"
-                        }
+                        ValidateConnection
 
                         $proxyCommandArguments = CreateSendChatRequest $commandArguments
                         'sendchat'
                         break
                     }
                     '.invoke' {
-                        if ( $script:__TEST_AIPROXY_SESSION_ID -eq $null ) {
-                            throw "Cannot invoke function because no connection id was specified"
-                        }
+                        ValidateConnection
 
                         $splitArguments = $commandArguments -split ' '
 
@@ -366,6 +367,7 @@ __Get-Function $arguments
                     }
                 }
             } else {
+                ValidateConnection
                 $proxyCommandArguments = CreateSendChatRequest $proxyCommand.Trim()
                 $commandName = '.sendchat'
                 'sendchat'

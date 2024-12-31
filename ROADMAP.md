@@ -3,6 +3,22 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Enable CI pipeline
+* Delegated auth for Azure
+* Pull request template
+* Contributing
+* Code of conduct
+* License
+* Docs
+* Samples
+* Make a simple configuration file option
+* Session names
+* Add embedding support
+* Connection management: Get-ChatSession, Remove-ChatSession
+* Better error messages for local model platform support, move to chatsession and chat service interface
+* Additional model providers
+* SecureString parameters
+* Make an official config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
 * Non-repl: Include command history in context
@@ -14,7 +30,6 @@ Roadmap for ChatGPS
 * Planner definition
 * Plugin management
 * Built-in plugins
-* Multi-model support
 * Model provisioning
   * Service-based
   * Local
@@ -29,3 +44,10 @@ Roadmap for ChatGPS
 * Generalize function invocation for function chats vs. pure functions
 * Generate ps functions from chat functions
 * Add auto-complete for chat functions
+* Multi-model support
+* Remove semantic kernel's ChatHistory and ChatMessageContent types from public interfaces
+* Response duration output
+* Get-ChatHistory command
+* Fix throttling errors not propagating in proxy mode
+* Custom system prompt
+* Standardize on naming of Session instead of Connection

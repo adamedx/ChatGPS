@@ -17,7 +17,7 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
     {
-        this.Id = new Guid();
+        this.Id = Guid.NewGuid();
 
         this.chatFunctionPrompt = chatFunctionPrompt;
         this.chatFunction = chatFunctionPrompt is not null ? new Function(chatFunctionParameters, chatFunctionPrompt) : null;
@@ -26,11 +26,16 @@ public class ChatSession
         this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
         this.totalChatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
 
+        this.publicChatHistory = new ChatMessageHistory(this.chatHistory);
+        this.publicTotalChatHistory = new ChatMessageHistory(this.totalChatHistory);
+
         this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
 
         this.SessionFunctions = new FunctionTable();
 
-        this.AIService = chatService;
+        this.chatService = chatService;
+
+        this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
     }
 
     public string GenerateMessage(string prompt)
@@ -52,19 +57,26 @@ public class ChatSession
         return function;
     }
 
-    public ChatHistory History
+    public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
+    {
+        var function = this.SessionFunctions.GetFunctionById(functionId);
+
+        return await function.InvokeFunctionAsync(this.chatService, boundParameters);
+    }
+
+    public ChatMessageHistory History
     {
         get
         {
-            return this.totalChatHistory;
+            return this.publicTotalChatHistory;
         }
     }
 
-    public ChatHistory CurrentHistory
+    public ChatMessageHistory CurrentHistory
     {
         get
         {
-            return this.chatHistory;
+            return this.publicChatHistory;
         }
     }
 
@@ -96,9 +108,9 @@ public class ChatSession
 
     public FunctionTable SessionFunctions { get; private set; }
 
-    public IChatService AIService {get; private set; }
+    public AiProviderOptions AiOptions { get; private set; }
 
-    private string GenerateMessageInternal(string prompt, bool isFunction)
+    private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
     {
         var newMessageRole = AuthorRole.User;
 
@@ -113,14 +125,18 @@ public class ChatSession
 
         Task<string>? messageTask = null;
 
-        for ( int attempt = 0; attempt < 3; attempt++ )
+        for ( int attempt = 0; attempt < 4; attempt++ )
         {
+            // Assumption: network error handling (e.g. throttling retries) is addressed
+            // by the service client layer itself. This layer only contains error handling
+            // specific to the application, e.g. token limit management.
+
             try
             {
                 tokenException = null;
                 lastException = null;
 
-                if ( isFunction )
+                if ( promptAsFunctionInput )
                 {
                     if ( this.chatFunction is null )
                     {
@@ -149,18 +165,21 @@ public class ChatSession
                     ( messageTask.Exception is not null ) ) ?
                     messageTask.Exception.InnerException as AIServiceException : null;
 
-                if ( messageException is not null && messageException.ExceededTokenLimit )
+                if ( messageException is not null )
                 {
-                    tokenException = messageException;
-                    var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
+                    if ( messageException.ExceededTokenLimit )
+                    {
+                        tokenException = messageException;
+                        var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
 
-                    if ( reducedHistory != null )
-                    {
-                        this.chatHistory = reducedHistory;
-                    }
-                    else
-                    {
-                        break;
+                        if ( reducedHistory != null )
+                        {
+                            this.chatHistory = reducedHistory;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
             }
@@ -197,8 +216,11 @@ public class ChatSession
     private ConversationBuilder conversationBuilder;
     private ChatHistory chatHistory;
     private ChatHistory totalChatHistory;
+    private ChatMessageHistory publicChatHistory;
+    private ChatMessageHistory publicTotalChatHistory;
     private string? chatFunctionPrompt;
     private Function? chatFunction;
     private TokenReducer tokenReducer;
+    private IChatService chatService;
 }
 

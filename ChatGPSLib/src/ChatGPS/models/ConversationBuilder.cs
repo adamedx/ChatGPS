@@ -7,6 +7,7 @@
 namespace Modulus.ChatGPS.Models;
 
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
@@ -26,9 +27,23 @@ internal class ConversationBuilder
         return this.chatService.CreateChat(systemPrompt);
     }
 
+    internal IChatService AIService
+    {
+        get
+        {
+            return this.chatService;
+        }
+    }
+
     internal async Task<string> SendMessageAsync(ChatHistory chatHistory)
     {
+        var stopWatch = new Stopwatch();
+
+        stopWatch.Start();
+
         var responses = await this.chatService.GetChatCompletionAsync(chatHistory);
+
+        stopWatch.Stop();
 
         string results = "";
 
@@ -37,7 +52,7 @@ internal class ConversationBuilder
             if ( response is not null && response.Content is not null )
             {
                 results += response.Content;
-                UpdateHistoryWithResponse(chatHistory, response.Content);
+                UpdateHistoryWithResponse(chatHistory, response.Content, stopWatch.Elapsed);
             }
         }
 
@@ -53,13 +68,26 @@ internal class ConversationBuilder
             AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
         }
 
+        var stopWatch = new Stopwatch();
+
+        stopWatch.Start();
+
         var resultString = await chatFunction.InvokeFunctionAsync(this.chatService, new () { ["input"] = targetPrompt } );
 
-        var targetResult = resultString is not null ? resultString : "I was unable to respond to your message.";
+        stopWatch.Stop();
 
-        UpdateHistoryWithResponse(chatHistory, targetResult);
+        string targetResult = resultString is not null ? resultString : "I was unable to respond to your message.";
+
+        UpdateHistoryWithResponse(chatHistory, targetResult, stopWatch.Elapsed);
 
         return targetResult;
+    }
+
+    internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, TimeSpan duration)
+    {
+        var targetProperties = CreateMessageProperties(duration);
+
+        chatHistory.AddMessage(role, prompt, null, targetProperties);
     }
 
     internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, IReadOnlyDictionary<string,object?>? messageProperties = null)
@@ -89,18 +117,23 @@ internal class ConversationBuilder
         destinationHistory.AddMessage(sourceHistory[messageIndex].Role, content, null, sourceHistory[messageIndex].Metadata);
     }
 
+    internal void UpdateHistoryWithResponse(ChatHistory chatHistory, string response, TimeSpan duration)
+    {
+        AddMessageToConversation(chatHistory, AuthorRole.Assistant, response, duration);
+    }
+
     internal void UpdateHistoryWithResponse(ChatHistory chatHistory, string response)
     {
         AddMessageToConversation(chatHistory, AuthorRole.Assistant, response);
     }
 
-
-    private ReadOnlyDictionary<string,object?>? CreateMessageProperties()
+    private ReadOnlyDictionary<string,object?>? CreateMessageProperties(TimeSpan? duration = null)
     {
         var dictionary = new Dictionary<string,object?>
         {
-            { "Timestamp", JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
-            { "MessageIndex", JsonSerializer.Serialize<int>(this.messageIndex++) }
+            { ChatMessage.MetadataKeys.Timestamp.ToString(), JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
+            { ChatMessage.MetadataKeys.MessageIndex.ToString(), JsonSerializer.Serialize<int>(this.messageIndex++) },
+            { ChatMessage.MetadataKeys.Duration.ToString(), JsonSerializer.Serialize<TimeSpan?>(duration) }
         };
 
         return new ReadOnlyDictionary<string,object?>(dictionary);

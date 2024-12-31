@@ -7,10 +7,10 @@
 
 $commands = @(
     'Connect-ChatSession'
-    'Get-ChatConnection'
-    'Get-ChatCurrentSession'
     'Get-ChatCurrentVoice'
     'Get-ChatFunction'
+    'Get-ChatHistory'
+    'Get-ChatSession'
     'Get-ChatVoiceName'
     'Invoke-ChatFunction'
     'New-ChatFunction'
