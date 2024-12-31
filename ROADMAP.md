@@ -3,6 +3,9 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Make a simple configuration file option
+* Session names
+* Add embedding support
 * Connection management: Get-ChatSession, Remove-ChatSession
 * Standardize on naming of Session instead of Connection
 * Additional model providers
@@ -38,3 +41,4 @@ Roadmap for ChatGPS
 * Response duration output
 * Get-ChatHistory command
 * Fix throttling errors not propagating in proxy mode
+* Custom system prompt

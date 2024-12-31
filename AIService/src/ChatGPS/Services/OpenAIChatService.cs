@@ -26,9 +26,9 @@ public class OpenAIChatService : ChatService
             return this.serviceKernel;
         }
 
-        if ( this.options.ModelIdentifier == null )
+        if ( this.options.DeploymentName == null )
         {
-            throw new ArgumentException("An identifier for the language model must be specified.");
+            throw new ArgumentException("A deployment name for the language model must be specified.");
         }
 
         var builder = Kernel.CreateBuilder();
@@ -56,7 +56,7 @@ public class OpenAIChatService : ChatService
             clientOptions);
 
         builder.AddAzureOpenAIChatCompletion(
-            deploymentName: this.options.ModelIdentifier,
+            deploymentName: this.options.DeploymentName,
             azureOpenAIClient: apiClient);
 
         // Configure throttling retry behavior

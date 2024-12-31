@@ -167,7 +167,17 @@ All Rights Reserved.
               </ListItem>
               <ListItem>
                 <Label>Model Identifier</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.ModelIdentifier</ScriptBlock>
+                </ItemSelectionCondition>
                 <ScriptBlock>$_.AiOptions.ModelIdentifier</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>DeploymentName</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.DeploymentName</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.AiOptions.DeploymentName</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>Total Message Count</Label>

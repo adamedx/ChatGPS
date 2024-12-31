@@ -29,6 +29,7 @@ public class AiProviderOptions
         this.ApiEndpoint = options.ApiEndpoint;
         this.LocalModelPath = options.LocalModelPath;
         this.ModelIdentifier = options.ModelIdentifier;
+        this.DeploymentName = options.DeploymentName;
         this.TokenLimit = options.TokenLimit;
         this.OutputType = options.OutputType;
     }
@@ -37,6 +38,7 @@ public class AiProviderOptions
     public Uri? ApiEndpoint { get; set; }
     public string? LocalModelPath { get; set; }
     public string? ModelIdentifier { get; set; }
+    public string? DeploymentName { get; set; }
     public int? TokenLimit { get; set; }
 
     public string? OutputType {get; set;}
