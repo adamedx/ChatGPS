@@ -60,14 +60,13 @@ and receive a response:
 
 ```powershell
 
-Connect-ChatSession -LocalModelPath /models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128
+Connect-ChatSession -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini
 Send-ChatMessage 'Hello!'
 
 Received                 Response
 --------                 --------
-9/15/2024 3:44:07 PM     Hello there! It's great to have a friendly chat with you. I'm Phi, your conversational
-                         companion. I don't have hopes or dreams, but I'm here to help you share yours and make our
-                         interaction meaningful. What's on your mind today?
+9/15/2024 3:44:07 PM     Hello! I'm here to help you with anything related to PowerShell. What would you like to
+                         learn or discuss today?
 ```
 
 In this example, a session was created using a locally hosted model stored at the file system path specified by the `LocalModelPath`
@@ -79,14 +78,34 @@ The `Start-ChatRepl`
 
 The module supports the following language models via the `Provider` parameter of `Connect-ChatSession`:
 
-* Azure OpenAI: Specify `AzureOpenAI` to use the [Azure OpenAI service](https://azure.microsoft.com/en-us/products/ai-services/openai-service) which provides access to cloud-hosted large language models such as GPT4.
+* Azure OpenAI: Specify `AzureOpenAI` to use the [Azure OpenAI service](https://azure.microsoft.com/en-us/products/ai-services/openai-service) which provides access to cloud-hosted large language models such as GPT4. You'll need to follow the guidance given by Azure documentation to provision supported models.
 * Local Onnx: Specify `LocalOnnx` to use a locally hosted model in the [Onnx](https://onnx.ai/) model format. The [Phi 3.5 model](https://azure.microsoft.com/en-us/products/phi/) is an example.
-  * This module currently requires the Windows OS for Onnx support, specifically the x64 and arm64 processor architectures.
   * Such models must be [installed to the local file system](https://aka.ms/generatetutorial) in order be used with this module.
   * If you specify the `LocalModelPath` parameter required for this model, you can actually omit the `Provider` parameter
+  * This module currently requires the Windows OS for Onnx support for inferencing on GPU models, specifically the x64 and arm64 processor architectures. For non-Windows systems only CPU-based models are supported.
 
-Note that for externally hosted models such as those from Azure OpenAI a credential is required for access via the `ApiKey` parameter,
-and because of this, it may be safer to to specify the parameter to the command indirectly so that the secret is not present in command history. Options include:
+#### Remote model authentication
+
+Note that for externally hosted models such as those from Azure OpenAI a credential is required. Unless the `NoConnect` option is specified, the `Connect-ChatSession` command
+will attempt to access and therefore authenticate to a remote model using the configured credentials; the command will fail if access is not allowed.  When `NoConnect` is specified,
+the access and authentication attempt will be deferred until the first use of subsequent commands like `Send-ChatMessage`.
+
+The mechanism for configuring credentials used to access the model will vary based on the model service provider.
+
+##### Authentication with Azure OpenAI
+
+Azure OpenAI supports multiple mechanisms for specifying credentials:
+
+  * Symmetric key: For Azure OpenAI models the `ApiKey` parameter of `Connect-ChatSession` may be used to specify a secret key used to access the Azure OpenAI service instance hosting the model.
+  * Entra ID authentication: Alternatively if the `ApiKey` parameter is not specified for Azure OpenAI models, the command will try to use a credential for a currently signed-in Entra ID
+    identity such as an Entra ID user account sign-in. Such sign-ins can be accomplished using tools such as the `Login-AzAccount` command from the `Az.Accounts` PowerShell module.
+    * The `AllowInteractiveSignin` parameter will trigger an Entra ID user sign-in and is useful if the `Az.Accounts` module and `Login-AzAccount` commands are unavailable. However, this sign-in flow
+      still requires interaction even if the user is already signed in. To avoid the superfluous interactions, use `Login-AzAccount` when possible.
+
+##### Non-interactive remote model authentication
+
+Use of a symmetric key parameter like `ApiKey` for remotely hosted models such as Azure OpenAI require careful handling of the key. Such keys are highly sensitive secrets
+and because of this, it may be safer to to specify the `ApiKey` parameter to the command indirectly so that the secret is not present in command history. Options include:
 
 * Reading the credential from a file stored in a secure location and assigning the file content to a variable, then specifying that variable as the `ApiKey`
   parameter for the `Connect-ChatSession` command
@@ -116,7 +135,23 @@ $configpath = "$configfolder/azureopenai.config"
 Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
 ```
 
-#### Use the module
+#### Local model usage
+
+The `Connect-ChatSession` command also supports models hosted in the local file system. Use the `LocalModelPath` parameter with the appropriate `Provider` parameter that supports local models to specify the path the model as in the example below:
+
+```powershell
+
+Connect-ChatSession -Provider LocalOnnx -LocalModelPath /models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128
+Send-ChatMessage 'Hello!'
+
+Received                 Response
+--------                 --------
+9/15/2024 3:44:07 PM     Hello there! It's great to have a friendly chat with you. I'm Phi, your conversational
+                         companion. I don't have hopes or dreams, but I'm here to help you share yours and make our
+                         interaction meaningful. What's on your mind today?
+```
+
+#### Import the module
 
 To experience the actual module, you'll need to import it into your session *after you've built it* as described earlier.
 The example below uses the `Start-ChatRepl` command to create an interactive chat below -- this is useful for extended

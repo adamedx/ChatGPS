@@ -148,25 +148,40 @@ All Rights Reserved.
                 <ScriptBlock>$_.AiOptions.Provider</ScriptBlock>
               </ListItem>
               <ListItem>
-                <Label>API Endpoint</Label>
+                <Label>IsRemote</Label>
+                <PropertyName>IsRemote</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>ApiEndpoint</Label>
                 <ItemSelectionCondition>
                   <ScriptBlock>$_.AiOptions.ApiEndpoint</ScriptBlock>
                 </ItemSelectionCondition>
                 <ScriptBlock>$_.AiOptions.ApiEndpoint</ScriptBlock>
               </ListItem>
               <ListItem>
-                <Label>Local Model Path</Label>
+                <Label>AllowInteractiveSignin</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.ApiEndpoint</ScriptBlock>
+                </ItemSelectionCondition>
+                <PropertyName>AllowInteractiveSignin</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>AccessValidated</Label>
+                <PropertyName>AccessValidated</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>LocalModelPath</Label>
                 <ItemSelectionCondition>
                   <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
                 </ItemSelectionCondition>
                 <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
               </ListItem>
               <ListItem>
-                <Label>Token Limit</Label>
+                <Label>TokenLimit</Label>
                 <ScriptBlock>$_.AiOptions.TokenLimit</ScriptBlock>
               </ListItem>
               <ListItem>
-                <Label>Model Identifier</Label>
+                <Label>ModelIdentifier</Label>
                 <ItemSelectionCondition>
                   <ScriptBlock>$_.AiOptions.ModelIdentifier</ScriptBlock>
                 </ItemSelectionCondition>
@@ -180,11 +195,11 @@ All Rights Reserved.
                 <ScriptBlock>$_.AiOptions.DeploymentName</ScriptBlock>
               </ListItem>
               <ListItem>
-                <Label>Total Message Count</Label>
+                <Label>TotalMessageCount</Label>
                 <ScriptBlock>if ( $_.History) {$_.History.Count}</ScriptBlock>
               </ListItem>
               <ListItem>
-                <Label>Current Message Count</Label>
+                <Label>CurrentMessageCount</Label>
                 <ScriptBlock>if ( $_.History) {$_.CurrentHistory.Count}</ScriptBlock>
               </ListItem>
             </ListItems>

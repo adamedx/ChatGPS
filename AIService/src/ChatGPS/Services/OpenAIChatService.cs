@@ -38,11 +38,6 @@ public class OpenAIChatService : ChatService
             throw new ArgumentException("An API endpoint must be specified.");
         }
 
-        if ( this.options.ApiKey == null )
-        {
-            throw new ArgumentException("An API key for the AI service must be specified.");
-        }
-
         // Apparently the only way to configure the client timeout is to
         // explicitly construct the AzureOpenAI client object and
         // provide that to SK.
@@ -50,10 +45,27 @@ public class OpenAIChatService : ChatService
 
         clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
 
-        var apiClient = new AzureOpenAIClient(
-            this.options.ApiEndpoint,
-            new Azure.AzureKeyCredential(this.options.ApiKey),
-            clientOptions);
+        AzureOpenAIClient apiClient;
+
+        if ( this.options.ApiKey is not null && this.options.ApiKey.Length > 0 )
+        {
+            apiClient = new AzureOpenAIClient(
+                this.options.ApiEndpoint,
+                new Azure.AzureKeyCredential(this.options.ApiKey),
+                clientOptions);
+        }
+        else
+        {
+            // Use the default Azure credential when there is no API key -- this
+            // requires that the user has already signed in using a mechanism
+            // such as the Login-AzAccount command.
+            var signinInteractionAllowed = this.options.SigninInteractionAllowed ?? false;
+
+            apiClient = new AzureOpenAIClient(
+                this.options.ApiEndpoint,
+                new Azure.Identity.DefaultAzureCredential(signinInteractionAllowed),
+                clientOptions);
+        }
 
         builder.AddAzureOpenAIChatCompletion(
             deploymentName: this.options.DeploymentName,

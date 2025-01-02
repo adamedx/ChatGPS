@@ -17,6 +17,8 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
     {
+        chatService.ServiceOptions.Validate();
+
         this.Id = Guid.NewGuid();
 
         this.chatFunctionPrompt = chatFunctionPrompt;
@@ -36,6 +38,25 @@ public class ChatSession
         this.chatService = chatService;
 
         this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
+        this.AccessValidated = false;
+    }
+
+    public string SendStandaloneMessage(string prompt)
+    {
+        ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
+
+        var history = conversationBuilder.CreateConversationHistory(prompt);
+
+        var messageTask = temporaryConversation.SendMessageAsync(history);
+
+        messageTask.Wait();
+
+        if ( messageTask.Status != System.Threading.Tasks.TaskStatus.Faulted )
+        {
+            UpdateSessionWithSuccessfulAccess();
+        }
+
+        return messageTask.Result;
     }
 
     public string GenerateMessage(string prompt)
@@ -109,6 +130,24 @@ public class ChatSession
     public FunctionTable SessionFunctions { get; private set; }
 
     public AiProviderOptions AiOptions { get; private set; }
+
+    public bool AccessValidated { get; private set; }
+
+    public bool IsRemote
+    {
+        get
+        {
+            return this.AiOptions.ApiEndpoint is not null;
+        }
+    }
+
+    public bool AllowInteractiveSignin
+    {
+        get
+        {
+            return this.AiOptions?.SigninInteractionAllowed ?? false;
+        }
+    }
 
     private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
     {
@@ -205,12 +244,19 @@ public class ChatSession
             throw new ArgumentException("The AI assistant was unable to generate a response.");
         }
 
+        UpdateSessionWithSuccessfulAccess();
+
         return response;
     }
 
     private void UpdateHistoryWithResponse()
     {
         ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
+    }
+
+    private void UpdateSessionWithSuccessfulAccess()
+    {
+        this.AccessValidated = true;
     }
 
     private ConversationBuilder conversationBuilder;

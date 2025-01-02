@@ -17,7 +17,7 @@ Connect-ChatSession implicitly maintains the concept of a "current" session, i.e
 By default, the session is created with one of several built-in system prompts that dictate the purpose and style of the conversation. The command also supports providing a custom system prompt instead using the CustomSystemPrompt parameter.
 
 .PARAMETER SystemPromptId
-An identifier corresponding to one of the built-in system prompts to be used for the session. Values include PowerShell, PowerShellStrict, General, and Conversational. The default value is PowerShell, which focuses on natural language conversations about the PowerShell language. The General system prompt is simply natural language conversation on any topic. The Conversational prompt is similar to General with a focus on making the conversation more interesting. The PowerShellStrict prompt expects natural language instructions for generating PowerShell code and will return only code; the code it returnsas output to conversation commands could be directly executed.
+An identifier corresponding to one of the built-in system prompts to be used for the session. Values include PowerShell, General, PowerShellStrict, and Conversational. The default value is PowerShell. The PowerShell prompt focuses on natural language conversations about the PowerShell language and command-line tools and general programming language topics. The General prompt is simply natural language conversation on any topic. The Conversational prompt is similar to General with a focus on making the conversation more interesting. The PowerShellStrict prompt expects natural language instructions for generating PowerShell code and will return only code; the code it returns as output to conversation commands can be directly executed by the PowerShell interpreter.
 
 .PARAMETER CustomSystemPrompt
 Allows the user to specify a custom system prompt to steer converation and response output instead of using one of the prompts specified by the SystemPromptId parameter.
@@ -33,6 +33,9 @@ For remotely hosted models some services may require this as an additional param
 
 .PARAMETER ApiKey
 Some remotely hosted models that require authentication may support a symmetric key that can be specified through this parameter. WARNING: currently this parameter is specified via plaintext rather than as a securestring. To avoid the value of this key being present in command history, use a command to read it from a secure location such as an Azure KeyVault or a local file with sufficient security measures in place, assign the value of the key to a PowerShell variable, and then use that variable to specify the value of the ApiKey parameter.
+
+.PARAMETER AllowInteractiveSignin
+For use with remote models only, specify AllowInteractiveSignin to allow this command or subsequent commands that access the model to invoke a user interface for authentication. This is only applicable when the ApiKey parameter or other non-interactive sign-in mechanisms are not configured for the session. For some model services such as Azure OpenAI this option can be useful if sign-in tools such as the "Az.Accounts" module with its "Login-AzAccount" and "Logout-AzAccount" commands is unavaialble, however it may have some side effects. Because i
 
 .PARAMETER LocalModelPath
 For local models such as those supported by the LocalOnnx provider this is the path to the local model in the executing device's file system.
@@ -53,10 +56,13 @@ By default, Connect-ChatSession returns no output; it simply has the side effect
 Specify NoSetCurrent so that the implicit "current" session is not overwritten or otherwise set when this command executes successfully. Instead, a new session independent from any current session will be returned as output of the command. The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction. Thus Connect-ChatSession can be used to create multiple independent chat sessions for different purposes without affecting the current default session.
 
 .PARAMETER NoConnect
-Specify this parameter so that no attempt is made to authenticate to the service that hosts the model when this command is executed; commands that use this session can attempt to authenticate when they require access to the session's model
+By default, this command may attempt to authenticate to the service that hosts the model (for remote models) or access the model's local path (for local models) in order to surface incorrect parameters or access problems before the session is actually used with subsequent commands. To skip this verification, specify the NoConnect parameter. Specifying this may mean that access issues are not discovered until subsequent commands that access the model are executed.
 
 .PARAMETER NoProxy
-Specify this so that the session will not use an intermediate proxy process to communicate with the model. The proxy process was useful for isolating dependencies for the services used to access the model during the early stages of the development of Semantic Kernel which changed frequently. The proxy may no longer be required and may eventually be removed. It is possible that code defects in the proxy could introduce errors or other reliability issues, so NoProxy can be specified to remove this risk if problems arise in certain use cases. When the proxy is in use, a log of its activity can be generated if the appropriate values are specified for the LogLevel and LogDirectory parameters.
+Specify the NoProxy parameter so ensure that the session will not use an intermediate proxy process to communicate with the model. By default, the session will utilize a proxy that isolates dependencies for the services used to access the language model into a separate process from that of the PowerShell session. This helps avoid incompatibilities with such dependencies and PowerShell itself, and was useful during the early stages of the development of Semantic Kernel which changed frequently. In some cases such as specification of the AllowInteractiveSignin parameter the proxy will not be used due to known user experience issues in that situation. The ForceProxy parameter may be used to force use of the proxy in call cases. At some point the proxy may no longer be required and may eventually be removed. It is possible that code defects in the proxy could introduce errors or other reliability issues, so NoProxy can be specified to remove this risk if problems arise in certain use cases. When the proxy is in use, a log of its activity can be generated if the appropriate values are specified for the LogLevel and LogDirectory parameters.
+
+.PARAMETER ForceProxy
+Use ForceProxy to override the command's automatic determination of when to use a proxy process to host language model service dependencies and use the proxy in all cases. This parameter is most likely useful for debugging purposes only and should not be needed.
 
 .PARAMETER LogDirectory
 This parameter allows a log to be placed in a certain directory; the log contains information about a local proxy used to isolate the code that interacts with services. If this parameter is not specified, then no long will be written, even if the LogLevel is set to something other than None. If this parameter is specifed, then a file with the name ChatGPSProxy.log will be placed in that directory.
@@ -68,12 +74,11 @@ This parameter only takes effect if LogDirectory is also specified as a valid lo
 By default, the command has no output. But if the NoSetCurrent or PassThrue parameters are specified, the newly connected session is returned as output and can be used a parameter to other commands.
 
 .EXAMPLE
-In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource, and then the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default:
+In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default:
 
-PS > $secretKey = GetMyApiKeyFromSecureLocation
-PS > Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
+PS > Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
 
-Send-ChatMessage 'how do I find my mac address?'
+PS > Send-ChatMessage 'how do I find my mac address?'
 
 Received                 Response
 --------                 --------
@@ -83,7 +88,15 @@ Received                 Response
                          # Get network adapter information and select the Name and MAC Address properties
                          Get-NetAdapter | Select-Object Name, MacAddress # Displays the Name and MAC Address of each
                          adapter
-                         ```
+
+
+
+.EXAMPLE
+In this example, a chat session is used to a remote model as in the previous example. In this case, instead of the user's credentials, a symmetric key credential is provided by the ApiKey parameter:
+
+PS > $secretKey = GetMyApiKeyFromSecureLocation
+PS > Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
+
 
 .EXAMPLE
 This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatRepl command is used to start an interactive conversation.
@@ -173,7 +186,7 @@ function Connect-ChatSession {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(position=0)]
-        [validateset('PowerShell', 'PowerShellStrict', 'General', 'Conversational')]
+        [validateset('General', 'PowerShell', 'PowerShellStrict', 'Conversational')]
         [string] $SystemPromptId = 'PowerShell',
 
         [string] $CustomSystemPrompt,
@@ -188,8 +201,11 @@ function Connect-ChatSession {
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $DeploymentName,
 
-        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true,mandatory=$true)]
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $ApiKey,
+
+        [parameter(parametersetname='remoteaiservice')]
+        [switch] $AllowInteractiveSignin,
 
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [string] $LocalModelPath,
@@ -212,6 +228,8 @@ function Connect-ChatSession {
 
         [switch] $NoProxy,
 
+        [switch] $ForceProxy,
+
         [string] $LogDirectory = $null,
 
         [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
@@ -226,6 +244,7 @@ function Connect-ChatSession {
     $options.ApiKey = $ApiKey
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
+    $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
 
     $isLocal = $false
 
@@ -233,6 +252,11 @@ function Connect-ChatSession {
         $options.Provider = $Provider
     } else {
         if ( $options.LocalModelPath ) {
+            if ( ! $NoConnect.IsPresent -and ! ( test-path $options.LocalModelPath ) ) {
+                throw [System.IO.FileNotFoundException]::new(
+                    "The path $($options.LocalModelPath) specified for a local model could not be found. " +
+                    "Specify a valid model path in the local file system and retry the operation.")
+            }
             $isLocal = $true
             $options.Provider = 'LocalOnnx'
         } else {
@@ -266,11 +290,61 @@ function Connect-ChatSession {
         $functionDefinition = [string] $functionInfo.Definition
     }
 
-    $targetProxyPath = if ( ! $NoProxy.IsPresent ) {
+    if ( $ForceProxy.IsPresent -and $NoProxy.IsPresent ) {
+        throw [ArgumentException]::new("The ForceProxy and NoProxy parameters may not both be specified -- specify exactly one of them or neither.")
+    }
+
+    # Proxy mode is not currently compatible with interactive signin for remote models
+    $proxyIncompatibility = ! $isLocal -and ! $ApiKey -and $AllowInteractiveSignin.IsPresent
+    $proxyDisallowed = $proxyIncompatibility -and ! $ForceProxy.IsPresent
+    $useProxy = ! $NoProxy.IsPresent -and ! $proxyDisallowed
+
+    if ( ! $useProxy ) {
+        if ( $proxyDisallowed -and ! $NoProxy.IsPresent) {
+            write-verbose "No ApiKey specified for a remote model, and AllowInteractiveSignin is specified, so proxy will not be used to prevent signin problems. Use Login-AzAccount and Logout-AzAccount to sign in with the correct identity if access fails."
+        }
+    } elseif ( $proxyIncompatibility ) {
+        write-warning "AllowInteractiveSignin was specified for a remote model that requires authentication and proxy mode was forced with ForceProxy. You may be asked to re-authenticate frequently."
+    }
+
+    $targetProxyPath = if ( $useProxy ) {
+        write-verbose "Model will be accessed using a proxy"
         "$psscriptroot/../../lib/AIProxy.exe"
+    } else {
+        write-verbose "Model will be accessed without a proxy"
+    }
+
+    if ( $targetProxyPath ) {
+        write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
     $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionDefinition -FunctionParameters $functionParameters -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel
+
+    if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
+        try {
+            $session.SendStandaloneMessage('Are you there?') | out-null
+        } catch {
+            $exceptionMessage = if ( $_.Exception.InnerException ) {
+                $_.Exception.InnerException.Message
+            } else {
+                $_.Exception.Message
+            }
+
+            $signinAdvice = if ( $ApiKey ) {
+                'Also ensure that the specified API key is valid for the given model API URI.'
+            } else {
+                'Also ensure that you have signed in using a valid identity that has been granted access to the given model API URI. ' +
+                '(e.g. for Azure OpenAI models try signing out with Logout-AzAccount, then retry the command, or explicitly use' +
+                'LoginAzAccount to sign in as the correct identity). You can also specify the AllowInteractiveSignin parameter with ' +
+                'with this command and retry if you do not have access to signin tools for the remote model; this may result in ' +
+                'multiple requests to re-authenticate.'
+            }
+            throw [ApplicationException]::new("Attempt to establish a test connection to the remote model failed.`n" +
+                                              "Ensure that the remote API URI '$($ApiEndpoint)' is accessible form this device.`n" +
+                                              "$($signinAdvice)`nSpecify the NoConnect option to skip this test when invoking this command.`n" +
+                                              "$($exceptionMessage)", $_.Exception)
+        }
+    }
 
     if ( $PassThru.IsPresent -or $NoSetCurrent.IsPresent ) {
         $session

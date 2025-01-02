@@ -3,8 +3,9 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Include the current sent time in all responses.
+* Self-help
 * Enable CI pipeline
-* Delegated auth for Azure
 * Pull request template
 * Contributing
 * Code of conduct
@@ -16,6 +17,7 @@ Roadmap for ChatGPS
 * Add embedding support
 * Connection management: Get-ChatSession, Remove-ChatSession
 * Better error messages for local model platform support, move to chatsession and chat service interface
+* publish local module
 * Additional model providers
 * SecureString parameters
 * Make an official config file support multiple entries and a default
@@ -51,3 +53,6 @@ Roadmap for ChatGPS
 * Fix throttling errors not propagating in proxy mode
 * Custom system prompt
 * Standardize on naming of Session instead of Connection
+* include signin status (has access been validated)
+* Delegated auth for Azure
+* include signin info, e.g. interactive or not.
