@@ -15,9 +15,9 @@ using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
-public class OpenAIChatService : ChatService
+public class AzureOpenAIChatService : ChatService
 {
-    internal OpenAIChatService(AiOptions options) : base(options) { }
+    internal AzureOpenAIChatService(AiOptions options) : base(options) { }
 
     protected override Kernel GetKernel()
     {
