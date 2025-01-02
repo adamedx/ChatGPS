@@ -39,6 +39,8 @@ public class ChatSession
 
         this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
         this.AccessValidated = false;
+
+        this.LastResponseError = null;
     }
 
     public string SendStandaloneMessage(string prompt)
@@ -47,13 +49,17 @@ public class ChatSession
 
         var history = conversationBuilder.CreateConversationHistory(prompt);
 
-        var messageTask = temporaryConversation.SendMessageAsync(history);
+        Task<string> messageTask;
 
-        messageTask.Wait();
-
-        if ( messageTask.Status != System.Threading.Tasks.TaskStatus.Faulted )
+        try
         {
-            UpdateSessionWithSuccessfulAccess();
+            messageTask = temporaryConversation.SendMessageAsync(history);
+            messageTask.Wait();
+        }
+        catch (Exception e)
+        {
+            UpdateStateWithLatestResponse(e, true);
+            throw;
         }
 
         return messageTask.Result;
@@ -137,7 +143,7 @@ public class ChatSession
     {
         get
         {
-            return this.AiOptions.ApiEndpoint is not null;
+            return ( this.AiOptions.LocalModelPath?.Length ?? 0 ) == 0;
         }
     }
 
@@ -148,6 +154,8 @@ public class ChatSession
             return this.AiOptions?.SigninInteractionAllowed ?? false;
         }
     }
+
+    public Exception? LastResponseError { get; private set; }
 
     private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
     {
@@ -229,34 +237,46 @@ public class ChatSession
             this.conversationBuilder.AddMessageToConversation(this.chatHistory, AuthorRole.Assistant, "My apologies, I was unable to respond to your last message.");
         }
 
-        UpdateHistoryWithResponse();
+        var responseException = tokenException ?? lastException;
 
-        if ( tokenException != null )
+        // So I had to write this strange code that invokes a method in two different blocks, one that throws
+        // and one that doesn't, because the compiler's nullable comes up with a false positive.
+        // It seems to give me false positives if I try to assign to a nullable exception variable and then
+        // throw if it's non-null and return the response, which it thinks can somehow be null -- it can't!
+        // If the compiler wants me to write something terrible to make it happy, so be it.
+        //
+        // Note that this wasn't a problem until I invoked a method before the last throw -- it doesn't matter
+        // that that method correctly handles null apparently.
+        if ( response == null )
         {
-            throw tokenException;
-        }
-        else if ( lastException is not null )
-        {
-            throw lastException;
-        }
-        else if ( response == null )
-        {
-            throw new ArgumentException("The AI assistant was unable to generate a response.");
+            var genericException = new ArgumentException("The AI assistant was unable to generate a response.");
+            UpdateStateWithLatestResponse(genericException);
+            throw genericException;
         }
 
-        UpdateSessionWithSuccessfulAccess();
+        UpdateStateWithLatestResponse(responseException);
+
+        if ( responseException is not null )
+        {
+            throw responseException;
+        }
 
         return response;
     }
 
-    private void UpdateHistoryWithResponse()
+    private void UpdateStateWithLatestResponse(Exception? responseException = null, bool noHistory = false)
     {
-        ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
-    }
+        this.LastResponseError = responseException;
 
-    private void UpdateSessionWithSuccessfulAccess()
-    {
-        this.AccessValidated = true;
+        if ( responseException is null )
+        {
+            this.AccessValidated = true;
+
+            if ( ! noHistory )
+            {
+                ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
+            }
+        }
     }
 
     private ConversationBuilder conversationBuilder;

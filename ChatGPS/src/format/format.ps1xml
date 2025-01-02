@@ -161,7 +161,7 @@ All Rights Reserved.
               <ListItem>
                 <Label>AllowInteractiveSignin</Label>
                 <ItemSelectionCondition>
-                  <ScriptBlock>$_.AiOptions.ApiEndpoint</ScriptBlock>
+                  <ScriptBlock>$_.IsRemote</ScriptBlock>
                 </ItemSelectionCondition>
                 <PropertyName>AllowInteractiveSignin</PropertyName>
               </ListItem>
@@ -201,6 +201,13 @@ All Rights Reserved.
               <ListItem>
                 <Label>CurrentMessageCount</Label>
                 <ScriptBlock>if ( $_.History) {$_.CurrentHistory.Count}</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>LastResponseError</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.LastResponseError</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.LastResponseError</ScriptBlock>
               </ListItem>
             </ListItems>
           </ListEntry>

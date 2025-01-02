@@ -23,7 +23,7 @@ An identifier corresponding to one of the built-in system prompts to be used for
 Allows the user to specify a custom system prompt to steer converation and response output instead of using one of the prompts specified by the SystemPromptId parameter.
 
 .PARAMETER Provider
-Specifies the language model provider. Currently supported values are LocalOnnx for Onnx (https://onnx.ai/) models hosted on the local file system, or AzureOpenAI for models accessed through the Azure OpenAI Service (https://azure.microsoft.com/en-us/products/ai-services/openai-service). The default value is AzureOpenAI. Note that LocalOnnx currently requires that this command is invoked on the Windows operating system using the x64 or arm64 processor architectures.
+Specifies the language model provider. Currently supported values are LocalOnnx for Onnx (https://onnx.ai/) models hosted on the local file system, or AzureOpenAI for models accessed through the Azure OpenAI Service (https://azure.microsoft.com/en-us/products/ai-services/openai-service). The default value is currently based on the presence of other parameters, though that may change as more providers are added that use the same parameter patterns. To be sure that the correct provider is used, specify this parameter explicitly. Note that LocalOnnx currently requires that this command is invoked on the Windows operating system using the x64 or arm64 processor architectures.
 
 .PARAMETER ApiEndpoint
 For remotely hosted models, the API URI that enables access to the model.
@@ -74,7 +74,7 @@ This parameter only takes effect if LogDirectory is also specified as a valid lo
 By default, the command has no output. But if the NoSetCurrent or PassThrue parameters are specified, the newly connected session is returned as output and can be used a parameter to other commands.
 
 .EXAMPLE
-In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default:
+In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
 
 PS > Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
 
@@ -89,14 +89,39 @@ Received                 Response
                          Get-NetAdapter | Select-Object Name, MacAddress # Displays the Name and MAC Address of each
                          adapter
 
-
-
 .EXAMPLE
 In this example, a chat session is used to a remote model as in the previous example. In this case, instead of the user's credentials, a symmetric key credential is provided by the ApiKey parameter:
 
 PS > $secretKey = GetMyApiKeyFromSecureLocation
 PS > Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
+PS > Get-ChatSession
 
+Id                     : 3cb205df-c4e2-4569-a2f3-8a059571ed23
+Provider               : AzureOpenAI
+IsRemote               : True
+ApiEndpoint            : https://myposh-test-2024-12.openai.azure.com/
+AllowInteractiveSignin : False
+AccessValidated        : False
+TokenLimit             : 4096
+DeploymentName         : gpt-4o-mini
+TotalMessageCount      : 1
+CurrentMessageCount    : 1
+
+.EXAMPLE
+This example is similar to those above, but it uses the OpenAI provider instead -- since OpenAI does not currently require an ApiEndpoint parameter but does require an ApiKey parameter, use of the OpenAI provider is the default when only ApiKey is specified. For OpenAI however the ModelIdentifier is required:
+
+PS > $secretKey = GetMyApiKeyFromSecureLocation
+PS > Connect-ChatSession -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
+PS > Get-ChatSession
+
+Id                  : 15934765-10c5-4caf-b477-180abd9d893d
+Provider            : OpenAI
+IsRemote            : True
+AccessValidated     : False
+TokenLimit          : 4096
+ModelIdentifier     : gpt-4o-mini
+TotalMessageCount   : 1
+CurrentMessageCount : 1
 
 .EXAMPLE
 This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatRepl command is used to start an interactive conversation.
@@ -189,13 +214,14 @@ function Connect-ChatSession {
         [validateset('General', 'PowerShell', 'PowerShellStrict', 'Conversational')]
         [string] $SystemPromptId = 'PowerShell',
 
+        [Alias('Prompt')]
         [string] $CustomSystemPrompt,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [validateset('AzureOpenAI', 'LocalOnnx')]
+        [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx')]
         [string] $Provider,
 
-        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true,mandatory=$true)]
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [Uri] $ApiEndpoint,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
@@ -246,21 +272,27 @@ function Connect-ChatSession {
     $options.LocalModelPath = $LocalModelPath
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
 
-    $isLocal = $false
+    $isLocal = !  ( ! $options.LocalModelPath )
 
     if ( $Provider ) {
         $options.Provider = $Provider
     } else {
-        if ( $options.LocalModelPath ) {
-            if ( ! $NoConnect.IsPresent -and ! ( test-path $options.LocalModelPath ) ) {
-                throw [System.IO.FileNotFoundException]::new(
-                    "The path $($options.LocalModelPath) specified for a local model could not be found. " +
-                    "Specify a valid model path in the local file system and retry the operation.")
+        if ( ! $isLocal ) {
+            $options.Provider = if ( $options.ApiEndpoint ) {
+                'AzureOpenAI'
+            } else {
+                'OpenAI'
             }
-            $isLocal = $true
-            $options.Provider = 'LocalOnnx'
         } else {
-            $options.Provider = 'AzureOpenAI'
+            $options.Provider = 'LocalOnnx'
+        }
+    }
+
+    if ( $isLocal ) {
+        if ( ! $NoConnect.IsPresent -and ! ( test-path $options.LocalModelPath ) ) {
+            throw [System.IO.FileNotFoundException]::new(
+                "The path $($options.LocalModelPath) specified for a local model could not be found. " +
+                "Specify a valid model path in the local file system and retry the operation.")
         }
     }
 
@@ -330,6 +362,12 @@ function Connect-ChatSession {
                 $_.Exception.Message
             }
 
+            $apiEndpointAdvice = if ( $ApiEndpoint ) {
+                "Ensure that the remote API URI '$($ApiEndpoint)' is accessible from this device."
+            } else {
+                "Ensure that you have network connectivity to the remote service hosting the model."
+            }
+
             $signinAdvice = if ( $ApiKey ) {
                 'Also ensure that the specified API key is valid for the given model API URI.'
             } else {
@@ -340,7 +378,7 @@ function Connect-ChatSession {
                 'multiple requests to re-authenticate.'
             }
             throw [ApplicationException]::new("Attempt to establish a test connection to the remote model failed.`n" +
-                                              "Ensure that the remote API URI '$($ApiEndpoint)' is accessible form this device.`n" +
+                                              "$($apiEndpointAdvice)`n" +
                                               "$($signinAdvice)`nSpecify the NoConnect option to skip this test when invoking this command.`n" +
                                               "$($exceptionMessage)", $_.Exception)
         }

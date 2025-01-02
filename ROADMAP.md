@@ -3,6 +3,12 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Fix session creation to not create a session if it can't connect.
+* Command to trigger re-auth?
+* Generalize tokenlimit handling across services
+* Last error for session
+* Include user agent
+* Configure user agent
 * Include the current sent time in all responses.
 * Self-help
 * Enable CI pipeline

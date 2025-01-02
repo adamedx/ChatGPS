@@ -16,6 +16,7 @@ public enum ModelProvider
 {
     Unspecified,
     AzureOpenAI,
+    OpenAI,
     LocalOnnx
 }
 
@@ -54,7 +55,7 @@ public sealed class AiOptions : AiProviderOptions
     public void Validate()
     {
         var hasLocal = this.LocalModelPath is not null && this.LocalModelPath.Length > 0;
-        var hasRemote = this.ApiEndpoint is not null;
+        var hasRemote = this.ApiEndpoint is not null || ( this.ApiKey is not null && this.ApiKey.Length > 0 );
 
         if ( hasLocal )
         {
@@ -63,10 +64,11 @@ public sealed class AiOptions : AiProviderOptions
                 throw new ArgumentException("The specified AI options are invalid; both a local and remote location may not be specified. Exactly one must be provided.");
             }
         }
-        else if ( ! hasRemote )
-        {
-            throw new ArgumentException("The specified AI options are invalid; neither a local nor remote model location was specified. Exactly one must be provided.");
-        }
+
+        // Note that ApiKey will be empty in the case of a proxy service or delegated auth,
+        // and some providers have an implicit API endpoint. So we can't assume a non-existent
+        // local model path and lack of both ApiKey and ApiEndpoint as an impossibility for a remotely
+        // hosted service.
     }
 
     public string? ApiKey { get; set; }

@@ -41,6 +41,9 @@ public class ServiceBuilder
             case ModelProvider.AzureOpenAI:
                 newService = new AzureOpenAIChatService( this.options );
                 break;
+            case ModelProvider.OpenAI:
+                newService = new OpenAIChatService( this.options );
+                break;
             case ModelProvider.LocalOnnx:
                 newService = new LocalAIChatService( this.options );
                 break;
