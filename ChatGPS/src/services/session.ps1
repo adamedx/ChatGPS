@@ -40,7 +40,8 @@ function CreateSession {
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {
-            $script:Sessions.Add($session)
+            # Did you know ArrayList.Add() returns output? -- don't let it into the pipeline!
+            $script:Sessions.Add($session) | out-null
         } else {
             $script:Sessions[0] = $session
         }

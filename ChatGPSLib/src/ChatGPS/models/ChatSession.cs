@@ -17,6 +17,8 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
     {
+        chatService.ServiceOptions.Validate();
+
         this.Id = Guid.NewGuid();
 
         this.chatFunctionPrompt = chatFunctionPrompt;
@@ -36,6 +38,31 @@ public class ChatSession
         this.chatService = chatService;
 
         this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
+        this.AccessValidated = false;
+
+        this.LastResponseError = null;
+    }
+
+    public string SendStandaloneMessage(string prompt)
+    {
+        ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
+
+        var history = conversationBuilder.CreateConversationHistory(prompt);
+
+        Task<string> messageTask;
+
+        try
+        {
+            messageTask = temporaryConversation.SendMessageAsync(history);
+            messageTask.Wait();
+        }
+        catch (Exception e)
+        {
+            UpdateStateWithLatestResponse(e, true);
+            throw;
+        }
+
+        return messageTask.Result;
     }
 
     public string GenerateMessage(string prompt)
@@ -109,6 +136,26 @@ public class ChatSession
     public FunctionTable SessionFunctions { get; private set; }
 
     public AiProviderOptions AiOptions { get; private set; }
+
+    public bool AccessValidated { get; private set; }
+
+    public bool IsRemote
+    {
+        get
+        {
+            return ( this.AiOptions.LocalModelPath?.Length ?? 0 ) == 0;
+        }
+    }
+
+    public bool AllowInteractiveSignin
+    {
+        get
+        {
+            return this.AiOptions?.SigninInteractionAllowed ?? false;
+        }
+    }
+
+    public Exception? LastResponseError { get; private set; }
 
     private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
     {
@@ -190,27 +237,46 @@ public class ChatSession
             this.conversationBuilder.AddMessageToConversation(this.chatHistory, AuthorRole.Assistant, "My apologies, I was unable to respond to your last message.");
         }
 
-        UpdateHistoryWithResponse();
+        var responseException = tokenException ?? lastException;
 
-        if ( tokenException != null )
+        // So I had to write this strange code that invokes a method in two different blocks, one that throws
+        // and one that doesn't, because the compiler's nullable comes up with a false positive.
+        // It seems to give me false positives if I try to assign to a nullable exception variable and then
+        // throw if it's non-null and return the response, which it thinks can somehow be null -- it can't!
+        // If the compiler wants me to write something terrible to make it happy, so be it.
+        //
+        // Note that this wasn't a problem until I invoked a method before the last throw -- it doesn't matter
+        // that that method correctly handles null apparently.
+        if ( response == null )
         {
-            throw tokenException;
+            var genericException = new ArgumentException("The AI assistant was unable to generate a response.");
+            UpdateStateWithLatestResponse(genericException);
+            throw genericException;
         }
-        else if ( lastException is not null )
+
+        UpdateStateWithLatestResponse(responseException);
+
+        if ( responseException is not null )
         {
-            throw lastException;
-        }
-        else if ( response == null )
-        {
-            throw new ArgumentException("The AI assistant was unable to generate a response.");
+            throw responseException;
         }
 
         return response;
     }
 
-    private void UpdateHistoryWithResponse()
+    private void UpdateStateWithLatestResponse(Exception? responseException = null, bool noHistory = false)
     {
-        ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
+        this.LastResponseError = responseException;
+
+        if ( responseException is null )
+        {
+            this.AccessValidated = true;
+
+            if ( ! noHistory )
+            {
+                ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
+            }
+        }
     }
 
     private ConversationBuilder conversationBuilder;

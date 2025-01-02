@@ -9,7 +9,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.DependencyInjection;
-using Azure.AI.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
@@ -26,38 +25,21 @@ public class OpenAIChatService : ChatService
             return this.serviceKernel;
         }
 
-        if ( this.options.DeploymentName == null )
+        if ( this.options.ModelIdentifier is null )
         {
-            throw new ArgumentException("A deployment name for the language model must be specified.");
+            throw new ArgumentException("A model identifier for the language model must be specified.");
+        }
+
+        if ( this.options.ApiKey is null )
+        {
+            throw new ArgumentException("A an API key is required for the language model service.");
         }
 
         var builder = Kernel.CreateBuilder();
 
-        if ( this.options.ApiEndpoint == null )
-        {
-            throw new ArgumentException("An API endpoint must be specified.");
-        }
-
-        if ( this.options.ApiKey == null )
-        {
-            throw new ArgumentException("An API key for the AI service must be specified.");
-        }
-
-        // Apparently the only way to configure the client timeout is to
-        // explicitly construct the AzureOpenAI client object and
-        // provide that to SK.
-        var clientOptions = new AzureOpenAIClientOptions();
-
-        clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
-
-        var apiClient = new AzureOpenAIClient(
-            this.options.ApiEndpoint,
-            new Azure.AzureKeyCredential(this.options.ApiKey),
-            clientOptions);
-
-        builder.AddAzureOpenAIChatCompletion(
-            deploymentName: this.options.DeploymentName,
-            azureOpenAIClient: apiClient);
+        builder.AddOpenAIChatCompletion(
+            modelId: this.options.ModelIdentifier,
+            apiKey: this.options.ApiKey);
 
         // Configure throttling retry behavior
         builder.Services.ConfigureHttpClientDefaults(c =>

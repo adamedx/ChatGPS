@@ -85,11 +85,16 @@ public class AIServiceException : SerializableException
 
             string? responseCode = null;
 
-            if ( ( jsonNode != null ) && jsonNode["error"]!["code"]!.AsValue().TryGetValue<string>( out responseCode ) )
+            if ( jsonNode is not null )
             {
-                if ( responseCode == "context_length_exceeded" )
+                var codeNode = jsonNode["error"]!["code"];
+
+                if ( ( codeNode is not null ) && codeNode.AsValue().TryGetValue<string>( out responseCode ) )
                 {
-                    tokenLimitExceeded = true;
+                    if ( responseCode == "context_length_exceeded" )
+                    {
+                        tokenLimitExceeded = true;
+                    }
                 }
             }
         }

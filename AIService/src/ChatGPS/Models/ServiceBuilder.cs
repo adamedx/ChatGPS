@@ -39,6 +39,9 @@ public class ServiceBuilder
         switch ( provider )
         {
             case ModelProvider.AzureOpenAI:
+                newService = new AzureOpenAIChatService( this.options );
+                break;
+            case ModelProvider.OpenAI:
                 newService = new OpenAIChatService( this.options );
                 break;
             case ModelProvider.LocalOnnx:

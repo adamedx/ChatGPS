@@ -40,6 +40,7 @@ public abstract class ChatService : IChatService
         try
         {
             result = await GetChatCompletionService().GetChatMessageContentsAsync(history);
+            this.HasSucceeded = true;
         }
         catch (Exception exception)
         {
@@ -57,8 +58,12 @@ public abstract class ChatService : IChatService
 
         var result = await GetKernel().InvokeAsync(kernelFunction, kernelArguments);
 
+        this.HasSucceeded = true;
+
         return new FunctionOutput(result);
     }
+
+    protected bool HasSucceeded { get; private set; }
 
     private KernelFunction CreateFunction(string definitionPrompt)
     {
