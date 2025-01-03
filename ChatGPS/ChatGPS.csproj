@@ -61,11 +61,12 @@
     <MakeDir Directories="$(OutputLibDirectory)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputLibDirectory)"/>
     <Copy SourceFiles="@(AssemblyDependencies)" DestinationFolder="$(OutputLibDirectory)"/>
+    <Copy SourceFiles="@(AssemblyIndirectDependencies)" DestinationFolder="$(OutputLibDirectory)/runtimes/%(AssemblyIndirectDependencies.RecursiveDir)"/>
     <Copy SourceFiles="@(PowerShellManifestFiles)" DestinationFolder="$(ModuleOutputDirectory)"/>
     <Copy SourceFiles="@(PowerShellSourceFiles)" DestinationFolder="$(ModuleOutputDirectory)/$(PowerShellSourceFilesRoot)/%(RecursiveDir)"/>
   </Target>
 
-  <Target Name="ValidatePowerShellModule" AfterTargets="PowerShellModule">
+  <Target Name="ValidatePowerShellModule" DependsOnTargets="AnyTargetDependencies;PowerShellModule" AfterTargets="PowerShellModule">
     <Message Text="Validating PowerShell build output module at $(ModuleOutputDirectory)" />
     <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(ModuleValidateScriptPath) -ModuleDirectory $(ModuleOutputDirectory) &quot;" />
   </Target>
