@@ -5,7 +5,6 @@
 
 trigger:
   - main
-  - adamedx/modulepublish
 
 variables:
   TEST_OUTPUT_DIRECTORY: $(Build.Repository.LocalPath)/ChatGPS/testresults
