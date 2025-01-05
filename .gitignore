@@ -2,6 +2,8 @@ packages/
 lib/
 tools/
 azureopenai.config
+testresults/
+.psrepo/
 .vscode/
 .vs/
 **/bin/

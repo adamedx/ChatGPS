@@ -20,7 +20,9 @@
       <LibDirectory>lib</LibDirectory>
       <DevLibDirectory>$(ProjectDir)/$(LibDirectory)</DevLibDirectory>
       <DevToolDirectory>$(ProjectDir)/tools</DevToolDirectory>
-      <ModuleOutputDirectory>$(TargetDir)/Module</ModuleOutputDirectory>
+      <TestOutputSubdirectory>testresults</TestOutputSubdirectory>
+      <TestOutputDirectory>$(ProjectDir)$(TestOutputSubdirectory)</TestOutputDirectory>
+      <ModuleOutputDirectory>$(TargetDir)/Module/$(ProjectName)</ModuleOutputDirectory>
       <OutputLibDirectory>$(ModuleOutputDirectory)/$(LibDirectory)</OutputLibDirectory>
       <ModuleManifestSourceDirectory>$(ProjectDir)</ModuleManifestSourceDirectory>
       <PowerShellSourceFilesRoot>src</PowerShellSourceFilesRoot>
@@ -36,15 +38,16 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="DevTools" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
+  <Target Name="DevTools" AfterTargets="Build" DependsOnTargets="Build;AnyTargetDependencies">
     <MakeDir Directories="$(DevToolDirectory)" />
+    <MakeDir Directories="$(TestOutputDirectory)" />
   </Target>
 
   <Target Name="DevModule" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
     <MakeDir Directories="$(DevLibDirectory)" />
     <ItemGroup>
       <AssemblyDependencies Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.runtimeconfig.json;$(TargetDir)*.deps.json" Exclude="$(TargetDir)$(ProjectName).dll;$(TargetDir)/ChatGPS.exe;$(TargetDir)/ChatGPS.*.json"/>
-      <AssemblyIndirectDependencies Include="$(TargetDir)/runtimes/**/*"/>
+      <AssemblyIndirectDependencies Include="$(TargetDir)/runtimes/**/*" Exclude="$(TargetDir)/runtimes/android/**/*;$(TargetDir)/runtimes/ios/**/*;$(TargetDir)/runtimes/osx-x64/**/*;$(TargetDir)/runtimes/win/**/*;$(TargetDir)/runtimes/win-x86/**/*;"/>
     </ItemGroup>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DevLibDirectory)"/>
     <Copy SourceFiles="@(AssemblyDependencies)" DestinationFolder="$(DevLibDirectory)"/>
@@ -61,24 +64,25 @@
     <MakeDir Directories="$(OutputLibDirectory)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputLibDirectory)"/>
     <Copy SourceFiles="@(AssemblyDependencies)" DestinationFolder="$(OutputLibDirectory)"/>
+    <Copy SourceFiles="@(AssemblyIndirectDependencies)" DestinationFolder="$(OutputLibDirectory)/runtimes/%(AssemblyIndirectDependencies.RecursiveDir)"/>
     <Copy SourceFiles="@(PowerShellManifestFiles)" DestinationFolder="$(ModuleOutputDirectory)"/>
     <Copy SourceFiles="@(PowerShellSourceFiles)" DestinationFolder="$(ModuleOutputDirectory)/$(PowerShellSourceFilesRoot)/%(RecursiveDir)"/>
   </Target>
 
-  <Target Name="ValidatePowerShellModule" AfterTargets="PowerShellModule">
+  <Target Name="ValidatePowerShellModule" DependsOnTargets="AnyTargetDependencies;PowerShellModule" AfterTargets="PowerShellModule">
     <Message Text="Validating PowerShell build output module at $(ModuleOutputDirectory)" />
     <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(ModuleValidateScriptPath) -ModuleDirectory $(ModuleOutputDirectory) &quot;" />
   </Target>
 
-  <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies;PowerShellModule">
+  <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Running PowerShell unit tests" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName pester -ToolsModuleVersion 5.5.0;pushd $(PowerShellSourceFilesRoot); Invoke-Pester -Configuration ([PesterConfiguration] @{ Run = @{ Exit = $true } } )  &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
   </Target>
 
   <Target Name="CleanModule" AfterTargets="Clean" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Removing intermediate and output directories..." />
     <RemoveDir Directories="$(BaseOutputPath);$(BaseIntermediateOutputPath)" />
-    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory)" />
+    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory);$(TestOutputDirectory)" />
   </Target>
 
 </Project>

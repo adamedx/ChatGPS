@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = './src/ChatGPS.psm1'
+RootModule = 'src/ChatGPS.psm1'
 
 # Version number of this module.
 ModuleVersion = '0.0.1'
@@ -30,7 +30,7 @@ CompanyName = 'Modulus Group'
 Copyright = '(c) Adam Edwards. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'AI PowerShell user experience enhancements and automation.'
 
 # Minimum version of the PowerShell engine required by this module
 # PowerShellVersion = ''
@@ -54,16 +54,16 @@ Copyright = '(c) Adam Edwards. All rights reserved.'
 # RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
-RequiredAssemblies = @('./lib/AIService.dll', './lib/ChatGPSLib.dll')
+RequiredAssemblies = @('lib/AIService.dll', 'lib/ChatGPSLib.dll')
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-ScriptsToProcess = @('./src/init/ModuleParentEnvironment.ps1')
+ScriptsToProcess = @('src/init/ModuleParentEnvironment.ps1')
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
 
 # Format files (.ps1xml) to be loaded when importing this module
-FormatsToProcess = @('./src/format/format.ps1xml')
+FormatsToProcess = @('src/format/format.ps1xml')
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 # NestedModules = @()
@@ -104,46 +104,46 @@ AliasesToExport = @()
 
 # List of all files packaged with this module
 FileList = @(
-    './ChatGPS.psd1'
-    './lib/ChatGPSLib.dll'
-    './src/ChatGPS.psm1'
-    './src/ChatGPS.ps1'
-    './src/commands.ps1'
-    './src/intent.ps1'
-    './src/native.ps1'
-    './src/presentation.ps1'
-    './src/services.ps1'
-    './src/shell.ps1'
-    './src/commands/Connect-ChatSession.ps1'
-    './src/commands/Get-ChatCurrentVoice.ps1'
-    './src/commands/Get-ChatFunction.ps1'
-    './src/commands/Get-ChatHistory.ps1'
-    './src/commands/Get-ChatSession.ps1'
-    './src/commands/Get-ChatVoiceName.ps1'
-    './src/commands/Invoke-ChatFunction.ps1'
-    './src/commands/New-ChatFunction.ps1'
-    './src/commands/New-ChatVoice.ps1'
-    './src/commands/New-ChatScriptBlock.ps1'
-    './src/commands/Out-ChatVoice.ps1'
-    './src/commands/Remove-ChatFunction.ps1'
-    './src/commands/Send-ChatMessage.ps1'
-    './src/commands/Set-ChatCurrentVoice.ps1'
-    './src/commands/Start-ChatREPL.ps1'
-    './src/format/format.ps1xml'
-    './src/function.ps1'
-    './src/function/function.ps1'
-    './src/init/ModuleParentEnvironment.ps1'
-    './src/intent.ps1'
-    './src/intent/PromptBook.ps1'
-    './src/presentation.ps1'
-    './src/presentation/model.ps1'
-    './src/presentation/reply.ps1'
-    './src/presentation/voice.ps1'
-    './src/services.ps1'
-    './src/services/session.ps1'
-    './src/shell.ps1'
-    './src/shell/ReplCommand.ps1'
-    './src/shell/ReplState.ps1'
+    'ChatGPS.psd1'
+    'lib/ChatGPSLib.dll'
+    'src/ChatGPS.psm1'
+    'src/ChatGPS.ps1'
+    'src/commands.ps1'
+    'src/intent.ps1'
+    'src/native.ps1'
+    'src/presentation.ps1'
+    'src/services.ps1'
+    'src/shell.ps1'
+    'src/commands/Connect-ChatSession.ps1'
+    'src/commands/Get-ChatCurrentVoice.ps1'
+    'src/commands/Get-ChatFunction.ps1'
+    'src/commands/Get-ChatHistory.ps1'
+    'src/commands/Get-ChatSession.ps1'
+    'src/commands/Get-ChatVoiceName.ps1'
+    'src/commands/Invoke-ChatFunction.ps1'
+    'src/commands/New-ChatFunction.ps1'
+    'src/commands/New-ChatVoice.ps1'
+    'src/commands/New-ChatScriptBlock.ps1'
+    'src/commands/Out-ChatVoice.ps1'
+    'src/commands/Remove-ChatFunction.ps1'
+    'src/commands/Send-ChatMessage.ps1'
+    'src/commands/Set-ChatCurrentVoice.ps1'
+    'src/commands/Start-ChatREPL.ps1'
+    'src/format/format.ps1xml'
+    'src/function.ps1'
+    'src/function/function.ps1'
+    'src/init/ModuleParentEnvironment.ps1'
+    'src/intent.ps1'
+    'src/intent/PromptBook.ps1'
+    'src/presentation.ps1'
+    'src/presentation/model.ps1'
+    'src/presentation/reply.ps1'
+    'src/presentation/voice.ps1'
+    'src/services.ps1'
+    'src/services/session.ps1'
+    'src/shell.ps1'
+    'src/shell/ReplCommand.ps1'
+    'src/shell/ReplState.ps1'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
@@ -152,13 +152,13 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi')
 
         # A URL to the license for this module.
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/adamedx/chatgps'
 
         # A URL to an icon representing this module.
         # IconUri = ''
@@ -170,7 +170,7 @@ PrivateData = @{
         # Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
-        # RequireLicenseAcceptance = $false
+        RequireLicenseAcceptance = $false
 
         # External dependent modules of this module
         # ExternalModuleDependencies = @()

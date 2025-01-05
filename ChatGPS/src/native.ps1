@@ -78,14 +78,14 @@ function GetNativeLibrarySourceDirectory {
     }
 }
 
-function ConfigureNativeLibraries {
+function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningActionValue = 'Continue') {
     $nativeLibrarySource = GetNativeLibrarySourceDirectory
     $nativeLibraryDestination = join-path (CurrentScriptDirectory) lib
 
     if ( ! $nativeLibrarySource ) {
-        write-warning "Unable to determine native library source directory -- native operations may not be supported for the current platform"
+        write-warning "Unable to determine native library source directory -- native operations may not be supported for the current platform" -warningaction $warningActionValue
     } elseif ( ! ( test-path $nativeLibrarySource ) ) {
-        write-warning "Native library source directory '$nativeLibrarySource' does not exist -- native operations will not be supported"
+        write-warning "Native library source directory '$nativeLibrarySource' does not exist -- native operations will not be supported" -warningaction $warningActionValue
     } else {
         if ( test-path $nativeLibraryDestination ) {
             $nativeLibraries = @(
@@ -100,14 +100,20 @@ function ConfigureNativeLibraries {
 
                 if ( ! ( test-path $targetLibraryPath ) ) {
                     if ( test-path $sourceLibraryPath ) {
-                        copy-item $sourceLibraryPath $targetLibraryPath
+                        if ( ! $skipCopy ) {
+                            copy-item $sourceLibraryPath $targetLibraryPath
+                        } else {
+                            if ( ! ( test-path $sourceLibraryPath ) ) {
+                                throw 'Native library not not found'
+                            }
+                        }
                     } else {
-                        write-warning "Unable to find native library '$sourceLibraryPath'; native operations may not be supported for the current platform"
+                        write-warning "Unable to find native library '$sourceLibraryPath'; native operations may not be supported for the current platform" -warningaction $warningActionValue
                     }
                 }
             }
         } else {
-            write-warning "Cannot find module library dependency directory '$nativeLibraryDestination'; the module may not function."
+            write-warning "Cannot find module library dependency directory '$nativeLibraryDestination'; the module may not function." -warningaction $warningActionValue
         }
     }
 }
@@ -119,6 +125,7 @@ if ( ! $skipVariable -or ! ( $skipVariable.value -eq $true ) ) {
     ConfigureNativeLibraries
 } else {
     write-verbose "Skipping library configuration because this is not runtime mode."
+    ConfigureNativeLibraries $true -warningactionvalue stop
 }
 
 

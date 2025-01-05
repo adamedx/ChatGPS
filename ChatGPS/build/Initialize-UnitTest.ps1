@@ -23,6 +23,8 @@ param(
 
 Enable-ModuleTools -ToolsRootPath $ToolsRootPath
 
+$global:__ChatGPSSkipNative = $true # This updates files in the module directory, we don't want to do this.
+
 $testToolManifestPath = & "$psscriptroot/Install-TestFx.ps1" -ToolsRootPath $ToolsRootPath -ModuleName $ToolsModuleName -Version $ToolsModuleVersion
 import-module -force $testtoolManifestPath
 
