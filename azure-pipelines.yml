@@ -11,7 +11,7 @@ variables:
 
 jobs:
 - job: BuildWithTests
-  displayName: 'Build and test PowerShell module'
+  displayName: 'Build and test ChatGPS PowerShell module'
   strategy:
     matrix:
       PowerShellCoreWindows:
@@ -39,12 +39,6 @@ jobs:
     inputs:
       version: 8.x
       performMultiLevelLookup: true
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Clean build'
-    inputs:
-      command: 'clean'
-      configuration: 'Release'
 
   - task: DotNetCoreCLI@2
     displayName: 'Build module package'
