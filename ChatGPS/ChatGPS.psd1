@@ -30,7 +30,7 @@ CompanyName = 'Modulus Group'
 Copyright = '(c) Adam Edwards. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'AI PowerShell user experience enhancements and automation.'
 
 # Minimum version of the PowerShell engine required by this module
 # PowerShellVersion = ''
@@ -152,13 +152,13 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi')
 
         # A URL to the license for this module.
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/adamedx/chatgps'
 
         # A URL to an icon representing this module.
         # IconUri = ''
@@ -170,7 +170,7 @@ PrivateData = @{
         # Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
-        # RequireLicenseAcceptance = $false
+        RequireLicenseAcceptance = $false
 
         # External dependent modules of this module
         # ExternalModuleDependencies = @()

@@ -20,7 +20,7 @@
       <LibDirectory>lib</LibDirectory>
       <DevLibDirectory>$(ProjectDir)/$(LibDirectory)</DevLibDirectory>
       <DevToolDirectory>$(ProjectDir)/tools</DevToolDirectory>
-      <ModuleOutputDirectory>$(TargetDir)/Module</ModuleOutputDirectory>
+      <ModuleOutputDirectory>$(TargetDir)/Module/$(ProjectName)</ModuleOutputDirectory>
       <OutputLibDirectory>$(ModuleOutputDirectory)/$(LibDirectory)</OutputLibDirectory>
       <ModuleManifestSourceDirectory>$(ProjectDir)</ModuleManifestSourceDirectory>
       <PowerShellSourceFilesRoot>src</PowerShellSourceFilesRoot>
@@ -44,7 +44,7 @@
     <MakeDir Directories="$(DevLibDirectory)" />
     <ItemGroup>
       <AssemblyDependencies Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.runtimeconfig.json;$(TargetDir)*.deps.json" Exclude="$(TargetDir)$(ProjectName).dll;$(TargetDir)/ChatGPS.exe;$(TargetDir)/ChatGPS.*.json"/>
-      <AssemblyIndirectDependencies Include="$(TargetDir)/runtimes/**/*"/>
+      <AssemblyIndirectDependencies Include="$(TargetDir)/runtimes/**/*" Exclude="$(TargetDir)/runtimes/android/**/*;$(TargetDir)/runtimes/ios/**/*;$(TargetDir)/runtimes/osx-x64/**/*;$(TargetDir)/runtimes/win/**/*;$(TargetDir)/runtimes/win-x86/**/*;"/>
     </ItemGroup>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DevLibDirectory)"/>
     <Copy SourceFiles="@(AssemblyDependencies)" DestinationFolder="$(DevLibDirectory)"/>
