@@ -1,0 +1,73 @@
+# Unit test pipeline for PowerShell Desktop platform
+# This pipeline uses the Pester test framework to
+# execute unit tests for the module.
+# https://aka.ms/yaml
+
+trigger:
+  - main
+
+variables:
+  TEST_OUTPUT_DIRECTORY: $(Build.Repository.LocalPath)/ChatGPS/testresults
+
+jobs:
+- job: BuildWithTests
+  displayName: 'Build and test PowerShell module'
+  strategy:
+    matrix:
+      PowerShellCoreWindows:
+        VM_IMAGE: 'windows-latest'
+        OS_PLATFORM: 'windows'
+        USE_POWERSHELL_CORE: true
+      PowerShellCoreUbuntu:
+        VM_IMAGE: 'ubuntu-latest'
+        OS_PLATFORM: 'ubuntu'
+        USE_POWERSHELL_CORE: true
+  pool:
+    vmImage: $(VM_IMAGE)
+  steps:
+  - checkout: self
+
+  - task: powershell@2
+    displayName: 'Show current PowerShell version information'
+    inputs:
+      targetType: inline
+      script: 'echo $PSVersionTable'
+      pwsh: $(USE_POWERSHELL_CORE)
+
+  - task: UseDotNet@2
+    displayName: 'Install and configure build tools'
+    inputs:
+      version: 8.x
+      performMultiLevelLookup: true
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Clean build'
+    inputs:
+      command: 'clean'
+      configuration: 'Release'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build module package'
+    inputs:
+      command: build
+      configuration: 'Release'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Run tests'
+    inputs:
+      command: msbuild .\ChatGPS\ChatGPS.csproj --target:UnitTestPowerShellModule --configuration Release
+
+  - task: powershell@2
+    displayName: 'Publish module for local testing'
+    condition: true
+    inputs:
+      targetType: inline
+      script: '& .\ChatGPS\build\Publish-ModulePackage.ps1 -ModuleDirectory .\ChatGPS\bin\Release\net8.0\Module\ChatGPS'
+      pwsh: true
+
+  - task: PublishTestResults@2
+    inputs:
+      searchFolder: $(TEST_OUTPUT_DIRECTORY)
+      testResultsFormat: NUnit
+      testResultsFiles: '*.xml'
+      failTaskOnFailedTests: true

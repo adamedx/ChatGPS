@@ -45,7 +45,6 @@ class MockChatService : Modulus.ChatGPS.Services.IChatService {
 
             It "should not throw an exception when executed with basic parameters" {
                 { Connect-ChatSession -ApiEndpoint https://api.ai.mocked.com -modelidentifier gpt35 -customsystemprompt "Don't be evil." -apikey apikey123456789mock -NoConnect } | Should -Not -Throw
-#                Should -Invoke -CommandName CreateSession
             }
 
             It "should not throw an exception when executed with a conversational system prompt" {

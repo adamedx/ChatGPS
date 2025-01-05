@@ -20,6 +20,8 @@
       <LibDirectory>lib</LibDirectory>
       <DevLibDirectory>$(ProjectDir)/$(LibDirectory)</DevLibDirectory>
       <DevToolDirectory>$(ProjectDir)/tools</DevToolDirectory>
+      <TestOutputSubdirectory>testresults</TestOutputSubdirectory>
+      <TestOutputDirectory>$(ProjectDir)$(TestOutputSubdirectory)</TestOutputDirectory>
       <ModuleOutputDirectory>$(TargetDir)/Module/$(ProjectName)</ModuleOutputDirectory>
       <OutputLibDirectory>$(ModuleOutputDirectory)/$(LibDirectory)</OutputLibDirectory>
       <ModuleManifestSourceDirectory>$(ProjectDir)</ModuleManifestSourceDirectory>
@@ -36,8 +38,9 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="DevTools" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
+  <Target Name="DevTools" AfterTargets="Build" DependsOnTargets="Build;AnyTargetDependencies">
     <MakeDir Directories="$(DevToolDirectory)" />
+    <MakeDir Directories="$(TestOutputDirectory)" />
   </Target>
 
   <Target Name="DevModule" AfterTargets="Build" DependsOnTargets="AnyTargetDependencies">
@@ -71,15 +74,15 @@
     <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(ModuleValidateScriptPath) -ModuleDirectory $(ModuleOutputDirectory) &quot;" />
   </Target>
 
-  <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies;PowerShellModule">
+  <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Running PowerShell unit tests" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName pester -ToolsModuleVersion 5.5.0;pushd $(PowerShellSourceFilesRoot); Invoke-Pester -Configuration ([PesterConfiguration] @{ Run = @{ Exit = $true } } )  &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
   </Target>
 
   <Target Name="CleanModule" AfterTargets="Clean" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Removing intermediate and output directories..." />
     <RemoveDir Directories="$(BaseOutputPath);$(BaseIntermediateOutputPath)" />
-    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory)" />
+    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory);$(TestOutputDirectory)" />
   </Target>
 
 </Project>

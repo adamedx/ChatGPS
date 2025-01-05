@@ -37,8 +37,8 @@ function Get-DevRepositoryDirectory {
     join-path $sourceRootDirectory '.psrepo'
 }
 
-function Unregister-DevRepository {
-    $existingRepository = get-psrepository (Get-DevRepositoryName) -erroraction silentlycontinue
+function Unregister-DevRepository([parameter(mandatory=$true)] $ModuleName) {
+    $existingRepository = get-psrepository (Get-DevRepositoryName $ModuleName) -erroraction silentlycontinue
 
     if ( $existingRepository ) {
         $existingRepository | unregister-psrepository | out-null
@@ -65,9 +65,13 @@ function Configure-DevRepository([parameter(mandatory=$true)] [string] $ModuleNa
     Get-PSRepository $localPSRepositoryName
 }
 
-function Clean-DevRepository([switch] $Unregister) {
+function Clean-DevRepository([switch] $Unregister, [string] $ModuleName) {
     if ( $Unregister.IsPresent ) {
-        Unregister-DevRepository
+        if ( ! $ModuleName ) {
+            throw 'Cannot unregister the dev repository without specifying the module'
+        }
+
+        Unregister-DevRepository $ModuleName
     }
 
     $repositoryDirectory = Get-DevRepositoryDirectory

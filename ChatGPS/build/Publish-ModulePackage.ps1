@@ -28,7 +28,7 @@ $targetRepository = if ( $RepositoryName ) {
 } elseif ( $RepositoryKeyFile ) {
     Get-PSRepository 'psgallery'
 } else {
-    Clean-DevRepository
+    Clean-DevRepository $module.Name -Unregister
     Configure-DevRepository $module
 }
 
@@ -53,6 +53,8 @@ if ( ! $repositoryKey -or $pscmdlet.shouldprocess($moduleManifestPath, "Publish 
     }
 
     publish-module -Path $moduleDirectory -Repository $targetRepositoryName @keyArgument | out-null
+
+    Unregister-DevRepository $module.Name
 
     write-host "Module '$($module.name)' successfully published to repository $targetRepositoryName."
     write-host -foregroundcolor green "Publish module succeeded."
