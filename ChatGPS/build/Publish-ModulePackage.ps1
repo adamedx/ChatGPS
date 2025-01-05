@@ -19,6 +19,10 @@ param($ModuleDirectory, $RepositoryName = $null, $RepositoryKeyFile = $null)
 
 $erroractionpreference = 'stop'
 
+write-host $ModuleDirectory
+
+$ModuleDirectory | get-childitem | out-host
+
 $moduleManifestPath = Find-ModuleManifestPath $ModuleDirectory
 
 $module = Test-ModuleManifest $moduleManifestPath

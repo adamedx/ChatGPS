@@ -28,8 +28,8 @@
       <PowerShellSourceFilesRoot>src</PowerShellSourceFilesRoot>
       <PowerShellCommand>pwsh</PowerShellCommand>
       <PowerShellCommonArguments>-NoProfile -NonInteractive -ExecutionPolicy Unrestricted</PowerShellCommonArguments>
-      <ModuleValidateScriptPath>$(ProjectDir)/build/validate-psmodule.ps1</ModuleValidateScriptPath>
-      <InitializeTestScriptPath>$(ProjectDir)/build/Initialize-UnitTest.ps1</InitializeTestScriptPath>
+      <ModuleValidateScriptPath>$(ProjectDir)build/validate-psmodule.ps1</ModuleValidateScriptPath>
+      <InitializeTestScriptPath>$(ProjectDir)build/Initialize-UnitTest.ps1</InitializeTestScriptPath>
     </PropertyGroup>
 
     <ItemGroup>
@@ -59,7 +59,7 @@
     <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(ModuleValidateScriptPath) -ModuleDirectory $(ProjectDir) &quot;" />
   </Target>
 
-  <Target Name="PowerShellModule" AfterTargets="DevModule" DependsOnTargets="AnyTargetDependencies">
+  <Target Name="PowerShellModule" AfterTargets="ValidateDevModule" DependsOnTargets="AnyTargetDependencies;DevModule">
     <Message Text="Creating publishable, importable PowerShell module output at $(ModuleOutputDirectory)..." />
     <MakeDir Directories="$(OutputLibDirectory)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputLibDirectory)"/>
