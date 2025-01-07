@@ -131,7 +131,7 @@ FileList = @(
     'src/commands/Start-ChatREPL.ps1'
     'src/format/format.ps1xml'
     'src/function.ps1'
-    'src/function/function.ps1'
+    'src/function/Function.ps1'
     'src/init/ModuleParentEnvironment.ps1'
     'src/intent.ps1'
     'src/intent/PromptBook.ps1'
@@ -142,7 +142,7 @@ FileList = @(
     'src/services.ps1'
     'src/services/session.ps1'
     'src/shell.ps1'
-    'src/shell/ReplCommand.ps1'
+    'src/shell/replcommand.ps1'
     'src/shell/ReplState.ps1'
 )
 

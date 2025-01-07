@@ -28,7 +28,7 @@
       <PowerShellSourceFilesRoot>src</PowerShellSourceFilesRoot>
       <PowerShellCommand>pwsh</PowerShellCommand>
       <PowerShellCommonArguments>-NoProfile -NonInteractive -ExecutionPolicy Unrestricted</PowerShellCommonArguments>
-      <ModuleValidateScriptPath>$(ProjectDir)build/validate-psmodule.ps1</ModuleValidateScriptPath>
+      <ModuleValidateScriptPath>$(ProjectDir)build/Validate-PSModule.ps1</ModuleValidateScriptPath>
       <InitializeTestScriptPath>$(ProjectDir)build/Initialize-UnitTest.ps1</InitializeTestScriptPath>
     </PropertyGroup>
 
