@@ -51,15 +51,13 @@ jobs:
     displayName: 'Run tests'
     inputs:
       custom: msbuild
-      arguments: ./ChatGPS/ChatGPS.csproj --target:UnitTestPowerShellModule -p:Configuration=Release
+      arguments: './ChatGPS/ChatGPS.csproj --target:UnitTestPowerShellModule -p:Configuration=$(BuildConfiguration)'
 
-  - task: powershell@2
+  - task: DotNetCoreCLI@2
     displayName: 'Publish module for local testing'
-    condition: true
     inputs:
-      targetType: inline
-      script: '& ./ChatGPS/build/Publish-ModulePackage.ps1 -ModuleDirectory $(Build.Repository.localPath)/ChatGPS/bin/$(BuildConfiguration)/net8.0/Module/ChatGPS'
-      pwsh: true
+      command: build
+      arguments: './ChatGPS/ChatGPS.csproj --target:PublishModule --configuration $(BuildConfiguration)'
 
   - task: PublishTestResults@2
     inputs:
