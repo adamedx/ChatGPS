@@ -3,4 +3,4 @@
 #
 # All rights reserved.
 
-. ( join-path $psscriptroot function/function.ps1 )
+. ( join-path $psscriptroot function/Function.ps1 )

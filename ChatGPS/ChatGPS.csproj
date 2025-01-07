@@ -76,7 +76,7 @@
 
   <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Running PowerShell unit tests" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName Pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
   </Target>
 
   <Target Name="CleanModule" AfterTargets="Clean" DependsOnTargets="AnyTargetDependencies">
