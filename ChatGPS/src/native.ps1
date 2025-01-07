@@ -88,11 +88,22 @@ function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningAc
         write-warning "Native library source directory '$nativeLibrarySource' does not exist -- native operations will not be supported" -warningaction $warningActionValue
     } else {
         if ( test-path $nativeLibraryDestination ) {
-            $nativeLibraries = @(
-                'onnxruntime_providers_shared.dll'
-                'onnxruntime-genai.dll'
-                'onnxruntime.dll'
-            )
+            $nativeLibraries = if ( [OperatingSystem]::IsLinux() ) {
+            } elseif ( [OperatingSystem]::IsLinux() ) {
+                @(
+                    'libonnxruntime_providers_shared.so'
+                    'libonnxruntime-genai.so'
+                    'libonnxruntime.so')
+            } elseif ( [OperatingSystem]::IsMacOS() ) {
+                @(
+                    'libonnxruntime-genai.dylib'
+                    'libonnxruntime.dylib')
+            } elseif ( [OperatingSystem]::IsWindows() ) {
+                @(
+                    'onnxruntime_providers_shared.dll'
+                    'onnxruntime-genai.dll'
+                    'onnxruntime.dll')
+            }
 
             foreach ( $library in $nativeLibraries ) {
                 $sourceLibraryPath = join-path $nativeLibrarySource $library
