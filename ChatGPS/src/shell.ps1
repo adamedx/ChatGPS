@@ -4,4 +4,4 @@
 # All rights reserved.
 
 . ( join-path $psscriptroot shell/ReplState.ps1 )
-. ( join-path $psscriptroot shell/ReplCommand.ps1 )
+. ( join-path $psscriptroot shell/replcommand.ps1 )
