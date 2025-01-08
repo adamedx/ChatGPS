@@ -37,7 +37,7 @@ ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic
 ```powershell
 dotnet build
 ```
-This will produce an importable PowerShell module with a relative path to the repository root like `./ChatGPS/bin/Debug/net8.0/Module`.
+This will produce an importable PowerShell module with a relative path to the repository root like `./ChatGPS/bin/Debug/net8.0/Module/ChatGPS`.
 
 ## Testing
 
@@ -46,7 +46,7 @@ This will produce an importable PowerShell module with a relative path to the re
 To run the unit tests, invoke the following PowerShell command from the root of the repository:
 
 ```powershell
-import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS.psd1
+import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS/ChatGPS.psd1
 invoke-pester
 ```
 
@@ -183,7 +183,7 @@ human or automated engagement with the model, as opposed to one-off interactions
 
 ```powershell
 cd <your-chatgps-repositoryroot>
-import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS.psd1
+import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS/ChatGPS.psd1
 Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
 Start-ChatRepl # This starts a "Read-Eval-Print-Loop (REPL)" as your interactive chat session
 ```
