@@ -3,6 +3,9 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Remove unneeded PowerShell classes
+* Expose function prompts
+* Allow no history
 * Fix session creation to not create a session if it can't connect.
 * Command to trigger re-auth?
 * Generalize tokenlimit handling across services
@@ -11,7 +14,6 @@ Roadmap for ChatGPS
 * Configure user agent
 * Include the current sent time in all responses.
 * Self-help
-* Enable CI pipeline
 * Pull request template
 * Contributing
 * Code of conduct
@@ -62,3 +64,4 @@ Roadmap for ChatGPS
 * include signin status (has access been validated)
 * Delegated auth for Azure
 * include signin info, e.g. interactive or not.
+* Enable CI pipeline
