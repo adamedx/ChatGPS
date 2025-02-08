@@ -3,8 +3,13 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* VectorDB support
 * Remove unneeded PowerShell classes
-* Expose function prompts
+* Redesign function prompts
+  * Add truncation strategy ZeroHistory
+  * Add preprocess and postprocess scriptblocks to connection that take input as a parameter
+  * Remove function prompt from sessions altogether
+  * Add functiononly to start-chatrepl
 * Allow no history
 * Fix session creation to not create a session if it can't connect.
 * Command to trigger re-auth?

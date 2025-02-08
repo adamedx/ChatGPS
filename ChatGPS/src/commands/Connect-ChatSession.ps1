@@ -22,6 +22,9 @@ An identifier corresponding to one of the built-in system prompts to be used for
 .PARAMETER CustomSystemPrompt
 Allows the user to specify a custom system prompt to steer converation and response output instead of using one of the prompts specified by the SystemPromptId parameter.
 
+.PARAMETER FunctionPrompt
+Specify FunctionPrompt so that all chat prompts will be processes through the function specified by FunctionPrompt. The function *must* specify the function using the Handlebars syntax with exactly one parameter named 'input'. See the New-ChatFunction command documentation for more details about function definition syntax.
+
 .PARAMETER Provider
 Specifies the language model provider. Currently supported values are LocalOnnx for Onnx (https://onnx.ai/) models hosted on the local file system, or AzureOpenAI for models accessed through the Azure OpenAI Service (https://azure.microsoft.com/en-us/products/ai-services/openai-service). The default value is currently based on the presence of other parameters, though that may change as more providers are added that use the same parameter patterns. To be sure that the correct provider is used, specify this parameter explicitly. Note that LocalOnnx currently requires that this command is invoked on the Windows operating system using the x64 or arm64 processor architectures.
 
@@ -211,11 +214,13 @@ function Connect-ChatSession {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(position=0)]
-        [validateset('General', 'PowerShell', 'PowerShellStrict', 'Conversational')]
-        [string] $SystemPromptId = 'PowerShell',
+        [validateset('Default', 'General', 'PowerShell', 'PowerShellStrict', 'Conversational', 'Terse')]
+        [string] $SystemPromptId = 'Default',
 
         [Alias('Prompt')]
         [string] $CustomSystemPrompt,
+
+        [string] $FunctionPrompt,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
         [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx')]
@@ -306,20 +311,48 @@ function Connect-ChatSession {
         }
     }
 
-    $functionInfo = $null
-    $functionDefinition = $null
-    $functionParameters = $null
+    $functionInfo = if ( $FunctionPrompt ) {
+        if ( ! $FunctionPrompt.Contains('{{$input}}') ) {
+            throw [ArgumentException]::new("Function prompts must have exactly one argument specified and it must be named 'input'. Specify the prompt with the 'input' parameter included with handlebar syntax, e.g. '{{`$input}}'")
+        }
+
+        @{
+            Parameters = @('input')
+            Definition = $FunctionPrompt
+        }
+    }
 
     $systemPrompt = if ( $CustomSystemPrompt ) {
         $CustomSystemPrompt
     } else {
-        $functionInfo = ([PromptBook]::GetFunctionInfo($SystemPromptId))
-        [PromptBook]::GetDefaultPrompt($SystemPromptId)
+        $targetSystemPromptId = if ( $SystemPromptId -eq 'Default' ) {
+            if ( $FunctionPrompt ) {
+                'Terse'
+            } else {
+                'General'
+            }
+        } else {
+            $SystemPromptId
+        }
+
+        # Don't override existing function info
+        if ( ! $functionInfo ) {
+            $functionInfo = ([PromptBook]::GetFunctionInfo($targetSystemPromptId))
+        }
+
+        [PromptBook]::GetDefaultPrompt($targetSystemPromptId)
     }
 
+    $functionDefinition = $null
+    $functionParameters = $null
+
     if ( $functionInfo ) {
-        $functionParameters = [string] $functionInfo.Parameters
+        $functionParameters = [string[]] $functionInfo.Parameters
         $functionDefinition = [string] $functionInfo.Definition
+
+        if ( $functionInfo.Parameters.Count -ne 1 -or ! $functionInfo.Parameters.Contains('input') ) {
+            throw [ArgumentException]::new("Function prompts must have exactly one argument specified and it must be named 'input'. Specify the prompt with the 'input' parameter included with handlebar syntax, e.g. '{{$input}}'")
+        }
     }
 
     if ( $ForceProxy.IsPresent -and $NoProxy.IsPresent ) {
