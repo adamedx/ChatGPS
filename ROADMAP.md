@@ -3,14 +3,13 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Examples for receive and sendblocks
+* Change block names in start-chatrepl for consistency with connect-chatsession
 * VectorDB support
 * Remove unneeded PowerShell classes
 * Redesign function prompts
-  * Add truncation strategy ZeroHistory
-  * Add preprocess and postprocess scriptblocks to connection that take input as a parameter
   * Remove function prompt from sessions altogether
   * Add functiononly to start-chatrepl
-* Allow no history
 * Fix session creation to not create a session if it can't connect.
 * Command to trigger re-auth?
 * Generalize tokenlimit handling across services
@@ -36,6 +35,10 @@ Roadmap for ChatGPS
 * Make an official config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
+* Chat function wrappers
+* Normal powershell functions defined by natural language
+* NL chat
+* Invoke-ChatFunction should take a definition
 * Non-repl: Include command history in context
 * Non-repl: Include command output in context
 * Support json schema for function output: https://github.com/microsoft/semantic-kernel/blob/main/dotnet/src/SemanticKernel.Abstractions/Functions/KernelJsonSchema.cs
@@ -70,3 +73,9 @@ Roadmap for ChatGPS
 * Delegated auth for Azure
 * include signin info, e.g. interactive or not.
 * Enable CI pipeline
+* Fix system prompt time stamp
+* Add preprocess and postprocess scriptblocks to connection that take input as a parameter
+* Add zero context scenario (or N lines of latest context) for sending context to the model
+* Contributing
+* Code of conduct
+* License

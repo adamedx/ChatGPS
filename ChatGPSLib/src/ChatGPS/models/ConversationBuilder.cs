@@ -24,7 +24,11 @@ internal class ConversationBuilder
 
     internal ChatHistory CreateConversationHistory(string systemPrompt)
     {
-        return this.chatService.CreateChat(systemPrompt);
+        var history = this.chatService.CreateChat(systemPrompt);
+
+        history[0].Metadata = CreateMessageProperties(new TimeSpan(0));
+
+        return history;
     }
 
     internal IChatService AIService

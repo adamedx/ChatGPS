@@ -55,6 +55,12 @@ Specifies the mechanism to use to "compress" messages into fewer tokens (see the
 .PARAMETER HistoryContextLimit
 Specify this parameter to limit amount of conversation history submitted to the model. The default value of -1 means that there is no limit to the history, though the conversation history is still subject to the token manangement strategy specified by the TokenStratey parameter. Specify a value greater than -1 for this parameter to define the number of most recent pairs of past user / assistant response messages that should be included when processing new messages from the user. A value of 0 for instances means no previous conversation history should be included; each message sent to the model from the user will be interpreted as if it is the first time the user has sent a message; this will be like interacting with an entity that has no memory. A value of 1 will mean that the previous user message and the resulting response from the assistant will be included has history, a value of two means the the history will include the two previous user / assistant messages as history, and so on. This parameter is generally only needed for very customized use cases; generally the most natural conversation / interaction flow will result whenthe default value of -1 is used to include as much history as context as possible.
 
+.PARAMETER SendBlock
+The SendBlock parameter allows specification of a PowerShell script block that is executed before user input is sent to the model. The first parameter of the scriptblock is the user input, and the output of the script block is the actual text that will be sent to the model. This can be used pre-process text sent to the model, which can be particularly useful in validating user input or performing reliable deterministic transformations on the input. If an exception is thrown by the script block the command used to send the message will fail and the message will not be sent. The chat history of the session will reflect the text that was returned by the scriptblock and thus sent to the model, not the text that was directly provided by the user to the scriptblock.
+
+.PARAMETER ReceiveBlock
+The ReceiveBlock parameter allows specification of a PowerShell script block that is executed after the model has returned a response message and before the response is relayed as the output of a command. The first parameter of the scriptblock is the model's response, and the output of the script block is the text that should be returned to the command that triggered the response. This can be used post-process text received from the model, which is useful for providing additional formatting or other processing in a deterministic fashion as opposed to allowing the model to perform the processing. If an exception is thrown by the script block the command used to send the message will fail and the response will be treated as an error. The chat history of the session will reflect the text that returned by the scriptblock after processing the model's response, not the text that was returned directly by the model.
+
 .PARAMETER PassThru
 By default, Connect-ChatSession returns no output; it simply has the side effect of changing the current session. Specify PassThru to return the value of the session regardless whether the current session is overridden (default behavior) or not (when NoSetCurrent is specified). The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction.
 
@@ -256,6 +262,10 @@ function Connect-ChatSession {
 
         [int] $HistoryContextLimit = -1,
 
+        [ScriptBlock] $SendBlock = $null,
+
+        [ScriptBlock] $ReceiveBlock = $null,
+
         [switch] $PassThru,
 
         [switch] $NoSetCurrent,
@@ -392,7 +402,7 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionDefinition -FunctionParameters $functionParameters -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionDefinition -FunctionParameters $functionParameters -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {

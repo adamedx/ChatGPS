@@ -31,14 +31,23 @@ function CreateSession {
 
         [switch] $NoConnect,
 
-        [int] $HistoryContextLimit = -1
-        )
+        [int] $HistoryContextLimit = -1,
 
-        $targetLogDirectory = if ( $LogDirectory ) {
-            (Get-Item $LogDirectory).FullName
-        }
+        [ScriptBlock] $SendBlock = $null,
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $functionPrompt, $functionParameters, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit)
+        [ScriptBlock] $ReceiveBlock = $null
+    )
+
+    $targetLogDirectory = if ( $LogDirectory ) {
+        (Get-Item $LogDirectory).FullName
+    }
+
+    $context = @{
+        SendBlock = $SendBlock
+        ReceiveBlock = $ReceiveBlock
+    }
+
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $functionPrompt, $functionParameters, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {
@@ -79,11 +88,39 @@ function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false
 }
 
 function SendMessage($session, $prompt, $forceChat) {
-    $response = if ( $session.HasFunction -and ! $forceChat ) {
-        $session.GenerateFunctionResponse($prompt)
+    $sendBlock = GetSendBlock $session
+
+    $targetPrompt = if ( ! $sendBlock ) {
+        $prompt
     } else {
-        $session.GenerateMessage($prompt)
+        $sendBlock.Invoke($prompt)
     }
 
-    $response
+    $response = if ( $session.HasFunction -and ! $forceChat ) {
+        $session.GenerateFunctionResponse($targetPrompt)
+    } else {
+        $session.GenerateMessage(@($targetPrompt))
+    }
+
+    $receiveBlock = GetReceiveBlock $session
+
+    if ( ! $receiveBlock ) {
+        $response
+    } else {
+        $processedResponse = $receiveBlock.Invoke(@($response))
+        $session.UpdateLastResponse($processedResponse)
+        $processedResponse
+    }
+}
+
+function GetSendBlock($session) {
+    if ( $session.CustomContext ) {
+        $session.CustomContext['SendBlock']
+    }
+}
+
+function GetReceiveBlock($session) {
+    if ( $session.CustomContext ) {
+        $session.CustomContext['ReceiveBlock']
+    }
 }

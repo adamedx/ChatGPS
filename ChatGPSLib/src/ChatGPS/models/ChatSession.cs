@@ -15,7 +15,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null, int latestContextLimit = -1)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null, int latestContextLimit = -1, object? customContext = null)
     {
         chatService.ServiceOptions.Validate();
 
@@ -43,6 +43,8 @@ public class ChatSession
         this.LastResponseError = null;
 
         this.latestContextLimit = latestContextLimit;
+
+        this.CustomContext = customContext;
     }
 
     public string SendStandaloneMessage(string prompt)
@@ -91,6 +93,24 @@ public class ChatSession
         var function = this.SessionFunctions.GetFunctionById(functionId);
 
         return await function.InvokeFunctionAsync(this.chatService, boundParameters);
+    }
+
+    public void UpdateLastResponse(string updatedResponse)
+    {
+        if ( this.History[this.History.Count - 1].Role != ChatMessage.SenderRole.Assistant )
+        {
+            throw new InvalidOperationException("There is no last response from the assistant to update");
+        }
+
+        var lastMessage = this.History[this.History.Count - 1];
+
+        this.History.RemoveAt(this.History.Count - 1);
+        this.CurrentHistory.RemoveAt(this.CurrentHistory.Count - 1);
+
+        var updatedMessage = new ChatMessage(new ChatMessageContent(lastMessage.SourceChatMessageContent.Role, updatedResponse, lastMessage.SourceChatMessageContent.ModelId, lastMessage.SourceChatMessageContent.InnerContent, lastMessage.SourceChatMessageContent.Encoding, lastMessage.SourceChatMessageContent.Metadata));
+
+        this.History.Add(updatedMessage);
+        this.CurrentHistory.Add(updatedMessage);
     }
 
     public ChatMessageHistory History
@@ -158,6 +178,8 @@ public class ChatSession
     }
 
     public Exception? LastResponseError { get; private set; }
+
+    public object? CustomContext { get; private set; }
 
     private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
     {
