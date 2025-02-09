@@ -3,6 +3,7 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Fix new-chatscriptblock to have session affinity
 * Examples for receive and sendblocks
 * Change block names in start-chatrepl for consistency with connect-chatsession
 * VectorDB support
@@ -35,7 +36,6 @@ Roadmap for ChatGPS
 * Make an official config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
-* Chat function wrappers
 * Normal powershell functions defined by natural language
 * NL chat
 * Invoke-ChatFunction should take a definition
