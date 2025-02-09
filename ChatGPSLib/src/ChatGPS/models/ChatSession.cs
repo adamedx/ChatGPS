@@ -15,7 +15,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null, int latestContextLimit = -1)
     {
         chatService.ServiceOptions.Validate();
 
@@ -41,6 +41,8 @@ public class ChatSession
         this.AccessValidated = false;
 
         this.LastResponseError = null;
+
+        this.latestContextLimit = latestContextLimit;
     }
 
     public string SendStandaloneMessage(string prompt)
@@ -194,6 +196,57 @@ public class ChatSession
                 }
                 else
                 {
+                    if ( this.latestContextLimit != -1 )
+                    {
+                        ChatHistory? targetHistory = null;
+
+                        if ( this.chatHistory.Count > 1 && ( this.chatHistory.Count % 2 ) == 0 )
+                        {
+                            var systemMessage = this.chatHistory[0];
+
+                            // This conversion to empty string is a way to make nullable
+                            // avoid false positives :(
+                            string systemPrompt = systemMessage.Content ?? "";
+
+                            if ( systemPrompt.Length > 0 )
+                            {
+                                var newHistory = this.conversationBuilder.CreateConversationHistory(systemPrompt);
+
+                                // Copy the latest limit * 2 messages
+                                var earliestIndex = Math.Max(1, ( this.chatHistory.Count - 1 ) - this.latestContextLimit * 2);
+
+                                for ( int currentIndex = earliestIndex; currentIndex < this.chatHistory.Count; currentIndex++ )
+                                {
+                                    var currentMessage = this.chatHistory[currentIndex];
+                                    string currentPrompt = currentMessage.Content ?? ""; // More nullable protection
+
+                                    if ( currentPrompt.Length > 0 )
+                                    {
+                                        this.conversationBuilder.AddMessageToConversation(newHistory, currentMessage.Role, currentPrompt);
+                                    }
+                                    else
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                targetHistory = newHistory;
+                            }
+
+                            if ( targetHistory is null )
+                            {
+                                throw new ArgumentException("The conversation history is invalid.");
+                            }
+                        }
+
+                        if ( targetHistory is null )
+                        {
+                            throw new ArgumentException("The conversation history is invalid.");
+                        }
+
+                        this.chatHistory = targetHistory;
+                    }
+
                     messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
                 }
 
@@ -288,5 +341,6 @@ public class ChatSession
     private Function? chatFunction;
     private TokenReducer tokenReducer;
     private IChatService chatService;
+    private int latestContextLimit;
 }
 

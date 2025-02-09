@@ -29,14 +29,16 @@ function CreateSession {
         [validateset('None','Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Truncate',
 
-        [switch] $NoConnect
+        [switch] $NoConnect,
+
+        [int] $HistoryContextLimit = -1
         )
 
         $targetLogDirectory = if ( $LogDirectory ) {
             (Get-Item $LogDirectory).FullName
         }
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $functionPrompt, $functionParameters, $targetLogDirectory, $LogLevel, $null)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $functionPrompt, $functionParameters, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {

@@ -251,6 +251,8 @@ function Connect-ChatSession {
         [validateset('None', 'Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Summarize',
 
+        [int] $HistoryContextLimit = -1,
+
         [switch] $PassThru,
 
         [switch] $NoSetCurrent,
@@ -266,6 +268,10 @@ function Connect-ChatSession {
         [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
         [string] $LogLevel = 'Default'
     )
+
+    if ( $HistoryContextLimit -lt -1 ) {
+        throw [ArgumentException]::new("HistoryContextLimit must be greater than or equal to -1")
+    }
 
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
 
@@ -383,7 +389,7 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionDefinition -FunctionParameters $functionParameters -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -FunctionPrompt $functionDefinition -FunctionParameters $functionParameters -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {
