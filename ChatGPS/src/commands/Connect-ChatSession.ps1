@@ -159,6 +159,100 @@ Received                 Response
                          How can I help you today?
 
 .EXAMPLE
+PS > Send-ChatMessage "Hello what is today's date?"
+
+Received                 Response
+--------                 --------
+2/9/2025 4:02:03 PM      Hello! I don’t have real-time capabilities, so I can't give you the current date. However,
+                         you can easily check today's date on your device or calendar. Is there something specific
+                         you'd like to know about a date or a particular event?
+
+PS > Get-ChatHistory
+
+Received                 Role       Elapsed (ms) Response
+--------                 ----       ------------ --------
+2/9/2025 4:02:02 PM      User                  0 Hello what is today's date?
+2/9/2025 4:02:03 PM      Assistant           950 Hello! I don’t have real-time capabilities, so I can't give you
+                                                 the current date. However, you can easily check today's date on your
+                                                 device or calendar. Is there something specific you'd like to
+                                                 know about a date or a particular event?
+
+PS > Connect-ChatSession -SendBlock {param($text) "The time is: $([DateTime]::Now.ToString('F')). " + $text} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+
+PS > Send-ChatMessage "Hello what is today's date?"
+
+Received                 Response
+--------                 --------
+2/9/2025 4:05:44 PM      Hello! Today's date is February 9, 2025. If you'd like to know more about that date, such as events that may occur or
+                         historical significance, feel free to ask! To check your understanding: If today is February 9, 2025,
+                         what would be the date one week later?
+
+PS > Get-ChatHistory
+
+Received                 Role       Elapsed (ms) Response
+--------                 ----       ------------ --------
+2/9/2025 4:05:43 PM      User                  0 The time is: Sunday, February 9, 2025 4:05:43 PM. Hello what is
+                                                 today's date?
+2/9/2025 4:05:44 PM      Assistant          1184 Hello! Today's date is February 9, 2025. If you'd like to know more
+                                                 about that date, such as events that may occur or historical
+                                                 significance, feel free to ask!
+
+This example demonstrates how the SendBlock parameter can be used to modify user text before it is sent to the model. In the first invocation
+of Send-ChatMessage, the model responds to a question about the current time with an accurate answer that it does not know. Get-ChatHistory
+is used to show the history of the conversation and it is clear that the text sent to the model is identical to the text provided to the Send-ChatMessage command.
+However, Connect-ChatSession is used to create a new session and the SendBlock parameter is specified to the command with a script block that prepends
+the user supplied text passed to the script block with the current time in an unambiguous format. When the previous Send-ChatMessage command is
+reissued, the model responds with a current date that is the same as the date shown in the conversation history. Examination of the text sent to the model
+shows that unlike in the previous attempt, the message sent from the user includes the current time due to the script block specified to SendBlock.
+The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data
+during conversations.
+
+.EXAMPLE
+PS > Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatHistory | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+
+PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
+
+PS > Start-ChatRepl
+
+(morpheus) ChatGPS>: hello
+
+Received                 Response
+--------                 --------
+2/9/2025 7:53:47 PM      Hello! How can I assist you today?
+
+(morpheus) ChatGPS>: Can you tell me the year in which Brown v. Board of Education was decided?
+
+2/9/2025 7:53:53 PM      Brown v. Board of Education was decided in the year 1954.
+                         This landmark Supreme Court case declared racial segregation
+                         in public schools unconstitutional.
+
+                         Would you like to know more about the case or its impact on
+                         civil rights?
+
+(morpheus) ChatGPS>: In what year was integration of schools in Little Rock, Arkansas first attempted?
+
+2/9/2025 7:53:59 PM      The integration of schools in Little Rock, Arkansas, was
+                         first attempted in 1957. This event is famously associated
+                         with the Little Rock Nine, a group of nine African American
+                         students who enrolled in the previously all-white Central
+                         High School.
+
+(morpheus) ChatGPS>: .exit
+
+PS > Get-Content ~/chatlog.csv | ConvertFrom-Csv | Format-Table -Property Timestamp, Role, Message
+
+Timestamp                  Role      Message
+---------                  ----      -------
+2/9/2025 7:53:46 PM -08:00 User      hello
+2/9/2025 7:53:47 PM -08:00 Assistant Hello! How can I assist you today?
+2/9/2025 7:53:49 PM -08:00 User      Can you tell me the year in which Brown v. Board of Education was decided?
+2/9/2025 7:53:53 PM -08:00 Assistant Brown v. Board of Education was decided in the year 1954. This landmark Supreme C…
+2/9/2025 7:53:58 PM -08:00 User      In what year was integration of schools in Little Rock, Arkansas first attempted?
+2/9/2025 7:53:59 PM -08:00 Assistant The integration of schools in Little Rock, Arkansas, was first attempted in 1957.…
+
+This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatHistory command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatRepl command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
+
+.EXAMPLE
 In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatRepl command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatRepl is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatRepl as it still shows the last response from the previous Start-ChatRepl usage on that session as the latest response.
 
 PS > Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
@@ -218,6 +312,7 @@ Get-ChatSession
 Send-ChatMessage
 Invoke-ChatFunction
 Start-ChatRepl
+Get-ChatHistory
 #>
 function Connect-ChatSession {
     [cmdletbinding(positionalbinding=$false)]

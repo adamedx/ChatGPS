@@ -69,7 +69,7 @@ internal class ConversationBuilder
 
         if ( prompt is not null )
         {
-            AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
+            AddMessageToConversation(chatHistory, AuthorRole.User, prompt, new TimeSpan(0));
         }
 
         var stopWatch = new Stopwatch();

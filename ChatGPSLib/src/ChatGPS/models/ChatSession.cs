@@ -185,7 +185,7 @@ public class ChatSession
     {
         var newMessageRole = AuthorRole.User;
 
-        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt);
+        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt, new TimeSpan(0));
         ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
 
         string? response = null;
