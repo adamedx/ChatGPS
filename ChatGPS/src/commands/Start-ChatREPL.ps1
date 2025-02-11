@@ -30,7 +30,7 @@ function Start-ChatREPL {
 
         [switch] $RawOutput,
 
-        [ScriptBlock] $ResponseBlock,
+        [ScriptBlock] $ReceiveBlock,
 
         [ScriptBlock] $ReplyBlock,
 
@@ -66,10 +66,10 @@ function Start-ChatREPL {
         if ( $MessageSound.IsPresent ) { $soundParameters['MessageSound'] = $MessageSound }
         if ( $SoundPath ) { $soundParameters['SoundPath'] = $SoundPath }
 
-        $targetResponseBlock = @{}
+        $targetReceiveBlock = @{}
 
-        if ( $ResponseBlock ) {
-            $targetResponseBlock = @{ResponseBlock=$ResponseBlock}
+        if ( $ReceiveBlock ) {
+            $targetReceiveBlock = @{ReceiveBlock=$ReceiveBlock}
         }
 
         $initialResponse = $null
@@ -99,7 +99,7 @@ function Start-ChatREPL {
         $lastResponse = $initialResponse
 
         if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
-            TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @targetResponseBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
+            TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @targetReceiveBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
         }
     }
 
@@ -174,7 +174,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @sessionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters -RawOutput:$RawOutput.IsPresent
+            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent
 
             $lastResponse = $result
 

@@ -13,7 +13,7 @@ function Send-ChatMessage {
         [validateset('None', 'Markdown', 'PowerShellEscaped')]
         [string] $OutputFormat,
 
-        [ScriptBlock] $ResponseBlock,
+        [ScriptBlock] $ReceiveBlock,
 
         [ScriptBlock] $ReplyBlock,
 

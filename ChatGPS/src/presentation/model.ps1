@@ -11,7 +11,7 @@ function TransformResponseText {
         [parameter(valuefrompipeline=$true, mandatory=$true)]
         [PSCustomObject] $Response,
 
-        [ScriptBlock] $ResponseBlock,
+        [ScriptBlock] $ReceiveBlock,
 
         [string] $OutputFormat
     )
@@ -32,8 +32,8 @@ function TransformResponseText {
         }
 
         if ( $outputResult ) {
-            if ( $ResponseBlock ) {
-                invoke-command -scriptblock $responseBlock -argumentlist $outputResult, $response
+            if ( $ReceiveBlock ) {
+                invoke-command -scriptblock $ReceiveBlock -argumentlist $outputResult, $response
             } else {
                 $outputResult
             }
@@ -81,7 +81,7 @@ function GetPassthroughChatParams {
     $passthroughParameters = @{}
 
     foreach ( $parameter in
-              ( $AllParameters.GetEnumerator() | where Key -in 'OutputFormat', 'NoOutput', 'ResponseBlock' ) ) {
+              ( $AllParameters.GetEnumerator() | where Key -in 'OutputFormat', 'NoOutput', 'ReceiveBlock' ) ) {
                   $passthroughParameters.Add($parameter.Key, $parameter.Value )
               }
 
