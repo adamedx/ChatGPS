@@ -26,8 +26,6 @@ The chat session to which the command is targeted.
 The chat function or functions given by the parameters specified to the command.
 
 .EXAMPLE
-Specify Get-ChatFunction with no parameters to retrieve all chat functions defined for the current session.
-
 PS > Get-ChatFunction
 
 Id                                   Name       Definition
@@ -37,19 +35,21 @@ d7b26b42-241a-43e8-92f4-99df30a1f1ba Merger     Provide a single sentence that h
 18677113-80ea-4aec-bebc-17f100cbf938 Pascal     Show the first {{$rows}} levels of Pascals triangle
 b2869d25-7910-4846-be8a-677eab45500e Translator Translate the text {{$sourcetext}} into the language {{$language}}
 
-.EXAMPLE
-Specify a value for the name parameter to return a function by name.
+Here Get-ChatFunction is specified with no parameters to retrieve all chat functions defined for the current session.
 
+.EXAMPLE
 PS > Get-ChatFunction Merger
 
 Id                                   Name       Definition
 --                                   ----       ----------
 d7b26b42-241a-43e8-92f4-99df30a1f1ba Merger     Provide a single sentence that has the same meaning as the individual …
 
-.EXAMPLE
-This example enumerates all unnamed functions and removes them by piping them to the Remove-ChatFunction command:
+Specify a value for the name parameter to return a function by name.
 
+.EXAMPLE
 PS > Get-ChatFunction | Where-Object { ! $_.Name } | Remove-ChatFunction
+
+This example enumerates all unnamed functions and removes them by piping them to the Remove-ChatFunction command:
 
 .LINK
 New-ChatFunction
