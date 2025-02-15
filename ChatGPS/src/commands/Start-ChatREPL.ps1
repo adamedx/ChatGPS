@@ -5,16 +5,22 @@
 
 
 function Start-ChatREPL {
-    [cmdletbinding(positionalbinding=$false)]
+    [cmdletbinding(positionalbinding=$false, defaultparametersetname='chat')]
     param(
         [parameter(position=0)]
         [string] $InitialPrompt,
 
+        [parameter(parametersetname='functiondefinition')]
+        [string] $FunctionDefinition,
+
+        [parameter(parametersetname='functionname')]
+        [string] $FunctionName,
+
+        [parameter(parametersetname='functionid')]
+        [string] $FunctionId,
+
         [validateset('None', 'Markdown', 'PowerShellEscaped')]
         [string] $OutputFormat = 'None',
-
-        [parameter(valuefrompipeline=$true)]
-        $Reply,
 
         [ScriptBlock] $InputHint = { $userName = $env:USER ? $env:USER : $env:USERNAME; "($($userName)) ChatGPS>" },
 
@@ -32,7 +38,7 @@ function Start-ChatREPL {
 
         [ScriptBlock] $ReceiveBlock,
 
-        [ScriptBlock] $ReplyBlock,
+        [ScriptBlock] $UserReplyBlock,
 
         [int32] $MaxReplies = 1,
 
@@ -58,6 +64,22 @@ function Start-ChatREPL {
             @{Session = $targetSession}
         } else {
             @{}
+        }
+
+        $function = if ( $FunctionDefinition ) {
+            New-ChatFunction $FunctionDefinition
+        } elseif ( $FunctionName ) {
+            Get-ChatFunction -Name $FunctionName
+        } elseif ( $FunctionId ) {
+            Get-ChatFunction -Id $FunctionId
+        }
+
+        if ( $function ) {
+            $parameters = $function | Get-ChatFunction | select-object -expandproperty Parameters
+
+            if ( ! ( $parameters.keys -contains 'input' ) ) {
+                throw [ArgumentException]::new("The specified function does not contain the mandatory parameter named 'input'")
+            }
         }
 
         $replState = [ReplState]::new($sessionArgument.Session, 'NaturalLanguage')
@@ -116,8 +138,8 @@ function Start-ChatREPL {
                 @{}
             }
 
-            $replyText = if ( $ReplyBlock -and ( $currentReplies -ne 0 ) ) {
-                $replyData = GetChatReply -SourceMessage $lastResponse.Response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
+            $replyText = if ( $UserReplyBlock -and ( $currentReplies -ne 0 ) ) {
+                $replyData = GetChatReply -SourceMessage $lastResponse.Response -ReplyBlock $UserReplyBlock -MaxReplies $currentReplies
 
                 if ( $replyData ) {
                     if ( $inputHintValue ) {
@@ -174,7 +196,11 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent
+            $result = if ( ! $function ) {
+                Send-ChatMessage $inputText -ForceChat:$forceChat @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent
+            } else {
+                $function | Invoke-ChatFunction -Parameters @{input=$inputText}
+            }
 
             $lastResponse = $result
 

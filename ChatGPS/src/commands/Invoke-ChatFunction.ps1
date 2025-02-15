@@ -22,7 +22,7 @@ All chat functions have a unique identifier -- specify the unique identifier of 
 For a chat function given an optional friendly name, specify the function's name to the Name parameter in order to process the function with that name.
 
 .PARAMETER Parameters
-The Parameters parameter allows the parameters defined by the chat function to be specified. This parameter may be either an array or a Hashtabletype. If it is an array, then the parameters must be specified in the same order in which they are listed within the function's definition. If this parameter is a Hashtable, then the keys correspond to a chat function parameter name and the associated value for the key is the value of the parameter.
+The Parameters parameter allows the parameters defined by the chat function to be specified. This parameter may be either an array or a Hashtable type. If it is an array, then the parameters must be specified in the same order in which they are listed within the function's definition. If this parameter is a Hashtable, then the keys correspond to a chat function parameter name and the associated value for the key is the value of the parameter.
 
 .PARAMETER Session
 The chat session to which the command is targeted.
