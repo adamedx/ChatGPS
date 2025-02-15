@@ -10,23 +10,21 @@ function Remove-ChatFunction {
         [Guid] $Id,
 
         [parameter(parametersetname='name', position=0, mandatory=$true)]
-        [string] $Name,
-
-        [Modulus.ChatGPS.Models.ChatSession] $Session
+        [string] $Name
     )
 
     begin {
-        $sessionFunctions = GetSessionFunctions $Session
+        $functions = GetFunctionInfo
     }
 
     process {
         $targetId = if ( $Name ) {
-            $sessionFunctions.GetFunctionByName($Name).Id
+            $functions.GetFunctionByName($Name).Id
         } else {
             $Id
         }
 
-        $sessionFunctions.RemoveFunction($targetId)
+        $functions.RemoveFunction($targetId)
     }
 
     end {

@@ -3,10 +3,9 @@ Roadmap for ChatGPS
 
 ## To-do items
 
-* Remove session affinity for chat functions!
-* Fix new-chatscriptblock to have session affinity
-* Examples for receive and sendblocks
-* Change block names in start-chatrepl for consistency with connect-chatsession
+* Basic help for start-chatrepl
+* Rename start-chatrepl to start-chatshell?
+* Move function prompt out of session context
 * VectorDB support
 * Remove unneeded PowerShell classes
 * Context-aware summarization for code -- it compresses but does not truncate functions or produce inaccurate summary
@@ -82,3 +81,6 @@ Roadmap for ChatGPS
 * Contributing
 * Code of conduct
 * License
+* Remove session affinity for chat functions!
+* Examples for receive and sendblocks
+* Change block names in start-chatrepl for consistency with connect-chatsession

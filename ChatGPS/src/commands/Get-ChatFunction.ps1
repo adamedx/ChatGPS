@@ -6,7 +6,7 @@
 
 <#
 .SYNOPSIS
-Retrieves the chat functions, functions defined by natural language, currently defined within a chat session.
+Retrieves all currently chat functions which are functions defined by natural language.
 
 .DESCRIPTION
 Get-ChatFunction enumerates chat functions defined by the New-ChatFunction command. For more information about chat functions, see the documentation of the New-ChatFunction command.
@@ -18,9 +18,6 @@ All chat functions have a unique identifier -- specify the unique identifier of 
 
 .PARAMETER Name
 For a chat function given an optional friendly name, specify the function's name to the Name parameter in order to obtain the function with that name.
-
-.PARAMETER Session
-The chat session to which the command is targeted.
 
 .OUTPUTS
 The chat function or functions given by the parameters specified to the command.
@@ -35,7 +32,7 @@ d7b26b42-241a-43e8-92f4-99df30a1f1ba Merger     Provide a single sentence that h
 18677113-80ea-4aec-bebc-17f100cbf938 Pascal     Show the first {{$rows}} levels of Pascals triangle
 b2869d25-7910-4846-be8a-677eab45500e Translator Translate the text {{$sourcetext}} into the language {{$language}}
 
-Here Get-ChatFunction is specified with no parameters to retrieve all chat functions defined for the current session.
+Here Get-ChatFunction is specified with no parameters to retrieve all chat functions defined by invocaions of New-ChatFunction or New-ChaScriptBlock
 
 .EXAMPLE
 PS > Get-ChatFunction Merger
@@ -64,22 +61,20 @@ function Get-ChatFunction {
         [Guid] $Id,
 
         [parameter(parametersetname='name', position=0)]
-        [string] $Name,
-
-        [Modulus.ChatGPS.Models.ChatSession] $Session
+        [string] $Name
     )
 
     begin {
-        $sessionFunctions = GetSessionFunctions $Session
+        $functions = GetFunctionInfo
     }
 
     process {
         if ( $Id ) {
-            $sessionFunctions.GetFunctionById($Id)
+            $functions.GetFunctionById($Id)
         } elseif ( $Name ) {
-            $sessionFunctions.GetFunctionByName($Name)
+            $functions.GetFunctionByName($Name)
         } else {
-            $sessionFunctions.GetFunctions()
+            $functions.GetFunctions()
         }
     }
 

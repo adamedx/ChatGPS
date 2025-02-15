@@ -33,8 +33,6 @@ public class ChatSession
 
         this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
 
-        this.SessionFunctions = new FunctionTable();
-
         this.chatService = chatService;
 
         this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
@@ -155,7 +153,12 @@ public class ChatSession
 
     public Guid Id { get; private set; }
 
-    public FunctionTable SessionFunctions { get; private set; }
+    public FunctionTable SessionFunctions {
+        get
+        {
+            return FunctionTable.GlobalFunctions;
+        }
+    }
 
     public AiProviderOptions AiOptions { get; private set; }
 

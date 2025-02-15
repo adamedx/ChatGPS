@@ -47,8 +47,6 @@ class Function {
     }
 }
 
-function GetSessionFunctions($userSpecifiedSession) {
-    $targetSession = GetTargetSession $userSpecifiedSession $true
-
-    $targetSession.SessionFunctions
+function GetFunctionInfo {
+    [Modulus.ChatGPS.Models.FunctionTable]::GlobalFunctions
 }

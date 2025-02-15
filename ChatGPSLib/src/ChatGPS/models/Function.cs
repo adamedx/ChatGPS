@@ -28,13 +28,6 @@ public class Function
         Initialize(name, parameters, definition);
     }
 
-    public KernelArguments? GetArguments(Dictionary<string,object?>? boundParameters)
-    {
-        ValidateParameters(boundParameters);
-
-        return boundParameters is not null ? new KernelArguments(boundParameters) : null;
-    }
-
     public async Task<string> InvokeFunctionAsync(IChatService chatService, Dictionary<string,object?>? boundParameters)
     {
         ValidateParameters(boundParameters);

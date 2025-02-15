@@ -120,9 +120,9 @@ function Invoke-ChatFunction {
     )
 
     begin {
-        $targetSession = GetTargetSession $Session
+        $targetSession = GetTargetSession $Session $true
 
-        $sessionFunctions = GetSessionFunctions $targetSession
+        $functions = GetFunctionInfo
 
         $parameterValues = [System.Collections.Generic.Dictionary[string,object]]::new()
 
@@ -137,9 +137,9 @@ function Invoke-ChatFunction {
 
     process {
         $function = if ( $Id ) {
-            $sessionFunctions.GetFunctionById($Id)
+            $functions.GetFunctionById($Id)
         } else {
-            $sessionFunctions.GetFunctionByName($Name)
+            $functions.GetFunctionByName($Name)
         }
 
         $targetParameters = if ( ! $hasOrderedParameters ) {
