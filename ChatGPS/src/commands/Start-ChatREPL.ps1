@@ -74,12 +74,16 @@ function Start-ChatREPL {
             Get-ChatFunction -Id $FunctionId
         }
 
-        if ( $function ) {
+        $functionDefinitionParameter = if ( $function ) {
             $parameters = $function | Get-ChatFunction | select-object -expandproperty Parameters
 
             if ( ! ( $parameters.keys -contains 'input' ) ) {
                 throw [ArgumentException]::new("The specified function does not contain the mandatory parameter named 'input'")
             }
+
+            @{FunctionDefinition=$FunctionDefinition}
+        } else {
+            @{}
         }
 
         $replState = [ReplState]::new($sessionArgument.Session, 'NaturalLanguage')
@@ -196,11 +200,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = if ( ! $function ) {
-                Send-ChatMessage $inputText -ForceChat:$forceChat @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent
-            } else {
-                $function | Invoke-ChatFunction -Parameters @{input=$inputText}
-            }
+            $result = Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter
 
             $lastResponse = $result
 

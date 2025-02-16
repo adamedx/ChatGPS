@@ -69,12 +69,12 @@ public class ChatSession
 
     public string GenerateMessage(string prompt)
     {
-        return GenerateMessageInternal(prompt, false);
+        return GenerateMessageInternal(prompt);
     }
 
-    public string GenerateFunctionResponse(string prompt)
+    public string GenerateFunctionResponse(string functionDefinition, string prompt)
     {
-        return GenerateMessageInternal(prompt, true);
+        return GenerateMessageInternal(prompt, functionDefinition);
     }
 
     public Function CreateFunction(string name, string[] parameters, string definition, bool replace = false)
@@ -184,7 +184,7 @@ public class ChatSession
 
     public object? CustomContext { get; private set; }
 
-    private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
+    private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
     {
         var newMessageRole = AuthorRole.User;
 
@@ -210,14 +210,11 @@ public class ChatSession
                 tokenException = null;
                 lastException = null;
 
-                if ( promptAsFunctionInput )
+                if ( functionDefinition is not null )
                 {
-                    if ( this.chatFunction is null )
-                    {
-                        throw new ArgumentException("Attempt to invoke a function when the session does not contain one");
-                    }
+                    var chatFunction = new Function(new string[] {"input"}, functionDefinition);
 
-                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, this.chatFunction);
+                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, chatFunction, prompt);
                 }
                 else
                 {

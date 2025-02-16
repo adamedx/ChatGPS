@@ -87,7 +87,7 @@ function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false
     $targetSession
 }
 
-function SendMessage($session, $prompt, $forceChat) {
+function SendMessage($session, $prompt, $functionDefinition) {
     $sendBlock = GetSendBlock $session
 
     $targetPrompt = if ( ! $sendBlock ) {
@@ -96,8 +96,8 @@ function SendMessage($session, $prompt, $forceChat) {
         $sendBlock.Invoke($prompt)
     }
 
-    $response = if ( $session.HasFunction -and ! $forceChat ) {
-        $session.GenerateFunctionResponse($targetPrompt)
+    $response = if ( $functionDefinition ) {
+        $session.GenerateFunctionResponse($functionDefinition, $targetPrompt)
     } else {
         $session.GenerateMessage(@($targetPrompt))
     }
