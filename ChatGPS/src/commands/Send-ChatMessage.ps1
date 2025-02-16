@@ -4,6 +4,13 @@
 # All rights reserved.
 
 
+<#
+
+From earlier function prompt
+Specify FunctionPrompt so that all chat prompts will be processes through the function specified by FunctionPrompt. The function *must* specify the function using the Handlebars syntax with exactly one parameter named 'input'. See the New-ChatFunction command documentation for more details about function definition syntax.
+
+#>
+
 function Send-ChatMessage {
     [cmdletbinding(positionalbinding=$false)]
     param(

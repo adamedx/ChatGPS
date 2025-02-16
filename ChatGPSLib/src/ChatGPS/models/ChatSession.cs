@@ -15,15 +15,13 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null, int latestContextLimit = -1, object? customContext = null)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, int latestContextLimit = -1, object? customContext = null)
     {
         chatService.ServiceOptions.Validate();
 
         this.Id = Guid.NewGuid();
 
-        this.chatFunctionPrompt = chatFunctionPrompt;
-        this.chatFunction = chatFunctionPrompt is not null ? new Function(chatFunctionParameters, chatFunctionPrompt) : null;
-        this.conversationBuilder = new ConversationBuilder(chatService, chatFunctionPrompt);
+        this.conversationBuilder = new ConversationBuilder(chatService);
 
         this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
         this.totalChatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
@@ -124,14 +122,6 @@ public class ChatSession
         get
         {
             return this.publicChatHistory;
-        }
-    }
-
-    public bool HasFunction
-    {
-        get
-        {
-            return this.chatFunctionPrompt != null;
         }
     }
 
@@ -364,8 +354,6 @@ public class ChatSession
     private ChatHistory totalChatHistory;
     private ChatMessageHistory publicChatHistory;
     private ChatMessageHistory publicTotalChatHistory;
-    private string? chatFunctionPrompt;
-    private Function? chatFunction;
     private TokenReducer tokenReducer;
     private IChatService chatService;
     private int latestContextLimit;

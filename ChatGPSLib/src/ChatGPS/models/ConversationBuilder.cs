@@ -16,9 +16,8 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 internal class ConversationBuilder
 {
-    internal ConversationBuilder(IChatService chatService, string? chatFunctionPrompt = null)
+    internal ConversationBuilder(IChatService chatService)
     {
-        this.chatFunctionPrompt = chatFunctionPrompt;
         this.chatService = chatService;
     }
 
@@ -146,6 +145,4 @@ internal class ConversationBuilder
     private IChatService chatService;
 
     private int messageIndex = 0;
-
-    private string? chatFunctionPrompt;
 }

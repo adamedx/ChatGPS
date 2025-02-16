@@ -5,14 +5,9 @@ Roadmap for ChatGPS
 
 * Basic help for start-chatrepl
 * Rename start-chatrepl to start-chatshell?
-* Move function prompt out of session context
 * VectorDB support
 * Remove unneeded PowerShell classes
 * Context-aware summarization for code -- it compresses but does not truncate functions or produce inaccurate summary
-* Shared session -- cross process
-* Redesign function prompts
-  * Remove function prompt from sessions altogether
-  * Add functiononly to start-chatrepl
 * Fix session creation to not create a session if it can't connect.
 * Command to trigger re-auth?
 * Generalize tokenlimit handling across services
@@ -32,7 +27,6 @@ Roadmap for ChatGPS
 * Add embedding support
 * Connection management: Get-ChatSession, Remove-ChatSession
 * Better error messages for local model platform support, move to chatsession and chat service interface
-* publish local module
 * Additional model providers
 * SecureString parameters
 * Make an official config file support multiple entries and a default
@@ -84,3 +78,7 @@ Roadmap for ChatGPS
 * Remove session affinity for chat functions!
 * Examples for receive and sendblocks
 * Change block names in start-chatrepl for consistency with connect-chatsession
+* Move function prompt out of session context
+* Redesign function prompts
+* Add function to start-chatrepl
+* publish local module

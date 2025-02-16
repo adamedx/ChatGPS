@@ -15,10 +15,6 @@ function CreateSession {
 
         [string] $AiProxyHostPath = $null,
 
-        [string] $FunctionPrompt = $null,
-
-        [string[]] $FunctionParameters = $null,
-
         [string] $LogDirectory = $null,
 
         [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
@@ -47,7 +43,7 @@ function CreateSession {
         ReceiveBlock = $ReceiveBlock
     }
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $functionPrompt, $functionParameters, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {

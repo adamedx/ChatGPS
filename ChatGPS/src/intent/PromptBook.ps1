@@ -27,26 +27,4 @@ class PromptBook {
 
         return $result
     }
-
-    # Return object because PowerShell class return types of string automatically
-    # convert null strings to a non-null empty string. :(
-    static [HashTable] GetFunctionInfo([string] $promptId) {
-        $functionPrompts = @{
-            PowerShell = $null
-            PowerShellStrict = @{
-                Parameters = @('input')
-                Definition = "Show the PowerShell code to accomplish the objective specified by {{`$input}} on this computer. Your response should include ONLY the code, no additional commentary, and there should be no markdown formatting for instance. If you cannot generate the code, then you must instead generate PowerShell code that throws an exception with a string message that states that you could not generate the code."
-            }
-            General = $null
-            Conversational = $null
-        }
-
-        $targetPrompt = if ( $promptId ) {
-            $promptId
-        } else {
-            'PowerShell'
-        }
-
-        return $functionPrompts[$targetPrompt]
-    }
 }
