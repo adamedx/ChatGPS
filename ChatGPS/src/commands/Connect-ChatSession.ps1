@@ -38,7 +38,7 @@ For remotely hosted models some services may require this as an additional param
 Some remotely hosted models that require authentication may support a symmetric key that can be specified through this parameter. WARNING: currently this parameter is specified via plaintext rather than as a securestring. To avoid the value of this key being present in command history, use a command to read it from a secure location such as an Azure KeyVault or a local file with sufficient security measures in place, assign the value of the key to a PowerShell variable, and then use that variable to specify the value of the ApiKey parameter.
 
 .PARAMETER AllowInteractiveSignin
-For use with remote models only, specify AllowInteractiveSignin to allow this command or subsequent commands that access the model to invoke a user interface for authentication. This is only applicable when the ApiKey parameter or other non-interactive sign-in mechanisms are not configured for the session. For some model services such as Azure OpenAI this option can be useful if sign-in tools such as the "Az.Accounts" module with its "Login-AzAccount" and "Logout-AzAccount" commands is unavaialble, however it may have some side effects. Because i
+For use with remote models only, specify AllowInteractiveSignin to allow this command or subsequent commands that access the model to invoke a user interface for authentication. This is only applicable when the ApiKey parameter or other non-interactive sign-in mechanisms are not configured for the session. For some model services such as Azure OpenAI this option can be useful if sign-in tools such as the "Az.Accounts" module with its "Login-AzAccount" and "Logout-AzAccount" commands is unavailable, however it may have some side effects including multiple sign-in prompts.
 
 .PARAMETER LocalModelPath
 For local models such as those supported by the LocalOnnx provider this is the path to the local model in the executing device's file system.
@@ -62,10 +62,13 @@ The SendBlock parameter allows specification of a PowerShell script block that i
 The ReceiveBlock parameter allows specification of a PowerShell script block that is executed after the model has returned a response message and before the response is relayed as the output of a command. The first parameter of the scriptblock is the model's response, and the output of the script block is the text that should be returned to the command that triggered the response. This can be used post-process text received from the model, which is useful for providing additional formatting or other processing in a deterministic fashion as opposed to allowing the model to perform the processing. If an exception is thrown by the script block the command used to send the message will fail and the response will be treated as an error. The chat history of the session will reflect the text that returned by the scriptblock after processing the model's response, not the text that was returned directly by the model.
 
 .PARAMETER PassThru
-By default, Connect-ChatSession returns no output; it simply has the side effect of changing the current session. Specify PassThru to return the value of the session regardless whether the current session is overridden (default behavior) or not (when NoSetCurrent is specified). The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction.
+By default, Connect-ChatSession returns no output; it simply has the side effect of changing the current session. Specify PassThru to return the value of the session regardless whether the current session is overridden (default behavior) or not (when NoSave is specified). The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction.
 
 .PARAMETER NoSetCurrent
 Specify NoSetCurrent so that the implicit "current" session is not overwritten or otherwise set when this command executes successfully. Instead, a new session independent from any current session will be returned as output of the command. The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction. Thus Connect-ChatSession can be used to create multiple independent chat sessions for different purposes without affecting the current default session.
+
+.PARAMETER NoSave
+By default, all sessions returned by the Connect-ChatSession command are saved in a list of connections that can be viewed by the Get-ChatSession command and otherwise managed by the Set-ChatCurrentSession and Remove-ChatSession commands. Specify the NoSave parameter so that Connect-ChatSession does not add the session created by this invocation to the session list. This is useful for maintaining "private" sessions visible only to certain scripts or commands; the limited visibility protects those sessions from being corrupted or deleted by other applications or scripts. When this parameter is specified, the command will output the newly created connection even if the PassThru option is not specified.
 
 .PARAMETER NoConnect
 By default, this command may attempt to authenticate to the service that hosts the model (for remote models) or access the model's local path (for local models) in order to surface incorrect parameters or access problems before the session is actually used with subsequent commands. To skip this verification, specify the NoConnect parameter. Specifying this may mean that access issues are not discovered until subsequent commands that access the model are executed.
@@ -83,7 +86,7 @@ This parameter allows a log to be placed in a certain directory; the log contain
 This parameter only takes effect if LogDirectory is also specified as a valid location for writing a log of proxy operations sent to a local process that interacts with the services that provide the model. By default, the value "Default" currently means there is no logging, which is the same as the value None. A value of Error shows only logs related to errors. The value Debug shows Errors and other common events, and the DebugVerbose shows the highest level of information in the log.
 
 .OUTPUTS
-By default, the command has no output. But if the NoSetCurrent or PassThru parameters are specified, the newly connected session is returned as output and can be used a parameter to other commands.
+By default, the command has no output. But if the NoSave or PassThru parameters are specified, the newly connected session is returned as output and can be used a parameter to other commands.
 
 .EXAMPLE
 In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
@@ -349,6 +352,8 @@ function Connect-ChatSession {
 
         [switch] $NoSetCurrent,
 
+        [switch] $NoSave,
+
         [switch] $NoConnect,
 
         [switch] $NoProxy,
@@ -449,7 +454,7 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent)
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {
@@ -471,7 +476,7 @@ function Connect-ChatSession {
                 'Also ensure that the specified API key is valid for the given model API URI.'
             } else {
                 'Also ensure that you have signed in using a valid identity that has been granted access to the given model API URI. ' +
-                '(e.g. for Azure OpenAI models try signing out with Logout-AzAccount, then retry the command, or explicitly use' +
+                '(e.g. for Azure OpenAI models try signing out with Logout-AzAccount, then retry the command, or explicitly use ' +
                 'LoginAzAccount to sign in as the correct identity). You can also specify the AllowInteractiveSignin parameter with ' +
                 'with this command and retry if you do not have access to signin tools for the remote model; this may result in ' +
                 'multiple requests to re-authenticate.'
@@ -483,7 +488,7 @@ function Connect-ChatSession {
         }
     }
 
-    if ( $PassThru.IsPresent -or $NoSetCurrent.IsPresent ) {
+    if ( $PassThru.IsPresent -or $NoSave.IsPresent ) {
         $session
     }
 }

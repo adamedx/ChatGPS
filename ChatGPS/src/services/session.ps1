@@ -56,7 +56,9 @@ function CreateSession {
 
         [string] $Name = $null,
 
-        [string] $UserAgent
+        [string] $UserAgent,
+
+        [switch] $NoSave
     )
 
     $targetLogDirectory = if ( $LogDirectory ) {
@@ -76,19 +78,21 @@ function CreateSession {
 
     $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
 
-    AddSession $session $SetCurrent.IsPresent
+    AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent
 
     $session
 }
 
-function AddSession($session, [bool] $setCurrent) {
-    if ( $name ) {
-        if ( $script:sessions.Count -gt 0 -and ( $script:sessions.Values.Name -contains 'name' ) ) {
-            throw [ArgumentException]::new("A session named '$name' already exists.")
+function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $false) {
+    if ( ! $noSave ) {
+        if ( $name ) {
+            if ( $script:sessions.Count -gt 0 -and ( $script:sessions.Values.Name -contains 'name' ) ) {
+                throw [ArgumentException]::new("A session named '$name' already exists.")
+            }
         }
-    }
 
-    $script:sessions.Add($session.Id, $session)
+        $script:sessions.Add($session.Id, $session)
+    }
 
     if ( $setCurrent ) {
         $script:CurrentSession = $session
