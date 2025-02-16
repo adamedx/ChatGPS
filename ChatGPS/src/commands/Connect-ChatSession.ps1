@@ -296,10 +296,12 @@ Received                 Response
 
 .LINK
 Get-ChatSession
+Set-ChatCurrentSession
+Remove-ChatSession
 Send-ChatMessage
-Invoke-ChatFunction
-Start-ChatRepl
 Get-ChatHistory
+Start-ChatRepl
+Invoke-ChatFunction
 #>
 function Connect-ChatSession {
     [cmdletbinding(positionalbinding=$false)]
