@@ -3,6 +3,7 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Fix useragent for openai (works for azureopenai)
 * Basic help for start-chatrepl
 * Rename start-chatrepl to start-chatshell?
 * VectorDB support
@@ -12,7 +13,6 @@ Roadmap for ChatGPS
 * Command to trigger re-auth?
 * Generalize tokenlimit handling across services
 * Last error for session
-* Include user agent
 * Configure user agent
 * Include the current sent time in all responses.
 * Self-help
@@ -82,3 +82,4 @@ Roadmap for ChatGPS
 * Redesign function prompts
 * Add function to start-chatrepl
 * publish local module
+* Include user agent

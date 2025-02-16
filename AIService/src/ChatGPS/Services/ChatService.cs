@@ -15,9 +15,10 @@ namespace Modulus.ChatGPS.Services;
 
 public abstract class ChatService : IChatService
 {
-    public ChatService(AiOptions options)
+    public ChatService(AiOptions options, string? userAgent = null)
     {
         this.options = options;
+        this.userAgent = userAgent;
     }
 
     public ChatHistory CreateChat(string prompt)
@@ -123,4 +124,5 @@ public abstract class ChatService : IChatService
     protected Kernel? serviceKernel;
     protected IChatCompletionService? chatCompletionService;
     protected AiOptions options;
+    protected string? userAgent;
 }

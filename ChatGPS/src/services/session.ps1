@@ -5,6 +5,26 @@
 
 $Sessions = [System.Collections.ArrayList]::new()
 
+$__ModuleVersionString = {}.Module.Version.ToString()
+
+function GetUserAgent {
+    $osversion = [System.Environment]::OSVersion.version.tostring()
+    $platform = 'Windows NT'
+    $os = 'Windows NT'
+    if ( $PSVersionTable.PSEdition -eq 'Core' ) {
+        if ( ! $PSVersionTable.OS.contains('Windows') ) {
+            $platform = $PSVersionTable.Platform
+            if ( $PSVersionTable.OS.contains('Linux') ) {
+                $os = 'Linux'
+            } else {
+                $os = [System.Environment]::OSVersion.Platform
+            }
+        }
+    }
+    $language = [System.Globalization.CultureInfo]::CurrentCulture.name
+    'Modulus-ChatGPS/{5} PowerShell/{4} ({0}; {1} {2}; {3})' -f $platform, $os, $osversion, $language, $PSVersionTable.PSversion, $__ModuleVersionString
+}
+
 function CreateSession {
     param(
         [parameter(mandatory=$true)]
@@ -31,7 +51,9 @@ function CreateSession {
 
         [ScriptBlock] $SendBlock = $null,
 
-        [ScriptBlock] $ReceiveBlock = $null
+        [ScriptBlock] $ReceiveBlock = $null,
+
+        [string] $UserAgent
     )
 
     $targetLogDirectory = if ( $LogDirectory ) {
@@ -43,7 +65,13 @@ function CreateSession {
         ReceiveBlock = $ReceiveBlock
     }
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context)
+    $targetUserAgent = if ( $UserAgent ) {
+        $UserAgent
+    } else {
+        GetUserAgent
+    }
+
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $targetUserAgent)
 
     if ( $SetCurrent.IsPresent ) {
         if ( ( $script:Sessions | measure-object ).count -eq 0 ) {

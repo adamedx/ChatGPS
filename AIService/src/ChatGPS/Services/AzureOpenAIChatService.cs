@@ -17,7 +17,7 @@ namespace Modulus.ChatGPS.Services;
 
 public class AzureOpenAIChatService : ChatService
 {
-    internal AzureOpenAIChatService(AiOptions options) : base(options) { }
+    internal AzureOpenAIChatService(AiOptions options, string? userAgent) : base(options, userAgent) { }
 
     protected override Kernel GetKernel()
     {
@@ -44,6 +44,7 @@ public class AzureOpenAIChatService : ChatService
         var clientOptions = new AzureOpenAIClientOptions();
 
         clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
+        clientOptions.UserAgentApplicationId = this.userAgent;
 
         AzureOpenAIClient apiClient;
 

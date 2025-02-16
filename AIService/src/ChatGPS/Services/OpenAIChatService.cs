@@ -16,7 +16,7 @@ namespace Modulus.ChatGPS.Services;
 
 public class OpenAIChatService : ChatService
 {
-    internal OpenAIChatService(AiOptions options) : base(options) { }
+    internal OpenAIChatService(AiOptions options, string? userAgent = null) : base(options, userAgent) { }
 
     protected override Kernel GetKernel()
     {
