@@ -81,9 +81,11 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'New-ChatVoice'
     'New-ChatScriptBlock'
     'Out-ChatVoice'
+    'Remove-ChatSession'
     'Remove-ChatFunction'
     'Send-ChatMessage'
     'Set-ChatCurrentVoice'
+    'Set-ChatCurrentSession'
     'Start-ChatREPL'
 )
 
@@ -126,7 +128,9 @@ FileList = @(
     'src/commands/New-ChatScriptBlock.ps1'
     'src/commands/Out-ChatVoice.ps1'
     'src/commands/Remove-ChatFunction.ps1'
+    'src/commands/Remove-ChatSession.ps1'
     'src/commands/Send-ChatMessage.ps1'
+    'src/commands/Set-ChatCurrentSession.ps1'
     'src/commands/Set-ChatCurrentVoice.ps1'
     'src/commands/Start-ChatREPL.ps1'
     'src/format/format.ps1xml'

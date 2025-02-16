@@ -18,7 +18,9 @@ $commands = @(
     'New-ChatScriptBlock'
     'Out-ChatVoice'
     'Remove-ChatFunction'
+    'Remove-ChatSession'
     'Send-ChatMessage'
+    'Set-ChatCurrentSession'
     'Set-ChatCurrentVoice'
     'Start-ChatREPL'
 )

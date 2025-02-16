@@ -83,7 +83,7 @@ function CreateSession {
 
 function AddSession($session, [bool] $setCurrent) {
     if ( $name ) {
-        if ( $script:sessions.Values.Name -contains 'name' ) {
+        if ( $script:sessions.Count -gt 0 -and ( $script:sessions.Values.Name -contains 'name' ) ) {
             throw [ArgumentException]::new("A session named '$name' already exists.")
         }
     }
@@ -92,6 +92,30 @@ function AddSession($session, [bool] $setCurrent) {
 
     if ( $setCurrent ) {
         $script:CurrentSession = $session
+    }
+}
+
+function RemoveSession($session, $allowRemoveCurrent) {
+    $current = GetCurrentSession
+
+    $isCurrentSession = $current -and ( $current.id -eq $session.id )
+
+    if ( $isCurrentSession -and ! $allowRemoveCurrent ) {
+        throw [InvalidOperationException]::new("The session with identifier '$($session.Id)' may not be removed because it is the current active session.")
+    }
+
+    $script:sessions.Remove($session.Id)
+
+    if ( $isCurrentSession ) {
+        $script:CurrentSession = $script:sessions.Values | select-object -first 1
+    }
+}
+
+function SetCurrentSession($session) {
+    if ( $script:sessions[$session.id] ) {
+        $script:CurrentSession = $session
+    } else {
+        throw [InvalidOperationException]::new("The specified session id='$($session.id)' name='$($session.name)' was not found in the current list of valid sessions.")
     }
 }
 
