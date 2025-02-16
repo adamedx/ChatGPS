@@ -19,6 +19,9 @@ By default, the session is created with one of several built-in system prompts t
 .PARAMETER SystemPromptId
 An identifier corresponding to one of the built-in system prompts to be used for the session. Values include PowerShell, General, PowerShellStrict, and Conversational. The default value is PowerShell. The PowerShell prompt focuses on natural language conversations about the PowerShell language and command-line tools and general programming language topics. The General prompt is simply natural language conversation on any topic. The Conversational prompt is similar to General with a focus on making the conversation more interesting. The PowerShellStrict prompt expects natural language instructions for generating PowerShell code and will return only code; the code it returns as output to conversation commands can be directly executed by the PowerShell interpreter.
 
+.PARAMETER Name
+Optional friendly name for the connection. This is useful for switching between sessions using a friendly name view the Set-ChatCurrentSession command or in viewing the list of sessions with Get-ChatSession.
+
 .PARAMETER CustomSystemPrompt
 Allows the user to specify a custom system prompt to steer converation and response output instead of using one of the prompts specified by the SystemPromptId parameter.
 
@@ -99,22 +102,15 @@ Received                 Response
                          adapter
 
 .EXAMPLE
-In this example, a chat session is used to a remote model as in the previous example. In this case, instead of the user's credentials, a symmetric key credential is provided by the ApiKey parameter:
+In this example, a chat session is used to a remote model as in the previous example. In this case, instead of the user's credentials, a symmetric key credential is provided by the ApiKey parameter. The session is also given a name with the Name parameter.
 
 PS > $secretKey = GetMyApiKeyFromSecureLocation
-PS > Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
+PS > Connect-ChatSession -Name TestSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
 
-Id                     : 3cb205df-c4e2-4569-a2f3-8a059571ed23
-Provider               : AzureOpenAI
-IsRemote               : True
-ApiEndpoint            : https://myposh-test-2024-12.openai.azure.com/
-AllowInteractiveSignin : False
-AccessValidated        : False
-TokenLimit             : 4096
-DeploymentName         : gpt-4o-mini
-TotalMessageCount      : 1
-CurrentMessageCount    : 1
+Id                                   Provider    Name        ModelIdentifier
+--                                   --------    ----        ---------------
+3cb205df-c4e2-4569-a2f3-8a059571ed23 AzureOpenAI TestSession gpt-4o-mini
 
 .EXAMPLE
 This example is similar to those above, but it uses the OpenAI provider instead -- since OpenAI does not currently require an ApiEndpoint parameter but does require an ApiKey parameter, use of the OpenAI provider is the default when only ApiKey is specified. For OpenAI however the ModelIdentifier is required:
@@ -123,14 +119,9 @@ PS > $secretKey = GetMyApiKeyFromSecureLocation
 PS > Connect-ChatSession -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
 
-Id                  : 15934765-10c5-4caf-b477-180abd9d893d
-Provider            : OpenAI
-IsRemote            : True
-AccessValidated     : False
-TokenLimit          : 4096
-ModelIdentifier     : gpt-4o-mini
-TotalMessageCount   : 1
-CurrentMessageCount : 1
+Id                                   Provider    Name ModelIdentifier
+--                                   --------    ---- ---------------
+15934765-10c5-4caf-b477-180abd9d893d OpenAI           gpt-4o-mini
 
 .EXAMPLE
 This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatRepl command is used to start an interactive conversation.
@@ -138,13 +129,9 @@ This example shows how to connect to a local phi-3.5 onnx model -- the Provider 
 PS > Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5
 PS > Get-ChatSession
 
-Id                    : f73fcd36-8bf4-42f2-b5b7-6af908b1ac45
-Provider              : LocalOnnx
-Local Model Path      : /models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128
-Token Limit           : 4096
-Model Identifier      : phi-3.5
-Total Message Count   : 1
-Current Message Count : 1
+Id                                   Provider    Name ModelIdentifier
+--                                   --------    ---- ---------------
+5825858e-5fe3-489e-a04f-aa4d494f91b5 LocalOnnx        phi-3.5
 
 PS > Start-ChatRepl
 
@@ -318,6 +305,8 @@ function Connect-ChatSession {
         [validateset('Default', 'General', 'PowerShell', 'PowerShellStrict', 'Conversational', 'Terse')]
         [string] $SystemPromptId = 'Default',
 
+        [string] $Name,
+
         [Alias('Prompt')]
         [string] $CustomSystemPrompt,
 
@@ -460,7 +449,7 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {

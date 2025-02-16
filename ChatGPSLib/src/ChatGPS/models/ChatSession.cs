@@ -15,7 +15,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, int latestContextLimit = -1, object? customContext = null)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, int latestContextLimit = -1, object? customContext = null, string? name = null)
     {
         chatService.ServiceOptions.Validate();
 
@@ -41,6 +41,8 @@ public class ChatSession
         this.latestContextLimit = latestContextLimit;
 
         this.CustomContext = customContext;
+
+        this.Name = name;
     }
 
     public string SendStandaloneMessage(string prompt)
@@ -173,6 +175,8 @@ public class ChatSession
     public Exception? LastResponseError { get; private set; }
 
     public object? CustomContext { get; private set; }
+
+    public string? Name { get; private set; }
 
     private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
     {

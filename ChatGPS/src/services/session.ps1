@@ -3,7 +3,8 @@
 #
 # All rights reserved.
 
-$Sessions = [System.Collections.ArrayList]::new()
+$Sessions = [ordered] @{}
+$CurrentSession = $null
 
 $__ModuleVersionString = {}.Module.Version.ToString()
 
@@ -53,6 +54,8 @@ function CreateSession {
 
         [ScriptBlock] $ReceiveBlock = $null,
 
+        [string] $Name = $null,
+
         [string] $UserAgent
     )
 
@@ -71,30 +74,37 @@ function CreateSession {
         GetUserAgent
     }
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $targetUserAgent)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
 
-    if ( $SetCurrent.IsPresent ) {
-        if ( ( $script:Sessions | measure-object ).count -eq 0 ) {
-            # Did you know ArrayList.Add() returns output? -- don't let it into the pipeline!
-            $script:Sessions.Add($session) | out-null
-        } else {
-            $script:Sessions[0] = $session
-        }
-    }
+    AddSession $session $SetCurrent.IsPresent
 
     $session
 }
 
-function GetCurrentSession($failIfNotFound) {
-    $session = if ( ( $script:Sessions | measure-object ).count -ne 0 ) {
-        $script:Sessions[0]
+function AddSession($session, [bool] $setCurrent) {
+    if ( $name ) {
+        if ( $script:sessions.Values.Name -contains 'name' ) {
+            throw [ArgumentException]::new("A session named '$name' already exists.")
+        }
     }
 
-    if ( $failIfNotFound -and (! $session ) ) {
+    $script:sessions.Add($session.Id, $session)
+
+    if ( $setCurrent ) {
+        $script:CurrentSession = $session
+    }
+}
+
+function GetCurrentSession($failIfNotFound) {
+    if ( $failIfNotFound -and (! $script:CurrentSession ) ) {
         throw "No current session exists -- use Connect-ChatSession to create a session"
     }
 
-    $session
+    $script:CurrentSession
+}
+
+function GetChatSessions {
+    $script:sessions.Values | sort-object Name, Id
 }
 
 function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false) {

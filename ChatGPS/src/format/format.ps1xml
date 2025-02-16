@@ -131,10 +131,60 @@ All Rights Reserved.
     </View>
 
     <View>
+      <Name>ChatSessionSummary</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Models.ChatSession</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Id</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Provider</Label>
+          </TableColumnHeader>
+
+          <TableColumnHeader>
+            <Width>36</Width>
+            <Label>Name</Label>
+          </TableColumnHeader>
+
+          <TableColumnHeader>
+            <Label>ModelIdentifier</Label>
+          </TableColumnHeader>
+
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                 <PropertyName>Id</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.AiOptions.Provider</ScriptBlock>
+              </TableColumnItem>
+
+              <TableColumnItem>
+                 <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock>$_.AiOptions.ModelIdentifier</ScriptBlock>
+              </TableColumnItem>
+
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
       <Name>ChatSessionDetails</Name>
       <ViewSelectedBy>
         <TypeName>Modulus.ChatGPS.Models.ChatSession</TypeName>
       </ViewSelectedBy>
+
       <ListControl>
         <ListEntries>
           <ListEntry>
@@ -142,6 +192,10 @@ All Rights Reserved.
               <ListItem>
                 <Label>Id</Label>
                 <PropertyName>Id</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>Name</Label>
+                <PropertyName>Name</PropertyName>
               </ListItem>
               <ListItem>
                 <Label>Provider</Label>
