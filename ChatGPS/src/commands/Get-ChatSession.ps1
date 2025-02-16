@@ -34,6 +34,7 @@ function Get-ChatSession {
             }
         }
 
-        $sessions
+        $sessions | where { !! $_.name } | sort-object Name
+        $sessions | where { ! $_.name }
     }
 }

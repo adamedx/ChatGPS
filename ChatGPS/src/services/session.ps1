@@ -132,7 +132,7 @@ function GetCurrentSession($failIfNotFound) {
 }
 
 function GetChatSessions {
-    $script:sessions.Values | sort-object Name, Id
+    $script:sessions.Values
 }
 
 function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false) {
