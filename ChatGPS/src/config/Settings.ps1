@@ -173,7 +173,6 @@ function SessionSettingToSession($sessionSetting, $defaultValues) {
         try {
             Connect-ChatSession @sessionParameters -NoSetCurrent -NoConnect -PassThru -Force -NoProxy
         } catch {
-            $global:mybad = $sessionParameters
             write-warning "Skipping incorrectly specified session setting '$($sourceSetting.Name)'. The following error was encountered: $($_.exception.message)"
         }
     }
