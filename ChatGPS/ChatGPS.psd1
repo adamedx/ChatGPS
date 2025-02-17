@@ -75,6 +75,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Get-ChatFunction'
     'Get-ChatHistory'
     'Get-ChatSession'
+    'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
     'Invoke-ChatFunction'
     'New-ChatFunction'
@@ -87,6 +88,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Set-ChatCurrentVoice'
     'Set-ChatCurrentSession'
     'Start-ChatREPL'
+    'Update-ChatSettings'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -121,6 +123,7 @@ FileList = @(
     'src/commands/Get-ChatFunction.ps1'
     'src/commands/Get-ChatHistory.ps1'
     'src/commands/Get-ChatSession.ps1'
+    'src/commands/Get-ChatSettingsInfo.ps1'
     'src/commands/Get-ChatVoiceName.ps1'
     'src/commands/Invoke-ChatFunction.ps1'
     'src/commands/New-ChatFunction.ps1'
@@ -133,6 +136,9 @@ FileList = @(
     'src/commands/Set-ChatCurrentSession.ps1'
     'src/commands/Set-ChatCurrentVoice.ps1'
     'src/commands/Start-ChatREPL.ps1'
+    'src/commands/Update-ChatSettings.ps1'
+    'src/config.ps1'
+    'src/config/Settings.ps1'
     'src/format/format.ps1xml'
     'src/function.ps1'
     'src/function/Function.ps1'

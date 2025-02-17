@@ -44,7 +44,6 @@ public class AzureOpenAIChatService : ChatService
         var clientOptions = new AzureOpenAIClientOptions();
 
         clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
-        clientOptions.UserAgentApplicationId = this.userAgent;
 
         AzureOpenAIClient apiClient;
 

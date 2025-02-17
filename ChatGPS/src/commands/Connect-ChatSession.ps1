@@ -73,6 +73,9 @@ By default, all sessions returned by the Connect-ChatSession command are saved i
 .PARAMETER NoConnect
 By default, this command may attempt to authenticate to the service that hosts the model (for remote models) or access the model's local path (for local models) in order to surface incorrect parameters or access problems before the session is actually used with subsequent commands. To skip this verification, specify the NoConnect parameter. Specifying this may mean that access issues are not discovered until subsequent commands that access the model are executed.
 
+.PARAMETER Force
+Use the Force parameter to create the session even if the name specified by the Name parameter is already in use by an existing session in the session list. When this situation occurs, the existing session is removed from the list before the new session is created, effectively replacing or overwriting it. Additionally, if the session that would be replaced is the current session, the command will still succeed; however if the NoSetCurrent parameter is also specified then there will no longer be a current session.
+
 .PARAMETER NoProxy
 Specify the NoProxy parameter so ensure that the session will not use an intermediate proxy process to communicate with the model. By default, the session will utilize a proxy that isolates dependencies for the services used to access the language model into a separate process from that of the PowerShell session. This helps avoid incompatibilities with such dependencies and PowerShell itself, and was useful during the early stages of the development of Semantic Kernel which changed frequently. In some cases such as specification of the AllowInteractiveSignin parameter the proxy will not be used due to known user experience issues in that situation. The ForceProxy parameter may be used to force use of the proxy in call cases. At some point the proxy may no longer be required and may eventually be removed. It is possible that code defects in the proxy could introduce errors or other reliability issues, so NoProxy can be specified to remove this risk if problems arise in certain use cases. When the proxy is in use, a log of its activity can be generated if the appropriate values are specified for the LogLevel and LogDirectory parameters.
 
@@ -326,9 +329,8 @@ function Connect-ChatSession {
         [string] $DeploymentName,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
-        [string] $ApiKey,
+        [string] $ApiKey = $null,
 
-        [parameter(parametersetname='remoteaiservice')]
         [switch] $AllowInteractiveSignin,
 
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
@@ -358,6 +360,8 @@ function Connect-ChatSession {
 
         [switch] $NoConnect,
 
+        [switch] $Force,
+
         [switch] $NoProxy,
 
         [switch] $ForceProxy,
@@ -377,7 +381,7 @@ function Connect-ChatSession {
     $options.ApiEndpoint = $ApiEndpoint
     $options.DeploymentName = $DeploymentName
     $options.ModelIdentifier = $ModelIdentifier
-    $options.ApiKey = $ApiKey
+    $options.ApiKey = !! $ApiKey ? $ApiKey : $null # Somehow this sometimes gets set to '' which causes issues, force it to $null!
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
@@ -456,7 +460,7 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent)
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent)
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {

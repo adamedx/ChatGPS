@@ -58,7 +58,9 @@ function CreateSession {
 
         [string] $UserAgent,
 
-        [switch] $NoSave
+        [switch] $NoSave,
+
+        [switch] $Force
     )
 
     $targetLogDirectory = if ( $LogDirectory ) {
@@ -78,16 +80,24 @@ function CreateSession {
 
     $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
 
-    AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent
+    AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent
 
     $session
 }
 
-function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $false) {
+function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $false, [bool] $forceOnNameCollision) {
     if ( ! $noSave ) {
         if ( $name ) {
-            if ( $script:sessions.Count -gt 0 -and ( $script:sessions.Values.Name -contains 'name' ) ) {
-                throw [ArgumentException]::new("A session named '$name' already exists.")
+            if ( $script:sessions.Count -gt 0 ) {
+                $existing = $script:sessions.Values | where Name -eq $name
+
+                if ( $existing ) {
+                    if ( $forceOnNameCollision ) {
+                        RemoveSession $existing $true
+                    } else {
+                        throw [ArgumentException]::new("A session named '$name' already exists.")
+                    }
+                }
             }
         }
 
@@ -185,4 +195,14 @@ function GetReceiveBlock($session) {
     if ( $session.CustomContext ) {
         $session.CustomContext['ReceiveBlock']
     }
+}
+
+function RegisterSessionCompleter([string] $command, [string] $parameterName) {
+    $sessionNameCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+        $sessions = GetChatSessions | where name -ne $null | sort-object name
+        $sessions.Name | where { $_.StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }
+    }
+
+    Register-ArgumentCompleter -commandname $command -ParameterName $parameterName -ScriptBlock $sessionNameCompleter
 }

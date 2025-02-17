@@ -38,3 +38,5 @@ function Get-ChatSession {
         $sessions | where { ! $_.name }
     }
 }
+
+RegisterSessionCompleter 'Get-ChatSession' 'Name'

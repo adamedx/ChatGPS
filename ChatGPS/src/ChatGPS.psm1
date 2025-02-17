@@ -11,6 +11,7 @@ $commands = @(
     'Get-ChatFunction'
     'Get-ChatHistory'
     'Get-ChatSession'
+    'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
     'Invoke-ChatFunction'
     'New-ChatFunction'
@@ -23,6 +24,7 @@ $commands = @(
     'Set-ChatCurrentSession'
     'Set-ChatCurrentVoice'
     'Start-ChatREPL'
+    'Update-ChatSettings'
 )
 
 export-modulemember -function $commands

@@ -34,3 +34,5 @@ function Remove-ChatSession {
     end {
     }
 }
+
+RegisterSessionCompleter 'Remove-ChatSession' 'Name'
