@@ -99,7 +99,14 @@ CmdletsToExport = @()
 VariablesToExport = '*'
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+AliasesToExport = @(
+    'chatgps'
+    'frun'
+    'gss'
+    'ncs'
+    'sch'
+    'scs'
+)
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -139,6 +146,7 @@ FileList = @(
     'src/commands/Set-ChatCurrentVoice.ps1'
     'src/commands/Start-ChatREPL.ps1'
     'src/commands/Update-ChatSettings.ps1'
+    'src/aliases.ps1'
     'src/config.ps1'
     'src/config/Settings.ps1'
     'src/format/format.ps1xml'

@@ -28,4 +28,13 @@ $commands = @(
     'Update-ChatSettings'
 )
 
-export-modulemember -function $commands
+$aliases = @(
+    'chatgps'
+    'frun'
+    'gss'
+    'ncs'
+    'sch'
+    'scs'
+)
+
+export-modulemember -function $commands -alias $aliases
