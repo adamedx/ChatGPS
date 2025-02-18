@@ -72,6 +72,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
  FunctionsToExport = @(
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
+    'Get-ChatEncryptedUnicodeKeyCredential'
     'Get-ChatFunction'
     'Get-ChatHistory'
     'Get-ChatSession'
@@ -120,6 +121,7 @@ FileList = @(
     'src/shell.ps1'
     'src/commands/Connect-ChatSession.ps1'
     'src/commands/Get-ChatCurrentVoice.ps1'
+    'src/commands/Get-ChatEncryptedUnicodeKeyCredential.ps1'
     'src/commands/Get-ChatFunction.ps1'
     'src/commands/Get-ChatHistory.ps1'
     'src/commands/Get-ChatSession.ps1'

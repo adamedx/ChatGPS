@@ -49,9 +49,11 @@ public class AzureOpenAIChatService : ChatService
 
         if ( this.options.ApiKey is not null && this.options.ApiKey.Length > 0 )
         {
+            var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
+
             apiClient = new AzureOpenAIClient(
                 this.options.ApiEndpoint,
-                new Azure.AzureKeyCredential(this.options.ApiKey),
+                new Azure.AzureKeyCredential(cleartextKey),
                 clientOptions);
         }
         else

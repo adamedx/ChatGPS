@@ -9,6 +9,8 @@ $jsonOptions.IncludeFields = $true
 $LastUsedSettingsPath = $null
 $LastSettingsJson = $null
 
+$SettingsInitialized = $false
+
 
 # These class definitions represent the deserialized structure of the
 # configuration file. Using PowerShell classes here to generate a native
@@ -47,6 +49,7 @@ class ModelChatSession {
     [string] $deploymentName
     [int] $tokenLimit
     [bool] $signinInteractionAllowed
+    [bool] $plainTextApiKey
 }
 
 
@@ -60,18 +63,24 @@ function GetDefaultSettingsLocation {
 }
 
 function InitializeCurrentSettings([string] $settingsPath = $null) {
-    $targetPath = if ( $settingsPath ) {
-        $settingsPath
-    } else {
-        GetDefaultSettingsLocation
+    $isInitialized = $script:SettingsInitialized
+
+    $script:SettingsInitialized = $true
+
+    $targetPath = if ( $isInitialized -or ! ( $env:CHATGPS_SKIP_SETTINGS_ON_LOAD -eq $true ) ) {
+        if ( $settingsPath ) {
+            $settingsPath
+        } else {
+            GetDefaultSettingsLocation
+        }
     }
 
-    write-verbose "Resulting settings configuration path is '$settingsPath'"
+    write-verbose "Resulting settings configuration path is '$settingsPath'. If the path is empty then initialization was skipped by environment variable."
 
-    if ( test-path $targetPath ) {
+    if ( $targetPath -and ( test-path $targetPath ) ) {
         $settingsJson = Get-Content $targetPath | out-string
 
-        $typedSettings = SettingsJsonToStrongTypedSettings $settingsJson
+        $typedSettings = SettingsJsonToStrongTypedSettings $settingsJson $targetPath
 
         # Need untyped settings here because we want unspecified values to
         # show up as null -- distinction is crucial for integer and boolean
@@ -102,7 +111,8 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
         $script:LastSettingsJson = $settingsJson
 
     } else {
-        write-verbose "Configured settings path not found, settings initialization will be skipped"
+        write-verbose "Settings already initialized = $isInitialized; env var CHATGPS_SKIP_SETTINGS_ON_LOAD = $($env:CHATGPS_SKIP_SETTINGS_ON_LOAD)"
+        write-verbose "Configured settings path not found, settings initialization will be skipped."
     }
 }
 
@@ -115,8 +125,12 @@ function SettingsJsonToUntypedSettings([string] $settingsJson) {
     $settingsJson | ConvertFrom-Json
 }
 
-function SettingsJsonToStrongTypedSettings([string] $settingsJson) {
-    [System.Text.Json.JsonSerializer]::Deserialize[RootSettings]($settingsJson, $jsonOptions)
+function SettingsJsonToStrongTypedSettings([string] $settingsJson, [string] $settingsSource) {
+    try {
+        [System.Text.Json.JsonSerializer]::Deserialize[RootSettings]($settingsJson, $jsonOptions)
+    } catch {
+        write-warning "The settings at location '$settingsSource' are incorrectly formatted. The following error was encountered reading the data: $($_.Exception.Message)"
+    }
 }
 
 function GetSessionSettingsFromSettings($settings) {
@@ -170,8 +184,12 @@ function SessionSettingToSession($sessionSetting, $defaultValues) {
             }
         }
 
+        if ( $sessionParameters.ContainsKey('apiKey') ) {
+            $sessionParameters.Add('plainTextApiKey', [System.Management.Automation.SwitchParameter]::new($sourceSetting.plainTextApiKey))
+        }
+
         try {
-            Connect-ChatSession @sessionParameters -NoSetCurrent -NoConnect -PassThru -Force -NoProxy
+            Connect-ChatSession @sessionParameters -NoSetCurrent -NoConnect -PassThru -Force
         } catch {
             write-warning "Skipping incorrectly specified session setting '$($sourceSetting.Name)'. The following error was encountered: $($_.exception.message)"
         }
@@ -179,8 +197,10 @@ function SessionSettingToSession($sessionSetting, $defaultValues) {
 }
 
 function GetConfiguredProfileFromSettings([RootSettings] $settings) {
-    if ( $settings.defaultProfile -and $settings.profiles -and $settings.profiles.list ) {
-        $settings.profiles.list | where name -eq $settings.defaultProfile
+    if ( $settings ) {
+        if ( ( $settings | get-member defaultProfile ) -and $settings.defaultProfile -and $settings.profiles -and $settings.profiles.list ) {
+            $settings.profiles.list | where name -eq $settings.defaultProfile
+        }
     }
 }
 

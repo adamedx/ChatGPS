@@ -35,7 +35,10 @@ For remotely hosted models, the API URI that enables access to the model.
 For remotely hosted models some services may require this as an additional parameter to identify the specific model to use. This parameter usually only applies to remote models.
 
 .PARAMETER ApiKey
-Some remotely hosted models that require authentication may support a symmetric key that can be specified through this parameter. WARNING: currently this parameter is specified via plaintext rather than as a securestring. To avoid the value of this key being present in command history, use a command to read it from a secure location such as an Azure KeyVault or a local file with sufficient security measures in place, assign the value of the key to a PowerShell variable, and then use that variable to specify the value of the ApiKey parameter.
+Some remotely hosted models that require authentication may support a symmetric key that can be specified through this parameter. On the Windows platform, this parameter must be specified as an encrypted value of the symmetric key. To obtain an encrypted value, use the Get-ChatEncryptedUnicodeKeyCredential command. On non-Windows systems or if the PlainTextApiKey option is specified, the parameter is specified via plaintext rather than as a securestring. To avoid the value of the plaintext key being present in command history, use a command to read it from a secure location such as an Azure KeyVault or a local file with sufficient security measures in place, assign the value of the key to a PowerShell variable, and then use that variable to specify the value of the ApiKey parameter.
+
+.PARAMETER PlainTextApiKey
+Specify this if the ApiKey parameter being specified uses plaintext. This parameter should only be used for troubleshooting such as confirming that the actual value of the API key is correct before using encryption.
 
 .PARAMETER AllowInteractiveSignin
 For use with remote models only, specify AllowInteractiveSignin to allow this command or subsequent commands that access the model to invoke a user interface for authentication. This is only applicable when the ApiKey parameter or other non-interactive sign-in mechanisms are not configured for the session. For some model services such as Azure OpenAI this option can be useful if sign-in tools such as the "Az.Accounts" module with its "Login-AzAccount" and "Logout-AzAccount" commands is unavailable, however it may have some side effects including multiple sign-in prompts.
@@ -110,7 +113,7 @@ Received                 Response
 .EXAMPLE
 In this example, a chat session is used to a remote model as in the previous example. In this case, instead of the user's credentials, a symmetric key credential is provided by the ApiKey parameter. The session is also given a name with the Name parameter.
 
-PS > $secretKey = GetMyApiKeyFromSecureLocation
+PS > $secretKey = Get-ChatEncryptedUnicodeKeyCredential
 PS > Connect-ChatSession -Name TestSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
 
@@ -121,7 +124,7 @@ Id                                   Provider    Name        ModelIdentifier
 .EXAMPLE
 This example is similar to those above, but it uses the OpenAI provider instead -- since OpenAI does not currently require an ApiEndpoint parameter but does require an ApiKey parameter, use of the OpenAI provider is the default when only ApiKey is specified. For OpenAI however the ModelIdentifier is required:
 
-PS > $secretKey = GetMyApiKeyFromSecureLocation
+PS > $secretKey = Get-ChatEncryptedUnicodeKeyCredential
 PS > Connect-ChatSession -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
 
@@ -331,6 +334,9 @@ function Connect-ChatSession {
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $ApiKey = $null,
 
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
+        [switch] $PlainTextApiKey,
+
         [switch] $AllowInteractiveSignin,
 
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
@@ -376,6 +382,10 @@ function Connect-ChatSession {
         throw [ArgumentException]::new("HistoryContextLimit must be greater than or equal to -1")
     }
 
+    if ( $ApiKey -and $PlainTextApiKey.IsPresent ) {
+        write-warning "An API key was specified and the PlainTextApiKey parameter was specified. To ensure the key does not leak, use a variable if possible to specify its value to the command rather than directly specifying the value to the command."
+    }
+
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
 
     $options.ApiEndpoint = $ApiEndpoint
@@ -385,6 +395,7 @@ function Connect-ChatSession {
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
+    $options.PlainTextApiKey = $PlainTextApiKey.IsPresent
 
     $isLocal = !  ( ! $options.LocalModelPath )
 

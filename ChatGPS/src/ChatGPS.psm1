@@ -8,6 +8,7 @@
 $commands = @(
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
+    'Get-ChatEncryptedUnicodeKeyCredential'
     'Get-ChatFunction'
     'Get-ChatHistory'
     'Get-ChatSession'

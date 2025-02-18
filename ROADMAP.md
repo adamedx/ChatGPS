@@ -3,7 +3,8 @@ Roadmap for ChatGPS
 
 ## To-do items
 
-* Fix useragent for openai (works for azureopenai)
+* Aliases for set-chatcurrentsession, etc.
+* Show current session in list view
 * Basic help for start-chatrepl
 * Rename start-chatrepl to start-chatshell?
 * VectorDB support
@@ -22,10 +23,7 @@ Roadmap for ChatGPS
 * License
 * Docs
 * Samples
-* Make a simple configuration file option
-* Session names
 * Add embedding support
-* Connection management: Get-ChatSession, Remove-ChatSession
 * Better error messages for local model platform support, move to chatsession and chat service interface
 * Additional model providers
 * SecureString parameters
@@ -83,3 +81,7 @@ Roadmap for ChatGPS
 * Add function to start-chatrepl
 * publish local module
 * Include user agent
+* Configuration file at startup
+* Encrypt api keys
+* Session names
+* Connection management: Get-ChatSession, Remove-ChatSession
