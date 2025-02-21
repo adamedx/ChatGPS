@@ -149,6 +149,7 @@ FileList = @(
     'src/aliases.ps1'
     'src/config.ps1'
     'src/config/Settings.ps1'
+    'src/format/colorstring.ps1'
     'src/format/format.ps1xml'
     'src/function.ps1'
     'src/function/Function.ps1'

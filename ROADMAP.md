@@ -3,6 +3,10 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Send session id in hello message
+* Remove SessionFunctions, remove function methods from ChatSession
+* Show last error in session connection status
+* Last error command for session
 * Aliases for set-chatcurrentsession, etc.
 * Show current session in list view
 * Basic help for start-chatrepl
@@ -26,7 +30,6 @@ Roadmap for ChatGPS
 * Add embedding support
 * Better error messages for local model platform support, move to chatsession and chat service interface
 * Additional model providers
-* SecureString parameters
 * Make an official config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
@@ -85,3 +88,4 @@ Roadmap for ChatGPS
 * Encrypt api keys
 * Session names
 * Connection management: Get-ChatSession, Remove-ChatSession
+* Add progress during connection test

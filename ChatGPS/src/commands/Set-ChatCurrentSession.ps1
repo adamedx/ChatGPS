@@ -25,4 +25,5 @@ function Set-ChatCurrentSession {
     SetCurrentSession $session
 }
 
-RegisterSessionCompleter 'Set-ChatCurrentSession' 'Name'
+RegisterSessionCompleter Set-ChatCurrentSession Name
+RegisterSessionCompleter Set-ChatCurrentSession Id

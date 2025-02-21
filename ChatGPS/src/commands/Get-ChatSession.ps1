@@ -39,4 +39,5 @@ function Get-ChatSession {
     }
 }
 
-RegisterSessionCompleter 'Get-ChatSession' 'Name'
+RegisterSessionCompleter Get-ChatSession Name
+RegisterSessionCompleter Get-ChatSession Id

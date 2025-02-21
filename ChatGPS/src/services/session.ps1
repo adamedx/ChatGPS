@@ -185,6 +185,14 @@ function SendMessage($session, $prompt, $functionDefinition) {
     }
 }
 
+function SendConnectionTestMessage($session) {
+    if ( ! $session.AccessValidated ) {
+        write-progress "Connecting" -Percent 25
+        $session.SendStandaloneMessage('Are you there?') | out-null
+        write-progress "Connecting" -Completed
+    }
+}
+
 function GetSendBlock($session) {
     if ( $session.CustomContext ) {
         $session.CustomContext['SendBlock']
@@ -200,8 +208,8 @@ function GetReceiveBlock($session) {
 function RegisterSessionCompleter([string] $command, [string] $parameterName) {
     $sessionNameCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-        $sessions = GetChatSessions | where name -ne $null | sort-object name
-        $sessions.Name | where { $_.StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }
+        $sessions = GetChatSessions | where $parameterName -ne $null | sort-object $parameterName
+        $sessions.$parameterName | where { $_.ToString().StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }
     }
 
     Register-ArgumentCompleter -commandname $command -ParameterName $parameterName -ScriptBlock $sessionNameCompleter

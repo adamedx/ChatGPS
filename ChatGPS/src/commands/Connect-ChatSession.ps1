@@ -475,7 +475,7 @@ function Connect-ChatSession {
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {
-            $session.SendStandaloneMessage('Are you there?') | out-null
+            SendConnectionTestMessage $session
         } catch {
             $exceptionMessage = if ( $_.Exception.InnerException ) {
                 $_.Exception.InnerException.Message

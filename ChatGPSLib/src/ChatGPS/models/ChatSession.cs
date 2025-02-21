@@ -64,6 +64,8 @@ public class ChatSession
             throw;
         }
 
+        UpdateStateWithLatestResponse(null, true);
+
         return messageTask.Result;
     }
 

@@ -70,8 +70,9 @@ function Send-ChatMessage {
             $FunctionDefinition
         }
 
+        $targetSession = GetTargetSession $Session
 
-        $targetSession = GetTargetSession $Session $true
+        SendConnectionTestMessage $targetSession $true
     }
 
     process {
