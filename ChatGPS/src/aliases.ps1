@@ -8,5 +8,5 @@ set-alias frun Invoke-ChatFunction
 set-alias gss Get-ChatSession
 set-alias ncs New-ChatScriptBlock
 set-alias sch Send-ChatMessage
-set-alias scs Set-ChatCurrentSession
+set-alias scs Set-ChatSession
 

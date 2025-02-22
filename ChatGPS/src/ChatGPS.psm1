@@ -22,7 +22,7 @@ $commands = @(
     'Remove-ChatFunction'
     'Remove-ChatSession'
     'Send-ChatMessage'
-    'Set-ChatCurrentSession'
+    'Set-ChatSession'
     'Set-ChatCurrentVoice'
     'Start-ChatREPL'
     'Update-ChatSettings'

@@ -4,7 +4,7 @@
 # All rights reserved.
 
 
-function Set-ChatCurrentSession {
+function Set-ChatSession {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='byname')]
     param(
         [parameter(parametersetname='byname', mandatory=$true, position=0)]
@@ -25,5 +25,5 @@ function Set-ChatCurrentSession {
     SetCurrentSession $session
 }
 
-RegisterSessionCompleter Set-ChatCurrentSession Name
-RegisterSessionCompleter Set-ChatCurrentSession Id
+RegisterSessionCompleter Set-ChatSession Name
+RegisterSessionCompleter Set-ChatSession Id
