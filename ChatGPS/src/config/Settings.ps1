@@ -21,6 +21,7 @@ class RootSettings {
     [string]$defaultProfile
     [ProfileSettings]$profiles
     [SessionSettings]$sessions
+    [ModelResourceSettings]$models
 }
 
 class Profile {
@@ -41,6 +42,7 @@ class ModelChatSession {
         $this.apikey= $null
     }
     [string]$name
+    [string]$modelName
     [string]$provider
     [Uri] $apiEndpoint
     [string] $apiKey
@@ -56,6 +58,21 @@ class ModelChatSession {
 class SessionSettings {
     [ModelChatSession[]]$list
     [ModelChatSession]$defaults
+}
+
+class ModelResource {
+    [string] $name
+    [string] $provider
+    [Uri] $apiEndpoint
+    [string] $apiKey
+    [string] $localModelPath
+    [string] $modelIdentifier
+    [string] $deploymentName
+    [bool] $plainTextApiKey
+}
+
+class ModelResourceSettings {
+    [ModelResource[]] $list
 }
 
 function GetDefaultSettingsLocation {
@@ -86,6 +103,8 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
         # show up as null -- distinction is crucial for integer and boolean
         # types for instance.
         $untypedSettings = SettingsJsonToUntypedSettings $settingsJson
+
+        $global:myuntyped = $untypedsettings
 
         $sessions = GetSessionSettingsFromSettings $untypedSettings
 
@@ -133,6 +152,12 @@ function SettingsJsonToStrongTypedSettings([string] $settingsJson, [string] $set
     }
 }
 
+function GetModelResourcesFromSettings($settings) {
+    if ( $settings | get-member models ) {
+        $settings.models.list
+    }
+}
+
 function GetSessionSettingsFromSettings($settings) {
     $defaultSessionValues = $null
 
@@ -141,12 +166,22 @@ function GetSessionSettingsFromSettings($settings) {
         $settings.sessions.list
     }
 
-    foreach ( $sessionSetting in $sessionList ) {
-        SessionSettingToSession $sessionSetting $defaultSessionValues
+    $models = GetModelResourcesFromSettings $settings
+    $global:mymod = $models
+    $global:myset = $settings
+
+    if ( $models ) {
+        foreach ( $sessionSetting in $sessionList ) {
+            SessionSettingToSession $sessionSetting $defaultSessionValues $models
+        }
+    } else {
+        if ( $sessionList ) {
+            write-warning "Ignoring session settings because no models were specified in the settings."
+        }
     }
 }
 
-function SessionSettingToSession($sessionSetting, $defaultValues) {
+function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     $sourceSetting = [ModelChatSession]::new()
 
     $members = ($sourceSetting | Get-Member -MemberType Property).Name
@@ -163,20 +198,39 @@ function SessionSettingToSession($sessionSetting, $defaultValues) {
 
     $sessionParameters = @{
         Name = $sourceSetting.name
-        Provider = $sourceSetting.provider
-        ModelIdentifier = $sourceSetting.modelIdentifier
         AllowInteractiveSignin = [System.Management.Automation.SwitchParameter]::new($sourceSetting.signinInteractionAllowed)
     }
 
-    $isValidSetting = if ( $null -eq $sessionSetting.name ) {
+    $isValidSetting = if ( $null -eq $sourceSetting.name ) {
         write-warning "Skipping a session setting from the settings configuration because it is missing the required 'name' property."
+        $false
+    } elseif ( $null -eq $sourceSetting.modelName ) {
+        write-warning "Skipping a session setting from the settings configuration because it is missing the required 'modelName' property."
         $false
     } else {
         $true
     }
 
     if ( $isValidSetting ) {
-        'apiKey', 'apiEndpoint', 'localModelPath', 'deploymentName', 'tokenLimit' | foreach {
+        $model = $models | where name -eq $sourceSetting.modelName
+
+        if ( $model ) {
+            'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'deploymentName' | foreach {
+                $value = if ( $model | get-member $_ ) {
+                    $model.$_ -ne '' ? $model.$_ : $null
+                }
+
+                if ( $null -ne $value ) {
+                    $sessionParameters.Add($_, $value)
+                }
+            }
+        } else {
+            $isValidSetting = $false
+        }
+    }
+
+    if ( $isValidSetting ) {
+        'apiKey', 'tokenLimit' | foreach {
             $value = $sourceSetting.$_ -ne '' ? $sourceSetting.$_ : $null
 
             if ( $null -ne $value ) {
@@ -193,6 +247,8 @@ function SessionSettingToSession($sessionSetting, $defaultValues) {
         } catch {
             write-warning "Skipping incorrectly specified session setting '$($sourceSetting.Name)'. The following error was encountered: $($_.exception.message)"
         }
+    } else {
+        write-warning "Skipping session setting '$($sourceSetting.Name)' because it was incorrectly specified"
     }
 }
 

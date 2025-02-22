@@ -4,6 +4,7 @@ Roadmap for ChatGPS
 ## To-do items
 
 * Send session id in hello message
+* Deferred interactive key entry on first message
 * Remove SessionFunctions, remove function methods from ChatSession
 * Show last error in session connection status
 * Last error command for session

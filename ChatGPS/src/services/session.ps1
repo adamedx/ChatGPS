@@ -133,12 +133,20 @@ function SetCurrentSession($session) {
     }
 }
 
-function GetCurrentSession($failIfNotFound) {
+function GetCurrentSession([bool] $failIfNotFound = $false) {
     if ( $failIfNotFound -and (! $script:CurrentSession ) ) {
         throw "No current session exists -- use Connect-ChatSession to create a session"
     }
 
     $script:CurrentSession
+}
+
+function GetCurrentSessionId([bool] $failIfNotFound = $false) {
+    $currentSession = GetCurrentSession $false
+
+    if ( $currentSession ) {
+        $currentSession.Id
+    }
 }
 
 function GetChatSessions {

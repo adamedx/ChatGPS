@@ -167,22 +167,22 @@ All Rights Reserved.
             <Wrap/>
             <TableColumnItems>
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $curid = (GetCurrentSession).id; ( ( $session.IsRemote ? 'r' : 'l'), ( $session.IsRemote ? ( $session.AccessValidated ? 'c' : 'd') : '-') , ( ( $session.exceededtokenLimitsizelist.count -gt 0 ) ? 'x' : ($session.History.Count -gt 0 ? 's' : '-') ), ( $session.id -eq $curid ? ' >' : '  ') ) -join ''}, @($_))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $curid = GetCurrentSessionId; ( ( $session.IsRemote ? 'r' : 'l'), ( $session.IsRemote ? ( $session.AccessValidated ? 'c' : 'd') : '-') , ( ( $session.exceededtokenLimitsizelist.count -gt 0 ) ? 'x' : ($session.History.Count -gt 0 ? 's' : '-') ), ( $session.id -eq $curid ? ' >' : '  ') ) -join ''}, @($_))</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($id) $id -eq (GetCurrentSession).Id ? (HighlightText $id 4) : $id},@($_.id))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($id) $id -eq ( GetCurrentSessionId ) ? (HighlightText $id 4) : $id},@($_.id))</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $session.id -eq (GetCurrentSession).Id ? (HighlightText $session.AiOptions.Provider 4) : $session.AiOptions.Provider},@($_))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $session.id -eq ( GetCurrentSessionId ) ? (HighlightText $session.AiOptions.Provider 4) : $session.AiOptions.Provider},@($_))</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($id, $name) $id -eq (GetCurrentSession).Id ? (HighlightText $name 4) : $name},($_.id, $_.name))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($id, $name) $id -eq ( GetCurrentSessionId ) ? (HighlightText $name 4) : $name},($_.id, $_.name))</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>if ( $_.History) { (Get-Module ChatGPS).Invoke({param($session) $session.id -eq (GetCurrentSession).Id ? (HighlightText $session.History.Count 4) : $session.History.Count},@($_)) }</ScriptBlock>
+                <ScriptBlock>if ( $_.History) { (Get-Module ChatGPS).Invoke({param($session) $session.id -eq ( GetCurrentSessionId ) ? (HighlightText $session.History.Count 4) : $session.History.Count},@($_)) }</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $session.id -eq (GetCurrentSession).Id ? (HighlightText $session.AiOptions.ModelIdentifier 4) : $session.AiOptions.ModelIdentifier},@($_))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $session.id -eq ( GetCurrentSessionId ) ? (HighlightText $session.AiOptions.ModelIdentifier 4) : $session.AiOptions.ModelIdentifier},@($_))</ScriptBlock>
               </TableColumnItem>
 
             </TableColumnItems>
