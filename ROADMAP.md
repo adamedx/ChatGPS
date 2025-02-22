@@ -36,7 +36,6 @@ Roadmap for ChatGPS
 * Provide a type for function output
 * Normal powershell functions defined by natural language
 * NL chat
-* Invoke-ChatFunction should take a definition
 * Non-repl: Include command history in context
 * Non-repl: Include command output in context
 * Support json schema for function output: https://github.com/microsoft/semantic-kernel/blob/main/dotnet/src/SemanticKernel.Abstractions/Functions/KernelJsonSchema.cs
@@ -90,3 +89,4 @@ Roadmap for ChatGPS
 * Session names
 * Connection management: Get-ChatSession, Remove-ChatSession
 * Add progress during connection test
+* Invoke-ChatFunction should take a definition
