@@ -3,9 +3,10 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Voice management (Remove-ChatVoice)?
+* Voice settings?
 * Send session id in hello message
 * Deferred interactive key entry on first message
-* Remove SessionFunctions, remove function methods from ChatSession
 * Show last error in session connection status
 * Last error command for session
 * Aliases for set-chatcurrentsession, etc.
@@ -30,8 +31,6 @@ Roadmap for ChatGPS
 * Samples
 * Add embedding support
 * Better error messages for local model platform support, move to chatsession and chat service interface
-* Additional model providers
-* Make an official config file support multiple entries and a default
 * Add types to function parameters
 * Provide a type for function output
 * Normal powershell functions defined by natural language
@@ -90,3 +89,6 @@ Roadmap for ChatGPS
 * Connection management: Get-ChatSession, Remove-ChatSession
 * Add progress during connection test
 * Invoke-ChatFunction should take a definition
+* Additional model providers
+* Make an official config file support multiple entries and a default
+* Remove SessionFunctions, remove function methods from ChatSession

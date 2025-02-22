@@ -83,14 +83,14 @@ public class ChatSession
     {
         var function = new Function(name, parameters, definition);
 
-        this.SessionFunctions.AddFunction(function, replace);
+        FunctionTable.GlobalFunctions.AddFunction(function, replace);
 
         return function;
     }
 
     public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
     {
-        var function = this.SessionFunctions.GetFunctionById(functionId);
+        var function = FunctionTable.GlobalFunctions.GetFunctionById(functionId);
 
         return await function.InvokeFunctionAsync(this.chatService, boundParameters);
     }
@@ -146,13 +146,6 @@ public class ChatSession
      }
 
     public Guid Id { get; private set; }
-
-    public FunctionTable SessionFunctions {
-        get
-        {
-            return FunctionTable.GlobalFunctions;
-        }
-    }
 
     public AiProviderOptions AiOptions { get; private set; }
 
