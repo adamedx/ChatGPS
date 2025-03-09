@@ -3,9 +3,9 @@ Roadmap for ChatGPS
 
 ## To-do items
 
-* Show history context limit in session output
+* Implement internal connect-chatsession, use it to create new sessions
+* Use chat session id as configuration value
 * Add Force flag to Update-ChatSettings
-* Add other Connect-ChatSession options such as summarization and history limit to settings
 * List and set profiles
 * Plugins and associated settings
 * Internet search
@@ -63,6 +63,8 @@ Roadmap for ChatGPS
 
 ## Completed items
 
+* Add other Connect-ChatSession options such as summarization and history limit to settings
+* Show history context limit in session output
 * Function definition
 * Function invocation
 * Function deletion
