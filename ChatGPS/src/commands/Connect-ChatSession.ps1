@@ -56,7 +56,7 @@ Specifies the maximum number of tokens that should be sent to the model. Tokens 
 Specifies the mechanism to use to "compress" messages into fewer tokens (see the TokenLimit parameter for more information on tokens and their impact on conversations and accuracy). By default, the Summarize strategy is used, which will attempt to shorten conversation history by summarizing it and using this smaller summary result to continue conversations once the token limit is reached. The Truncate strategy simply removes a selected set of older messages from the conversation histroy under the assumption that the conversation can be reasonably continued by considering the most recent messages. The None strategy means no attempt will be made to reduce token utilization; this will likely limit the number of exchanges in a conversation, but can allow the user to handle errors that occur when token limits are hit with custom scripting, or can simply be useful in testing or ruling out non-determinism that could be caused by removing conversation context.
 
 .PARAMETER HistoryContextLimit
-Specify this parameter to limit amount of conversation history submitted to the model. The default value of -1 means that there is no limit to the history, though the conversation history is still subject to the token manangement strategy specified by the TokenStratey parameter. Specify a value greater than -1 for this parameter to define the number of most recent pairs of past user / assistant response messages that should be included when processing new messages from the user. A value of 0 for instances means no previous conversation history should be included; each message sent to the model from the user will be interpreted as if it is the first time the user has sent a message; this will be like interacting with an entity that has no memory. A value of 1 will mean that the previous user message and the resulting response from the assistant will be included has history, a value of two means the the history will include the two previous user / assistant messages as history, and so on. This parameter is generally only needed for very customized use cases; generally the most natural conversation / interaction flow will result whenthe default value of -1 is used to include as much history as context as possible.
+Specify this parameter to limit amount of conversation history submitted to the model. The default value of -1 means that there is no limit to the history, though the conversation history is still subject to the token manangement strategy specified by the TokenStratey parameter. Specify a value greater than -1 for this parameter to define the number of most recent pairs of past user / assistant response messages that should be included when processing new messages from the user. A value of 0 for instances means no previous conversation history should be included; each message sent to the model from the user will be interpreted as if it is the first time the user has sent a message; this will be like interacting with an entity that has no memory. A value of 1 will mean that the previous user message and the resulting response from the assistant will be included has history, a value of two means the the history will include the two previous user / assistant messages as history, and so on. This parameter is commonly only needed for very customized use cases; generally the most natural conversation / interaction flow will result when the default value of -1 is used to include as much history as context as possible.
 
 .PARAMETER SendBlock
 The SendBlock parameter allows specification of a PowerShell script block that is executed before user input is sent to the model. The first parameter of the scriptblock is the user input, and the output of the script block is the actual text that will be sent to the model. This can be used pre-process text sent to the model, which can be particularly useful in validating user input or performing reliable deterministic transformations on the input. If an exception is thrown by the script block the command used to send the message will fail and the message will not be sent. The chat history of the session will reflect the text that was returned by the scriptblock and thus sent to the model, not the text that was directly provided by the user to the scriptblock.
@@ -335,6 +335,9 @@ function Connect-ChatSession {
         [string] $ApiKey = $null,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
+        [switch] $ReadApiKey,
+
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [switch] $PlainTextApiKey,
 
         [switch] $AllowInteractiveSignin,
@@ -382,16 +385,31 @@ function Connect-ChatSession {
         throw [ArgumentException]::new("HistoryContextLimit must be greater than or equal to -1")
     }
 
-    if ( $ApiKey -and $PlainTextApiKey.IsPresent ) {
-        write-warning "An API key was specified and the PlainTextApiKey parameter was specified. To ensure the key does not leak, use a variable if possible to specify its value to the command rather than directly specifying the value to the command."
+    $userInputKey = if ( $ReadApiKey.IsPresent ) {
+        if ( ! $ApiKey -and ! $PlainTextApiKey.IsPresent ) {
+            Get-ChatEncryptedUnicodeKeyCredential
+        } else {
+            throw [ArgumentException]::new("The ApiKey parameter may not be specified when the ReadApiKey parameter is also present -- specify only one of these parameters")
+        }
     }
+
+    if ( $ApiKey ) {
+        if ( $PlainTextApiKey.IsPresent ) {
+            write-warning "An API key was specified and the PlainTextApiKey parameter was specified. To ensure the key does not leak, use a variable if possible to specify its value to the command rather than directly specifying the value to the command."
+        }
+    } elseif ( $PlainTextApiKey.IsPresent ) {
+        throw [ArgumentException]::new("The PlainText ApiKey parameter may only be specified when the ApiKey parameter is also specified.")
+    }
+
+    # Somehow a null ApiKey gets set to '' which causes issues, force it to $null via !!
+    $targetApiKey = $userInputKey ? $userInputKey : ( !! $ApiKey ? $ApiKey : $null )
 
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
 
     $options.ApiEndpoint = $ApiEndpoint
     $options.DeploymentName = $DeploymentName
     $options.ModelIdentifier = $ModelIdentifier
-    $options.ApiKey = !! $ApiKey ? $ApiKey : $null # Somehow this sometimes gets set to '' which causes issues, force it to $null!
+    $options.ApiKey = $targetApiKey
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
@@ -471,7 +489,7 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent)
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent) -BoundParameters $PSBoundParameters
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {

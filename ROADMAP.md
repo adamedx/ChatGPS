@@ -3,6 +3,18 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Show history context limit in session output
+* Add Force flag to Update-ChatSettings
+* Add other Connect-ChatSession options such as summarization and history limit to settings
+* List and set profiles
+* Plugins and associated settings
+* Internet search
+* assistant mode
+* Tutorial mode
+* Connection Save
+* New-Settings
+* Update-ChatSettings -- validate only
+* Update-ChatSettings -- nosetcurrent
 * Voice management (Remove-ChatVoice)?
 * Voice settings?
 * Send session id in hello message

@@ -269,6 +269,10 @@ All Rights Reserved.
                 <ScriptBlock>if ( $_.History) {$_.CurrentHistory.Count}</ScriptBlock>
               </ListItem>
               <ListItem>
+                <Label>HistoryContextLimit</Label>
+                <PropertyName>HistoryContextLimit</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>LastResponseError</Label>
                 <ItemSelectionCondition>
                   <ScriptBlock>$_.LastResponseError</ScriptBlock>

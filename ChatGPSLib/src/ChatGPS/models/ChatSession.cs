@@ -167,6 +167,14 @@ public class ChatSession
         }
     }
 
+    public int HistoryContextLimit
+    {
+        get
+        {
+            return this.latestContextLimit;
+        }
+    }
+
     public Exception? LastResponseError { get; private set; }
 
     public object? CustomContext { get; private set; }

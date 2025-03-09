@@ -60,7 +60,9 @@ function CreateSession {
 
         [switch] $NoSave,
 
-        [switch] $Force
+        [switch] $Force,
+
+        $BoundParameters
     )
 
     $targetLogDirectory = if ( $LogDirectory ) {
@@ -70,6 +72,8 @@ function CreateSession {
     $context = @{
         SendBlock = $SendBlock
         ReceiveBlock = $ReceiveBlock
+        CreationParameters = $BoundParameters
+        Options = $Options
     }
 
     $targetUserAgent = if ( $UserAgent ) {
@@ -89,7 +93,7 @@ function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $fal
     if ( ! $noSave ) {
         if ( $name ) {
             if ( $script:sessions.Count -gt 0 ) {
-                $existing = $script:sessions.Values | where Name -eq $name
+                $existing = $script:sessions.Values.Session | where Name -eq $name
 
                 if ( $existing ) {
                     if ( $forceOnNameCollision ) {
@@ -101,7 +105,12 @@ function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $fal
             }
         }
 
-        $script:sessions.Add($session.Id, $session)
+        $sessionInfo = [PSCustomObject] @{
+            Session = $session
+            SourceSettings = $null
+        }
+
+        $script:sessions.Add($session.Id, $sessionInfo)
     }
 
     if ( $setCurrent ) {
@@ -121,8 +130,27 @@ function RemoveSession($session, $allowRemoveCurrent) {
     $script:sessions.Remove($session.Id)
 
     if ( $isCurrentSession ) {
-        $script:CurrentSession = $script:sessions.Values | select-object -first 1
+        $script:CurrentSession = $script:sessions.Values.Session | select-object -first 1
     }
+}
+
+function UpdateSession($session, $settingsInfo) {
+    if ( $settingsInfo | gm SourceSettings ) {
+        throw 'anger'
+    }
+    $script:sessions[$session.id].SourceSettings = $settingsInfo
+}
+
+function GetSessionSettingsInfo($session) {
+    $script:sessions[$session.id]
+}
+
+function GetSessionCreationParameters($session) {
+    $script:sessions[$session.id].Session.CustomContext['CreationParameters']
+}
+
+function WriteSettings([RootSetting] $settings, [string] $targetPath) {
+    $settings
 }
 
 function SetCurrentSession($session) {
@@ -150,7 +178,9 @@ function GetCurrentSessionId([bool] $failIfNotFound = $false) {
 }
 
 function GetChatSessions {
-    $script:sessions.Values
+    if ( $script:sessions.Count -gt 0 ) {
+        $script:sessions.Values.Session
+    }
 }
 
 function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false) {
