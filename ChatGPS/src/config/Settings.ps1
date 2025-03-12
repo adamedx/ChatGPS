@@ -48,6 +48,17 @@ class ModelChatSession {
         $this.forceProxy = $null
         $this.plainTextApiKey = $null
     }
+
+    ModelChatSession([ModelChatSession] $source, [string] $nameOverride) {
+        foreach ( $member in ($source | get-member -membertype property).name ) {
+            $this.$_ = $source.$_
+        }
+
+        if ( $nameOverride ) {
+            $this.name = $nameOverride
+        }
+    }
+
     [string] $name
     [string] $modelName
     [string] $systemPromptId
@@ -73,7 +84,37 @@ class SessionSettings {
 }
 
 class ModelResource {
-    [string] $name
+    ModelResource() {}
+    ModelResource([Modulus.ChatGPS.Models.AiOptions] $options, [string] $name = $null) {
+        get-member -property $this |
+          select-object -expandproperty name |
+          foreach {
+            if ( $_ -ne 'name' ) {
+                $this.$_ = $options.$_
+            }
+          }
+
+        $this.name = $name
+    }
+
+    [bool] IsCompatible([Modulus.ChatGPS.Models.AiOptions] $options) {
+        $isCompatible = $false
+
+        get-member -property $this |
+          select-object -expandproperty name |
+          foreach {
+            if ( $_ -ne 'name' ) {
+                if ( $this.$_ -ne $options.$_ ) {
+                    $isCompatible = $false
+                    break
+                }
+            }
+          }
+
+        return $isCompatible
+    }
+
+    [string] $name = $null
     [string] $provider
     [Uri] $apiEndpoint
     [string] $localModelPath
@@ -201,17 +242,33 @@ function GetExplicitSessionSettingsFromSettingsByName($settings, $sessionName) {
     }
 }
 
+function GetCompatibleModelSettingsFromSessions($session) {
+    $script:sessions.Values | foreach {
+        if ( $_.SourceSettings -and $_.SourceSettings.Model ) {
+            if ( $_.SourceSettings.Model.IsCompatible($session.AiOptions) ) {
+                break
+            }
+        }
+    } |
+      select-object -ExpandProperty SourceSettings |
+      select-object -ExpandProperty Model
+}
+
 function GetExplicitModelSettingsFromSettingsByName($settings, $modelName) {
     if ( $settings.models.list ) {
         $settings.models.list | where-object name -eq $modelName
     }
 }
 
-function GetExplicitSessionSettingsFromSessionParameters($session, $settings) {
+function GetExplicitSessionSettingsFromSessionParameters($session, $settings, $boundParameters) {
     $sessionSettings = [ModelChatSession]::new()
     $modelSettings = [ModelResource]::new()
 
-    $sessionParameters = GetSessionCreationParameters $session
+    $sessionParameters = if ($boundParameters ) {
+        $boundParameters
+    } else {
+        GetSessionCreationParameters $session
+    }
 
     if ( ! $sessionParameters ) {
         throw [ArgumentException]::new('The specified session does not contain configuration information')
@@ -225,11 +282,28 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $settings) {
         $generatedName
     }
 
+    $modelSettings = if ( $settings ) {
+        GetExplicitModelSettingsFromSettingsByName $settings $sessionSettings.modelName
+    } else {
+        GetExplicitModelSettingsFromSessionsByName $sessionSettings.modelName
+    }
 
-    $sessionSettings.modelName = GetExplicitModelSettingsFromSettingsByName $settings $sessionSettings.modelName
+    if ( ! $modelSettings -or ! $modelSettings.name ) {
+        $targetModelName = !! $session.AiOptions.ModelIdentifier ? $session.AiOptions.ModelIdentifier : $session.AiOptions.DeploymentName
 
-    if ( ! $sessionSettings.modelName ) {
-        $sessionSettings.modelName = "Model $($generatedName)"
+        if ( ! $targetModelName ) {
+            $targetModelName = "$($session.AiOptions.Provider.ToString()) model"
+        }
+
+        if ( GetExplicitModelSettingsFromSessionsByName $targetModelName ) {
+            $targetModelName = $session.AiOptions.Provider.ToString() + " - $targetModelName"
+        }
+
+        if ( GetExplicitModelSettingsFromSessionsByName $targetModelName ) {
+            $targetModelName += " $generatedName"
+        }
+
+        $sessionSettings.modelName = $targetModelName
     }
 
     'apiKey', 'systemPromptId', 'customSystemPrompt', 'tokenLimit', 'tokenStrategy', 'historyContextLimit', 'logDirectory', 'logLevel' |
@@ -254,11 +328,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $settings) {
         $sessionSettings.apiKey = $session.CustomContext['AiOptions'].ApiKey
     }
 
-    $hasModel = ( $null -ne $sessionSettings.modelName ) -and ( GetExplicitModelSettingsFromSettingsByName $settings $sessionSettings.modelName )
-
-    $modelSettings = $null
-
-    if ( ! $hasModel ) {
+    if ( ! $modelSettings ) {
         $modelSettings = [ModelResource]::new()
         $modelSettings.Name = $sessionSettings.modelName
         $modelSettings.provider = $session.AiOptions.Provider
@@ -326,7 +396,9 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     }
 
     if ( $isValidSetting ) {
-        $model = $models | where-object name -eq $sourceSetting.modelName
+        $model = if ( $models ) {
+            $models | where-object { $null -ne $_ } | where-object name -eq $sourceSetting.modelName
+        }
 
         if ( $model ) {
             'forceProxy', 'noProxy' | foreach {
@@ -425,7 +497,7 @@ function GetSettingIndex($settingCollection, [string] $settingName) {
 
     if ( $settingCollection -and $settingCollection.list ) {
         for ( $current = 0; $current -lt $settingCollection.list.count; $current++ ) {
-            if ( $settingCollection.list[$current] -eq $settingName ) {
+            if ( $settingCollection.list[$current].Name -eq $settingName ) {
                 $result = $current
                 break
             }
@@ -440,7 +512,7 @@ function GetSessionSettingIndex([RootSettings] $settings, [string] $sessionName)
 }
 
 function GetModelSettingIndex([RootSettings] $settings, [string] $modelName) {
-    GetSettingIndex $settings.models $SmodelName
+    GetSettingIndex $settings.models $modelName
 }
 
 function UpdateModelSetting([RootSettings] $settings, [int] $modelIndex, [ModelResource] $modelSetting) {

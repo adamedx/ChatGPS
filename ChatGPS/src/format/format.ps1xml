@@ -158,7 +158,7 @@ All Rights Reserved.
           </TableColumnHeader>
 
           <TableColumnHeader>
-            <Label>ModelIdentifier</Label>
+            <Label>Model</Label>
           </TableColumnHeader>
 
         </TableHeaders>
@@ -182,7 +182,7 @@ All Rights Reserved.
                 <ScriptBlock>if ( $_.History) { (Get-Module ChatGPS).Invoke({param($session) $session.id -eq ( GetCurrentSessionId ) ? (HighlightText $session.History.Count 4) : $session.History.Count},@($_)) }</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $session.id -eq ( GetCurrentSessionId ) ? (HighlightText $session.AiOptions.ModelIdentifier 4) : $session.AiOptions.ModelIdentifier},@($_))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $modelInfo = ( !! $session.AiOptions.ModelIdentifier ) ? $session.AiOptions.ModelIdentifier : $session.AiOptions.DeploymentName;$session.id -eq ( GetCurrentSessionId ) ? (HighlightText $modelInfo 4) : $modelInfo},@($_))</ScriptBlock>
               </TableColumnItem>
 
             </TableColumnItems>

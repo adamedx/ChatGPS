@@ -12,6 +12,13 @@ function Save-ChatSessionSetting {
         [parameter(parametersetname='id', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [Guid] $Id,
 
+        [parameter(parametersetname='current', mandatory=$true)]
+        [switch] $Current,
+
+        [parameter(parametersetname='name')]
+        [parameter(position=0, parametersetname='current')]
+        [string] $SaveAs,
+
         [string] $ProfileName = $null,
 
         [string] $SettingsFilePath = $null,
@@ -40,6 +47,10 @@ function Save-ChatSessionSetting {
             GetDefaultSettingsLocation
         }
 
+        $currentSession = if ( $Current.IsPresent ) {
+            Get-ChatSession -Current
+        }
+
         $settingsExist = $false
 
         $settings = if ( ! $NewFile.IsPresent ) {
@@ -65,7 +76,13 @@ function Save-ChatSessionSetting {
     }
 
     process {
-        $session = if ( $Id ) {
+        $session = if ( $Current.IsPresent ) {
+            if ( $currentSession ) {
+                $currentSession
+            } else {
+                return
+            }
+        } elseif ( $Id ) {
             Get-ChatSession -Id $Id
         } else {
             Get-ChatSession $Name
@@ -77,15 +94,17 @@ function Save-ChatSessionSetting {
 
         $settingInfo = GetSessionSettingsInfo $session
 
-        $sessionInfo = if ( $settingInfo.SourceSettings ) {
-            $settingInfo.SourceSettings
-        } else {
-            GetExplicitSessionSettingsFromSessionParameters $session $settings
-        }
+        $sessionInfo = $settingInfo.SourceSettings
 
         $sessionSetting = $sessionInfo.Session
 
         $sessionIndex = GetSessionSettingIndex $settings $session.Name
+
+        if ( $SaveAs ) {
+            if ( ( GetSessionSettingIndex $settings $SaveAs ) -ne -1 ) {
+                throw [ArgumentException]::new("Specified value '$SaveAs' for the SaveAs parameter is invalid because there is an existing session setting with that name.")
+            }
+        }
 
         $modelIndex = if ( $sessionIndex -ge 0 ) {
             GetModelSettingIndex $settings $sessionSetting.modelName
@@ -104,6 +123,10 @@ function Save-ChatSessionSetting {
             }
         }
 
+        if ( $SaveAs ) {
+            $sessionIndex = -1
+        }
+
         $sessions += [PSCustomObject] @{
             Location = $sessionIndex
             Setting = $sessionSetting
@@ -113,10 +136,15 @@ function Save-ChatSessionSetting {
     end {
         if ( $sessions ) {
             foreach ( $model in $models ) {
-                UpdateModelSetting $settings $model.Location $model.setting
+                if ( $model.setting ) {
+                    UpdateModelSetting $settings $model.Location $model.setting
+                }
             }
 
             foreach ( $session in $sessions ) {
+                if ( $SaveAs ) {
+                    $session.Setting.Name = $SaveAs
+                }
                 UpdateSessionSetting $settings $session.Location $session.Setting $ProfileName $NoCreateProfile.IsPresent ( ! $settingsExist -and ! $NoSetDefaultProfile.IsPresent ) $DefaultSession.IsPresent
             }
 

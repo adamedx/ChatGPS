@@ -84,12 +84,14 @@ function CreateSession {
 
     $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
 
-    AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent
+    $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $null $BoundParameters
+
+    AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent $sessionSettings
 
     $session
 }
 
-function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $false, [bool] $forceOnNameCollision) {
+function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $false, [bool] $forceOnNameCollision, $sourceSettings = $null) {
     if ( ! $noSave ) {
         if ( $name ) {
             if ( $script:sessions.Count -gt 0 ) {
@@ -107,7 +109,7 @@ function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $fal
 
         $sessionInfo = [PSCustomObject] @{
             Session = $session
-            SourceSettings = $null
+            SourceSettings = $sourceSettings
         }
 
         $script:sessions.Add($session.Id, $sessionInfo)
@@ -130,14 +132,13 @@ function RemoveSession($session, $allowRemoveCurrent) {
     $script:sessions.Remove($session.Id)
 
     if ( $isCurrentSession ) {
-        $script:CurrentSession = $script:sessions.Values.Session | select-object -first 1
+        $script:CurrentSession = if ( $script:sessions.Count -gt 0 ) {
+            $script:sessions.Values.Session | select-object -first 1
+        }
     }
 }
 
 function UpdateSession($session, $settingsInfo) {
-    if ( $settingsInfo | gm SourceSettings ) {
-        throw 'anger'
-    }
     $script:sessions[$session.id].SourceSettings = $settingsInfo
 }
 
@@ -149,8 +150,14 @@ function GetSessionCreationParameters($session) {
     $script:sessions[$session.id].Session.CustomContext['CreationParameters']
 }
 
-function WriteSettings([RootSetting] $settings, [string] $targetPath) {
-    $settings
+function GetExplicitModelSettingsFromSessionsByName([string] $modelName) {
+    $script:sessions.Values | where-object {
+        if ( $_.SourceSettings -and $_.SourceSettings.Model ) {
+            $_.SourceSettings.Model.name -eq $modelName
+        }
+    } |
+      select-object -ExpandProperty SourceSettings |
+      select-object -ExpandProperty Model
 }
 
 function SetCurrentSession($session) {

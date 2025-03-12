@@ -92,7 +92,7 @@ This parameter allows a log to be placed in a certain directory; the log contain
 This parameter only takes effect if LogDirectory is also specified as a valid location for writing a log of proxy operations sent to a local process that interacts with the services that provide the model. By default, the value "Default" currently means there is no logging, which is the same as the value None. A value of Error shows only logs related to errors. The value Debug shows Errors and other common events, and the DebugVerbose shows the highest level of information in the log.
 
 .OUTPUTS
-By default, the command has no output. But if the NoSave or PassThru parameters are specified, the newly connected session is returned as output and can be used a parameter to other commands.
+By default, the command has no output. But if the NoSave or PassThru parameters are specified, the newly connected session is returned as output and can be used as a parameter to other commands.
 
 .EXAMPLE
 In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
