@@ -63,8 +63,6 @@ Roadmap for ChatGPS
 
 ## Completed items
 
-* Add other Connect-ChatSession options such as summarization and history limit to settings
-* Show history context limit in session output
 * Function definition
 * Function invocation
 * Function deletion
@@ -106,3 +104,5 @@ Roadmap for ChatGPS
 * Additional model providers
 * Make an official config file support multiple entries and a default
 * Remove SessionFunctions, remove function methods from ChatSession
+* Add other Connect-ChatSession options such as summarization and history limit to settings
+* Show history context limit in session output

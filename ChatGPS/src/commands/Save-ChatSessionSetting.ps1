@@ -51,6 +51,13 @@ function Save-ChatSessionSetting {
             Get-ChatSession -Current
         }
 
+        # Load the latest settings from the configuration file (and if it doesn't exist, create "empty" settings).
+        # Each session from the pipeline and its associated model information will be added to those settings
+        # before all settings data (including non-session information like profiles) is written to the file
+        # system (or pipeline output depending on command options). Note that if there is no existing settings file,
+        # in addition to the session being added to the settings, a profile will be included and even configured
+        # to use the session currently in the pipeline as the current session, modulo parameter overrides.
+
         $settingsExist = $false
 
         $settings = if ( ! $NewFile.IsPresent ) {
@@ -92,12 +99,14 @@ function Save-ChatSessionSetting {
             throw [ArgumentException]::new("Unable to find the session named '$Name'")
         }
 
-        $settingInfo = GetSessionSettingsInfo $session
+        $sessionInfo = (GetSessionSettingsInfo $session).SourceSettings
 
-        $sessionInfo = $settingInfo.SourceSettings
+        $sessionSetting = $sessionInfo.SessionSettings
 
-        $sessionSetting = $sessionInfo.Session
-
+        # Check to see if the existing sesession by name exists in the settings by
+        # looking up its existing index in the session collection. A value of anything
+        # other tham -1 means it does exist indexed at that value, where -1 means
+        # it does not exist.
         $sessionIndex = GetSessionSettingIndex $settings $session.Name
 
         if ( $SaveAs ) {
@@ -106,23 +115,30 @@ function Save-ChatSessionSetting {
             }
         }
 
+        # Similarly look up models by their names in the models collection
+        # to find an index into the collection if it exists.
         $modelIndex = if ( $sessionIndex -ge 0 ) {
             GetModelSettingIndex $settings $sessionSetting.modelName
         } else {
             -1
         }
 
+        # Ensure that models with the same name are not added more than once
+        # by checking to see if we already added it.
         if ( ! $modelsByName.ContainsKey($sessionSetting.modelName) ) {
             $modelsByName.Add($sessionSetting.modelName, $modelIndex)
 
             if ( $modelIndex -eq -1 ) {
                 $models += [PSCustomObject] @{
                     Location = -1
-                    Setting = $sessionInfo.Model
+                    Setting = $sessionInfo.ModelSettings
                 }
             }
         }
 
+        # In the SaveAs case, override any existing index so that the session
+        # is treated as if it did not exist already so it can be saved as a
+        # new session.
         if ( $SaveAs ) {
             $sessionIndex = -1
         }
@@ -135,6 +151,11 @@ function Save-ChatSessionSetting {
 
     end {
         if ( $sessions ) {
+            # Now iterate through the models and settings that were sent to the pipeline,
+            # and update their values in their respective settings collection based on the
+            # location property. If that propery is -1, this will add the model or session
+            # to the settings collection.
+
             foreach ( $model in $models ) {
                 if ( $model.setting ) {
                     UpdateModelSetting $settings $model.Location $model.setting

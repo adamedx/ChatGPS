@@ -147,12 +147,24 @@ function GetSessionSettingsInfo($session) {
 
 function GetExplicitModelSettingsFromSessionsByName([string] $modelName) {
     $script:sessions.Values | where-object {
-        if ( $_.SourceSettings -and $_.SourceSettings.Model ) {
-            $_.SourceSettings.Model.name -eq $modelName
+        if ( $_.SourceSettings -and $_.SourceSettings.ModelSettings ) {
+            $_.SourceSettings.ModelSettings.name -eq $modelName
         }
     } |
       select-object -ExpandProperty SourceSettings |
-      select-object -ExpandProperty Model
+      select-object -ExpandProperty ModelSettings
+}
+
+function GetCompatibleModelSettingsFromSessions($session) {
+    $script:sessions.Values | foreach {
+        if ( $_.SourceSettings -and $_.SourceSettings.Model ) {
+            if ( $_.SourceSettings.ModelSettings.IsCompatible($session.AiOptions) ) {
+                break
+            }
+        }
+    } |
+      select-object -ExpandProperty SourceSettings |
+      select-object -ExpandProperty ModelSettings
 }
 
 function SetCurrentSession($session) {

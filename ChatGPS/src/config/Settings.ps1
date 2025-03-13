@@ -139,7 +139,7 @@ function InitializeModuleSettings {
     try {
         InitializeCurrentSettings
     } catch {
-        write-warning "Unable to initialize settings -- the module initialized successfully but settings from configuration file could not be applied, possibly due to corruption of the file. Use the Get-ChatSettingInfo command to obtain the path to the configuration file to correct the error or delete the file if the configuration is not needed to prevent recurrence of this warning. The error was '$($_.exception.message)'."
+        write-warning "Unable to initialize settings -- the module initialized successfully but settings from configuration file could not be applied, possibly due to corruption of the file. Use the Get-ChatSettingsInfo command to obtain the path to the configuration file to correct the error or delete the file if the configuration is not needed to prevent recurrence of this warning. The error was '$($_.exception.message)'."
     }
 }
 
@@ -148,7 +148,7 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
 
     $script:SettingsInitialized = $true
 
-    $targetPath = if ( $isInitialized -or ! ( $env:CHATGPS_SKIP_SETTINGS_ON_LOAD -eq $true ) ) {
+    $targetPath = if ( $isInitialized -or ! ( $env:CHATGPS_SKIP_SETTINGS_ON_LOAD -eq 'true' ) ) {
         if ( $settingsPath ) {
             $settingsPath
         } else {
@@ -235,18 +235,6 @@ function GetModelResourcesFromSettings($settings) {
     }
 }
 
-function GetCompatibleModelSettingsFromSessions($session) {
-    $script:sessions.Values | foreach {
-        if ( $_.SourceSettings -and $_.SourceSettings.Model ) {
-            if ( $_.SourceSettings.Model.IsCompatible($session.AiOptions) ) {
-                break
-            }
-        }
-    } |
-      select-object -ExpandProperty SourceSettings |
-      select-object -ExpandProperty Model
-}
-
 function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParameters) {
     $sessionSettings = [ModelChatSession]::new()
     $modelSettings = [ModelResource]::new()
@@ -316,8 +304,8 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     }
 
     [PSCustomObject] @{
-        Session = $sessionSettings
-        Model = $modelSettings
+        SessionSettings = $sessionSettings
+        ModelSettings = $modelSettings
     }
 }
 
