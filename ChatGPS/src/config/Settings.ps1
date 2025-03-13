@@ -135,6 +135,14 @@ function GetDefaultSettingsLocation {
     }
 }
 
+function InitializeModuleSettings {
+    try {
+        InitializeCurrentSettings
+    } catch {
+        write-warning "Unable to initialize settings -- the module initialized successfully but settings from configuration file could not be applied, possibly due to corruption of the file. Use the Get-ChatSettingInfo command to obtain the path to the configuration file to correct the error or delete the file if the configuration is not needed to prevent recurrence of this warning. The error was '$($_.exception.message)'."
+    }
+}
+
 function InitializeCurrentSettings([string] $settingsPath = $null) {
     $isInitialized = $script:SettingsInitialized
 
@@ -227,21 +235,6 @@ function GetModelResourcesFromSettings($settings) {
     }
 }
 
-function GetExplicitSessionSettingsFromSettingsByName($settings, $sessionName) {
-    $sessionSettings = $settings.sessions.list | where-object name -eq $sessionName
-
-    $modelSettings = if ( $sessionSettings ) {
-        GetExplicitModelSettingsFromSettingsByName $settings $sessionSettings.modelName
-    }
-
-    if ( $sessionSettings ) {
-        [PSCustomObject] @{
-            Session = $sessionSettings
-            Model = $modelSettings
-        }
-    }
-}
-
 function GetCompatibleModelSettingsFromSessions($session) {
     $script:sessions.Values | foreach {
         if ( $_.SourceSettings -and $_.SourceSettings.Model ) {
@@ -254,21 +247,9 @@ function GetCompatibleModelSettingsFromSessions($session) {
       select-object -ExpandProperty Model
 }
 
-function GetExplicitModelSettingsFromSettingsByName($settings, $modelName) {
-    if ( $settings.models.list ) {
-        $settings.models.list | where-object name -eq $modelName
-    }
-}
-
-function GetExplicitSessionSettingsFromSessionParameters($session, $settings, $boundParameters) {
+function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParameters) {
     $sessionSettings = [ModelChatSession]::new()
     $modelSettings = [ModelResource]::new()
-
-    $sessionParameters = if ($boundParameters ) {
-        $boundParameters
-    } else {
-        GetSessionCreationParameters $session
-    }
 
     if ( ! $sessionParameters ) {
         throw [ArgumentException]::new('The specified session does not contain configuration information')
@@ -282,11 +263,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $settings, $b
         $generatedName
     }
 
-    $modelSettings = if ( $settings ) {
-        GetExplicitModelSettingsFromSettingsByName $settings $sessionSettings.modelName
-    } else {
-        GetExplicitModelSettingsFromSessionsByName $sessionSettings.modelName
-    }
+    $modelSettings = GetExplicitModelSettingsFromSessionsByName $sessionSettings.modelName
 
     if ( ! $modelSettings -or ! $modelSettings.name ) {
         $targetModelName = !! $session.AiOptions.ModelIdentifier ? $session.AiOptions.ModelIdentifier : $session.AiOptions.DeploymentName
@@ -452,22 +429,13 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
         }
 
         try {
-            $newSession = Connect-ChatSession @sessionParameters -NoSetCurrent -NoConnect -PassThru -Force
-            BindSettingsToSession $newSession $sourceSetting $model
-            $newSession
+            Connect-ChatSession @sessionParameters -NoSetCurrent -NoConnect -PassThru -Force
         } catch {
             write-warning "Skipping incorrectly specified session setting '$($sourceSetting.Name)'. The following error was encountered: $($_.exception.message)"
         }
     } else {
         write-warning "Skipping session setting '$($sourceSetting.Name)' because it was incorrectly specified"
     }
-}
-
-function BindSettingsToSession([Modulus.ChatGPS.Models.ChatSession] $session, $sessionSetting, $modelSetting) {
-    UpdateSession $session ([PSCustomObject] @{
-                                Session = $sessionSetting
-                                Model = $modelSetting
-                            })
 }
 
 function GetSettingsFromSession($session) {

@@ -16,4 +16,5 @@ $erroractionpreference = 'stop'
 . (join-path $psscriptroot commands.ps1)
 . (join-path $psscriptroot aliases.ps1)
 
-InitializeCurrentSettings
+InitializeModuleSettings
+

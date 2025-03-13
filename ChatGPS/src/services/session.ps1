@@ -72,7 +72,6 @@ function CreateSession {
     $context = @{
         SendBlock = $SendBlock
         ReceiveBlock = $ReceiveBlock
-        CreationParameters = $BoundParameters
         Options = $Options
     }
 
@@ -84,7 +83,7 @@ function CreateSession {
 
     $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
 
-    $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $null $BoundParameters
+    $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $BoundParameters
 
     AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent $sessionSettings
 
@@ -144,10 +143,6 @@ function UpdateSession($session, $settingsInfo) {
 
 function GetSessionSettingsInfo($session) {
     $script:sessions[$session.id]
-}
-
-function GetSessionCreationParameters($session) {
-    $script:sessions[$session.id].Session.CustomContext['CreationParameters']
 }
 
 function GetExplicitModelSettingsFromSessionsByName([string] $modelName) {
