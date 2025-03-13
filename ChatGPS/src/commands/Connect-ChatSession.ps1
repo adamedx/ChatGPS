@@ -20,7 +20,7 @@ By default, the session is created with one of several built-in system prompts t
 An identifier corresponding to one of the built-in system prompts to be used for the session. Values include PowerShell, General, PowerShellStrict, and Conversational. The default value is PowerShell. The PowerShell prompt focuses on natural language conversations about the PowerShell language and command-line tools and general programming language topics. The General prompt is simply natural language conversation on any topic. The Conversational prompt is similar to General with a focus on making the conversation more interesting. The PowerShellStrict prompt expects natural language instructions for generating PowerShell code and will return only code; the code it returns as output to conversation commands can be directly executed by the PowerShell interpreter.
 
 .PARAMETER Name
-Optional friendly name for the connection. This is useful for switching between sessions using a friendly name view the Set-ChatSession command or in viewing the list of sessions with Get-ChatSession.
+Optional friendly name for the connection. This is useful for switching between sessions using a friendly name view the Select-ChatSession command or in viewing the list of sessions with Get-ChatSession.
 
 .PARAMETER CustomSystemPrompt
 Allows the user to specify a custom system prompt to steer converation and response output instead of using one of the prompts specified by the SystemPromptId parameter.
@@ -71,7 +71,7 @@ By default, Connect-ChatSession returns no output; it simply has the side effect
 Specify NoSetCurrent so that the implicit "current" session is not overwritten or otherwise set when this command executes successfully. Instead, a new session independent from any current session will be returned as output of the command. The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction. Thus Connect-ChatSession can be used to create multiple independent chat sessions for different purposes without affecting the current default session.
 
 .PARAMETER NoSave
-By default, all sessions returned by the Connect-ChatSession command are saved in a list of connections that can be viewed by the Get-ChatSession command and otherwise managed by the Set-ChatSession and Remove-ChatSession commands. Specify the NoSave parameter so that Connect-ChatSession does not add the session created by this invocation to the session list. This is useful for maintaining "private" sessions visible only to certain scripts or commands; the limited visibility protects those sessions from being corrupted or deleted by other applications or scripts. When this parameter is specified, the command will output the newly created connection even if the PassThru option is not specified.
+By default, all sessions returned by the Connect-ChatSession command are saved in a list of connections that can be viewed by the Get-ChatSession command and otherwise managed by the Select-ChatSession and Remove-ChatSession commands. Specify the NoSave parameter so that Connect-ChatSession does not add the session created by this invocation to the session list. This is useful for maintaining "private" sessions visible only to certain scripts or commands; the limited visibility protects those sessions from being corrupted or deleted by other applications or scripts. When this parameter is specified, the command will output the newly created connection even if the PassThru option is not specified.
 
 .PARAMETER NoConnect
 By default, this command may attempt to authenticate to the service that hosts the model (for remote models) or access the model's local path (for local models) in order to surface incorrect parameters or access problems before the session is actually used with subsequent commands. To skip this verification, specify the NoConnect parameter. Specifying this may mean that access issues are not discovered until subsequent commands that access the model are executed.
@@ -302,7 +302,7 @@ Received                 Response
 
 .LINK
 Get-ChatSession
-Set-ChatSession
+Select-ChatSession
 Remove-ChatSession
 Send-ChatMessage
 Get-ChatHistory
