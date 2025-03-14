@@ -238,7 +238,7 @@ function SendMessage($session, $prompt, $functionDefinition) {
 }
 
 function SendConnectionTestMessage($session) {
-    if ( ! $session.AccessValidated ) {
+    if ( ! $session.AccessValidated -and $session.IsRemote ) {
         write-progress "Connecting" -Percent 25
         $session.SendStandaloneMessage('Are you there?') | out-null
         write-progress "Connecting" -Completed
