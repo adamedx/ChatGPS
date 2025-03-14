@@ -3,6 +3,7 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Use PowerShell commands as kernel plugins
 * Implement internal connect-chatsession, use it to create new sessions
 * Use chat session id as configuration value
 * Add Force flag to Update-ChatSettings
@@ -11,8 +12,6 @@ Roadmap for ChatGPS
 * Internet search
 * assistant mode
 * Tutorial mode
-* Connection Save
-* New-Settings
 * Update-ChatSettings -- validate only
 * Update-ChatSettings -- nosetcurrent
 * Voice management (Remove-ChatVoice)?
@@ -36,9 +35,6 @@ Roadmap for ChatGPS
 * Include the current sent time in all responses.
 * Self-help
 * Pull request template
-* Contributing
-* Code of conduct
-* License
 * Docs
 * Samples
 * Add embedding support
@@ -84,10 +80,6 @@ Roadmap for ChatGPS
 * Fix system prompt time stamp
 * Add preprocess and postprocess scriptblocks to connection that take input as a parameter
 * Add zero context scenario (or N lines of latest context) for sending context to the model
-* Contributing
-* Code of conduct
-* License
-* Remove session affinity for chat functions!
 * Examples for receive and sendblocks
 * Change block names in start-chatrepl for consistency with connect-chatsession
 * Move function prompt out of session context
@@ -106,3 +98,9 @@ Roadmap for ChatGPS
 * Remove SessionFunctions, remove function methods from ChatSession
 * Add other Connect-ChatSession options such as summarization and history limit to settings
 * Show history context limit in session output
+* Connection Save
+* New-Settings
+* Contributing
+* Code of conduct
+* License
+* Remove session affinity for chat functions!
