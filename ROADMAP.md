@@ -104,3 +104,31 @@ Roadmap for ChatGPS
 * Code of conduct
 * License
 * Remove session affinity for chat functions!
+
+### Plugin notes
+
+* There should be commands that list plugins from different sources
+* The sources should include built-in supplied by Semantic Kernel, some supplied with Chat GPS, and user defined
+* You should be able to create your own plugins that execute powershell code
+* Some plugins will not be compatible with proxy mode
+* Should have diagnostic commands to assess capabilities of the model
+* User-defined plugins should be their own config section
+* Change chat protocol to enable / disable function calling
+* Send-ChatCommand should have a parameter to control calling
+* Function calling should be a session option but overridable
+* Session should be able to disable / enable function calling
+* Can plugins be removed?
+* Maybe use profiles to switch between sets of plugins?
+* PowerShell plugins will need to be a single type, but initialized from different objects
+* Plugins need to be serialized with the session.
+* New custom plugins -- try to build with powershell
+  * ShellInfo -- can have read-write mode
+    * Tells you the current location
+    * lets you tell it to cd
+    * should work with bash
+    * can read / write files
+    * can enumerate files
+    * can read / set environment variables
+    * can read command history
+    * can read powershell variables
+    * uses powershell host
