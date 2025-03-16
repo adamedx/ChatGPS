@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.SemanticKernel.Plugins.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Azure.AI.OpenAI;
 
@@ -91,6 +92,13 @@ public class AzureOpenAIChatService : ChatService
         }
 
         this.serviceKernel = newKernel;
+
+        #pragma warning disable SKEXP0050
+        var newObj = new FileIOPlugin();
+//        AddPlugin("Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin");
+        #pragma warning restore SKEXP0050
+
+        this.serviceKernel.Plugins.AddFromObject(newObj);
 
         return newKernel;
     }

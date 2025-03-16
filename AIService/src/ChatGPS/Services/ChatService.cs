@@ -40,9 +40,17 @@ public abstract class ChatService : IChatService
     {
         IReadOnlyList<ChatMessageContent> result;
 
+        // Enable function calling
+        OpenAIPromptExecutionSettings requestSettings = new ()
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+        };
+
+        var kernel = GetKernel();
+
         try
         {
-            result = await GetChatCompletionService().GetChatMessageContentsAsync(history);
+            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, kernel);
             this.HasSucceeded = true;
         }
         catch (Exception exception)
@@ -64,6 +72,29 @@ public abstract class ChatService : IChatService
         this.HasSucceeded = true;
 
         return new FunctionOutput(result);
+    }
+
+    public void AddPlugin(string pluginTypeName)
+    {
+        var kernel = GetKernel();
+
+#pragma warning disable SKEXP0050
+        var pluginType = Type.GetType(pluginTypeName, true, true);
+#pragma warning restore SKEXP0050
+
+        if ( pluginType is null )
+        {
+            throw new ArgumentException($"The type '{pluginTypeName}' is not a valid plugin type name");
+        }
+
+        var plugin = Activator.CreateInstance( pluginType );
+
+        if ( plugin is null )
+        {
+            throw new InvalidOperationException($"The plugin type '{pluginTypeName}' could not be instantiated");
+        }
+
+        kernel.Plugins.AddFromObject(plugin);
     }
 
     protected string GetCompatibleApiKey(string encryptedString, bool? isUnencrypted)
@@ -107,7 +138,6 @@ public abstract class ChatService : IChatService
 
         return result;
     }
-
 
     protected bool HasSucceeded { get; private set; }
 
