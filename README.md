@@ -14,6 +14,19 @@ ChatGPS allows you to choose the AI model that powers its experience and support
 
 ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic-kernel), and therefore should work well with any models and AI capabilities supported by SK.
 
+```powershell
+PS > Connect-ChatSession DevLLM
+PS > chatgps
+
+(ryu) ChatGPS>: hello
+
+Received                 Response
+--------                 --------
+3/11/2025 10:10:16 PM    Hello! How can I assist you today?
+
+(ryu) ChatGPS>:
+```
+
 # System requirements
 
 * [PowerShell](https://github.com/PowerShell/PowerShell) 7.4 and higher on Windows, Linux, or MacOS

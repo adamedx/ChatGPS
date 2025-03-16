@@ -15,15 +15,13 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatSession
 {
-    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null)
+    public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, int latestContextLimit = -1, object? customContext = null, string? name = null)
     {
         chatService.ServiceOptions.Validate();
 
         this.Id = Guid.NewGuid();
 
-        this.chatFunctionPrompt = chatFunctionPrompt;
-        this.chatFunction = chatFunctionPrompt is not null ? new Function(chatFunctionParameters, chatFunctionPrompt) : null;
-        this.conversationBuilder = new ConversationBuilder(chatService, chatFunctionPrompt);
+        this.conversationBuilder = new ConversationBuilder(chatService);
 
         this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
         this.totalChatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
@@ -33,14 +31,18 @@ public class ChatSession
 
         this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
 
-        this.SessionFunctions = new FunctionTable();
-
         this.chatService = chatService;
 
         this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
         this.AccessValidated = false;
 
         this.LastResponseError = null;
+
+        this.latestContextLimit = latestContextLimit;
+
+        this.CustomContext = customContext;
+
+        this.Name = name;
     }
 
     public string SendStandaloneMessage(string prompt)
@@ -62,33 +64,53 @@ public class ChatSession
             throw;
         }
 
+        UpdateStateWithLatestResponse(null, true);
+
         return messageTask.Result;
     }
 
     public string GenerateMessage(string prompt)
     {
-        return GenerateMessageInternal(prompt, false);
+        return GenerateMessageInternal(prompt);
     }
 
-    public string GenerateFunctionResponse(string prompt)
+    public string GenerateFunctionResponse(string functionDefinition, string prompt)
     {
-        return GenerateMessageInternal(prompt, true);
+        return GenerateMessageInternal(prompt, functionDefinition);
     }
 
     public Function CreateFunction(string name, string[] parameters, string definition, bool replace = false)
     {
         var function = new Function(name, parameters, definition);
 
-        this.SessionFunctions.AddFunction(function, replace);
+        FunctionTable.GlobalFunctions.AddFunction(function, replace);
 
         return function;
     }
 
     public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
     {
-        var function = this.SessionFunctions.GetFunctionById(functionId);
+        var function = FunctionTable.GlobalFunctions.GetFunctionById(functionId);
 
         return await function.InvokeFunctionAsync(this.chatService, boundParameters);
+    }
+
+    public void UpdateLastResponse(string updatedResponse)
+    {
+        if ( this.History[this.History.Count - 1].Role != ChatMessage.SenderRole.Assistant )
+        {
+            throw new InvalidOperationException("There is no last response from the assistant to update");
+        }
+
+        var lastMessage = this.History[this.History.Count - 1];
+
+        this.History.RemoveAt(this.History.Count - 1);
+        this.CurrentHistory.RemoveAt(this.CurrentHistory.Count - 1);
+
+        var updatedMessage = new ChatMessage(new ChatMessageContent(lastMessage.SourceChatMessageContent.Role, updatedResponse, lastMessage.SourceChatMessageContent.ModelId, lastMessage.SourceChatMessageContent.InnerContent, lastMessage.SourceChatMessageContent.Encoding, lastMessage.SourceChatMessageContent.Metadata));
+
+        this.History.Add(updatedMessage);
+        this.CurrentHistory.Add(updatedMessage);
     }
 
     public ChatMessageHistory History
@@ -104,14 +126,6 @@ public class ChatSession
         get
         {
             return this.publicChatHistory;
-        }
-    }
-
-    public bool HasFunction
-    {
-        get
-        {
-            return this.chatFunctionPrompt != null;
         }
     }
 
@@ -133,8 +147,6 @@ public class ChatSession
 
     public Guid Id { get; private set; }
 
-    public FunctionTable SessionFunctions { get; private set; }
-
     public AiProviderOptions AiOptions { get; private set; }
 
     public bool AccessValidated { get; private set; }
@@ -155,13 +167,25 @@ public class ChatSession
         }
     }
 
+    public int HistoryContextLimit
+    {
+        get
+        {
+            return this.latestContextLimit;
+        }
+    }
+
     public Exception? LastResponseError { get; private set; }
 
-    private string GenerateMessageInternal(string prompt, bool promptAsFunctionInput)
+    public object? CustomContext { get; private set; }
+
+    public string? Name { get; private set; }
+
+    private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
     {
         var newMessageRole = AuthorRole.User;
 
-        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt);
+        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt, new TimeSpan(0));
         ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
 
         string? response = null;
@@ -183,17 +207,16 @@ public class ChatSession
                 tokenException = null;
                 lastException = null;
 
-                if ( promptAsFunctionInput )
+                if ( functionDefinition is not null )
                 {
-                    if ( this.chatFunction is null )
-                    {
-                        throw new ArgumentException("Attempt to invoke a function when the session does not contain one");
-                    }
+                    var chatFunction = new Function(new string[] {"input"}, functionDefinition);
 
-                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, this.chatFunction);
+                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, chatFunction, prompt);
                 }
                 else
                 {
+                    UpdateHistoryContextFromLimit();
+
                     messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
                 }
 
@@ -264,6 +287,60 @@ public class ChatSession
         return response;
     }
 
+    private void UpdateHistoryContextFromLimit()
+    {
+        if ( this.latestContextLimit != -1 )
+        {
+            ChatHistory? targetHistory = null;
+
+            if ( this.chatHistory.Count > 1 && ( this.chatHistory.Count % 2 ) == 0 )
+            {
+                var systemMessage = this.chatHistory[0];
+
+                // This conversion to empty string is a way to make nullable
+                // avoid false positives :(
+                string systemPrompt = systemMessage.Content ?? "";
+
+                if ( systemPrompt.Length > 0 )
+                {
+                    var newHistory = this.conversationBuilder.CreateConversationHistory(systemPrompt);
+
+                    // Copy the latest limit * 2 messages
+                    var earliestIndex = Math.Max(1, ( this.chatHistory.Count - 1 ) - this.latestContextLimit * 2);
+
+                    for ( int currentIndex = earliestIndex; currentIndex < this.chatHistory.Count; currentIndex++ )
+                    {
+                        var currentMessage = this.chatHistory[currentIndex];
+                        string currentPrompt = currentMessage.Content ?? ""; // More nullable protection
+
+                        if ( currentPrompt.Length > 0 )
+                        {
+                            this.conversationBuilder.AddMessageToConversation(newHistory, currentMessage.Role, currentPrompt);
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                    targetHistory = newHistory;
+                }
+
+                if ( targetHistory is null )
+                {
+                    throw new ArgumentException("The conversation history is invalid.");
+                }
+            }
+
+            if ( targetHistory is null )
+            {
+                throw new ArgumentException("The conversation history is invalid.");
+            }
+
+            this.chatHistory = targetHistory;
+        }
+    }
+
     private void UpdateStateWithLatestResponse(Exception? responseException = null, bool noHistory = false)
     {
         this.LastResponseError = responseException;
@@ -284,9 +361,8 @@ public class ChatSession
     private ChatHistory totalChatHistory;
     private ChatMessageHistory publicChatHistory;
     private ChatMessageHistory publicTotalChatHistory;
-    private string? chatFunctionPrompt;
-    private Function? chatFunction;
     private TokenReducer tokenReducer;
     private IChatService chatService;
+    private int latestContextLimit;
 }
 

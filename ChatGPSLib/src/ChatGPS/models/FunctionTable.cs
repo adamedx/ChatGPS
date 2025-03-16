@@ -11,11 +11,18 @@ namespace Modulus.ChatGPS.Models;
 
 public class FunctionTable
 {
-    public FunctionTable()
+    static FunctionTable()
+    {
+        GlobalFunctions = new FunctionTable();
+    }
+
+    private FunctionTable()
     {
         this.functionById = new Dictionary<Guid,Function>();
         this.functionByName = new SortedDictionary<string, Function>(StringComparer.InvariantCultureIgnoreCase);
     }
+
+    public static FunctionTable GlobalFunctions { get; private set; }
 
     public void AddFunction(Function function, bool replace = false)
     {
@@ -78,7 +85,7 @@ public class FunctionTable
         {
             if ( ! functionByName.TryGetValue(name, out targetFunction) && ! ignoreMissing )
             {
-                throw new KeyNotFoundException($"The specified function named {name} was not found");
+                throw new KeyNotFoundException($"The specified function named {name} was not found in the current session.");
             }
         }
 

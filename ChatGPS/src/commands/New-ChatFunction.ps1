@@ -21,13 +21,10 @@ All chat functions previously defined by New-ChatFunction can be enumerated usin
 This mandatory parameter is a Handlebars template (https://handlebarsjs.com/) compatible string containing a natural language description of the function. Parameters are specified via the Handlebars syntax as alphanumeric identifiers prefixed with the '$' character and surrounded by two sets of '{}' characters, i.e. the parameter named 'rows" would appear inline with the function definition's natural language text as '{{$rows}}'.
 
 .PARAMETER Name
-The chat function can be given an optional friendly name for use with other function-related commands such as Invoke-ChatFunction or simply as a descriptive reminder of the function's purpose. The name must be unique within a particular chat session -- if New-ChatFunction is specified with a Name parameter that is already assigned to a previously defined function, the command will fail unless the Force parameter is also specified, in which case the previously defined function is removed to preserve the condition that function names are unique within a session.
+The chat function can be given an optional friendly name for use with other function-related commands such as Invoke-ChatFunction or simply as a descriptive reminder of the function's purpose. The name must be unique -- if New-ChatFunction is specified with a Name parameter that is already assigned to a previously defined function, the command will fail unless the Force parameter is also specified, in which case the previously defined function is removed to preserve the name uniqueness condition.
 
 .PARAMETER Force
 Use the Force parameter to specify that default behavior to fail the command if the value of the Name parameter specified to the command has already been assigned to a function is overridden. In such a case, the previously existing function will no longer be associated with the name, which will be associated with the function defined by this invocation.
-
-.PARAMETER Session
-The chat session to which the command is targeted.
 
 .OUTPUTS
 A function object that describes the defined function and that may be passed as input to other commands that operate on functions such as Invoke-ChatFunction or Remove-ChatFunction.
@@ -76,20 +73,18 @@ function New-ChatFunction {
         [parameter(position=1, ValueFromPipelineByPropertyName=$true)]
         [string] $Name,
 
-        [switch] $Force,
-
-        [Modulus.ChatGPS.Models.ChatSession] $Session
+        [switch] $Force
     )
 
     begin {
-        $sessionFunctions = GetSessionFunctions $Session
+        $functions = GetFunctionInfo
     }
 
     process {
         $parameters = [Function]::GetParametersFromDefinition($Definition)
 
         $function = [Modulus.ChatGPS.Models.Function]::new($Name, $parameters, $Definition)
-        $sessionFunctions.AddFunction($function, $Force.IsPresent)
+        $functions.AddFunction($function, $Force.IsPresent)
 
         $function
     }

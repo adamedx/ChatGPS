@@ -8,19 +8,35 @@
 $commands = @(
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
+    'Get-ChatEncryptedUnicodeKeyCredential'
     'Get-ChatFunction'
     'Get-ChatHistory'
     'Get-ChatSession'
+    'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
     'Invoke-ChatFunction'
     'New-ChatFunction'
-    'New-ChatVoice'
     'New-ChatScriptBlock'
+    'New-ChatSettings'
+    'New-ChatVoice'
     'Out-ChatVoice'
     'Remove-ChatFunction'
+    'Remove-ChatSession'
+    'Save-ChatSessionSetting'
+    'Select-ChatSession'
     'Send-ChatMessage'
     'Set-ChatCurrentVoice'
     'Start-ChatREPL'
+    'Update-ChatSettings'
 )
 
-export-modulemember -function $commands
+$aliases = @(
+    'chatgps'
+    'frun'
+    'gss'
+    'ncs'
+    'sch'
+    'scs'
+)
+
+export-modulemember -function $commands -alias $aliases

@@ -5,6 +5,8 @@
 //
 
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -15,9 +17,10 @@ namespace Modulus.ChatGPS.Services;
 
 public abstract class ChatService : IChatService
 {
-    public ChatService(AiOptions options)
+    public ChatService(AiOptions options, string? userAgent = null)
     {
         this.options = options;
+        this.userAgent = userAgent;
     }
 
     public ChatHistory CreateChat(string prompt)
@@ -62,6 +65,49 @@ public abstract class ChatService : IChatService
 
         return new FunctionOutput(result);
     }
+
+    protected string GetCompatibleApiKey(string encryptedString, bool? isUnencrypted)
+    {
+        // Encryption is only supported on Windows -- assume the string is already decrypted
+        // when not on Windows or if the isUnencrypted flag is true.
+        return ! OperatingSystem.IsWindows() || ( isUnencrypted ?? false ) ?
+            encryptedString :
+            GetDecryptedStringFromEncryptedUnicodeHexBytes(encryptedString);
+    }
+
+    protected string GetDecryptedStringFromEncryptedUnicodeHexBytes(string encryptedString)
+    {
+        // Ensure that on non-Windows platforms we do not execute this method by throwing an
+        // exception. This also avoids compiler warning CA1416.
+        if ( ! OperatingSystem.IsWindows() )
+        {
+            throw new PlatformNotSupportedException("Encryption support is not available for this platform; it is only available for the Windows platform.");
+        }
+
+        if ( ( encryptedString.Length % 2 ) != 0 )
+        {
+            throw new ArgumentException("The specified string format is invalid -- it must contain an even number of characters, all of which must be hexadecimal digits");
+        }
+
+        var encryptedBytes = new byte[encryptedString.Length / 2];
+        var currentByteCharacters = new char[2];
+        int destination = 0;
+
+        for ( var source = 0; source < encryptedString.Length; source += 2 )
+        {
+            currentByteCharacters[0] = encryptedString[source];
+            currentByteCharacters[1] = encryptedString[source + 1];
+            encryptedBytes[destination++] = Convert.ToByte(new string(currentByteCharacters), 16);
+        }
+
+        var decryptedBytes = ProtectedData.Unprotect(encryptedBytes, null, DataProtectionScope.CurrentUser);
+
+        // This MUST be unicode -- apparently the serialized output uses unicode
+        var result = System.Text.Encoding.Unicode.GetString(decryptedBytes);
+
+        return result;
+    }
+
 
     protected bool HasSucceeded { get; private set; }
 
@@ -123,4 +169,5 @@ public abstract class ChatService : IChatService
     protected Kernel? serviceKernel;
     protected IChatCompletionService? chatCompletionService;
     protected AiOptions options;
+    protected string? userAgent;
 }

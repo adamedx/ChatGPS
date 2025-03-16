@@ -39,10 +39,10 @@ public class ServiceBuilder
         switch ( provider )
         {
             case ModelProvider.AzureOpenAI:
-                newService = new AzureOpenAIChatService( this.options );
+                newService = new AzureOpenAIChatService( this.options, this.userAgent );
                 break;
             case ModelProvider.OpenAI:
-                newService = new OpenAIChatService( this.options );
+                newService = new OpenAIChatService( this.options, this.userAgent );
                 break;
             case ModelProvider.LocalOnnx:
                 newService = new LocalAIChatService( this.options );
@@ -58,7 +58,7 @@ public class ServiceBuilder
     {
         if ( this.options is not null )
         {
-            throw new ArgumentException("Optoins have already been specified for this service");
+            throw new ArgumentException("Options have already been specified for this service");
         }
 
         this.options = options;
@@ -66,7 +66,20 @@ public class ServiceBuilder
         return this;
     }
 
+    public ServiceBuilder WithUserAgent( string? userAgent )
+    {
+        if ( this.userAgent is not null )
+        {
+            throw new ArgumentException("A user agent has already been specified for this service");
+        }
+
+        this.userAgent = userAgent;
+
+        return this;
+    }
+
     private ServiceBuilder() {}
 
     private AiOptions? options;
+    private string? userAgent;
 }

@@ -5,16 +5,22 @@
 
 
 function Start-ChatREPL {
-    [cmdletbinding(positionalbinding=$false)]
+    [cmdletbinding(positionalbinding=$false, defaultparametersetname='chat')]
     param(
         [parameter(position=0)]
         [string] $InitialPrompt,
 
+        [parameter(parametersetname='functiondefinition')]
+        [string] $FunctionDefinition,
+
+        [parameter(parametersetname='functionname')]
+        [string] $FunctionName,
+
+        [parameter(parametersetname='functionid')]
+        [string] $FunctionId,
+
         [validateset('None', 'Markdown', 'PowerShellEscaped')]
         [string] $OutputFormat = 'None',
-
-        [parameter(valuefrompipeline=$true)]
-        $Reply,
 
         [ScriptBlock] $InputHint = { $userName = $env:USER ? $env:USER : $env:USERNAME; "($($userName)) ChatGPS>" },
 
@@ -30,9 +36,9 @@ function Start-ChatREPL {
 
         [switch] $RawOutput,
 
-        [ScriptBlock] $ResponseBlock,
+        [ScriptBlock] $ReceiveBlock,
 
-        [ScriptBlock] $ReplyBlock,
+        [ScriptBlock] $UserReplyBlock,
 
         [int32] $MaxReplies = 1,
 
@@ -60,16 +66,36 @@ function Start-ChatREPL {
             @{}
         }
 
+        $function = if ( $FunctionDefinition ) {
+            New-ChatFunction $FunctionDefinition
+        } elseif ( $FunctionName ) {
+            Get-ChatFunction -Name $FunctionName
+        } elseif ( $FunctionId ) {
+            Get-ChatFunction -Id $FunctionId
+        }
+
+        $functionDefinitionParameter = if ( $function ) {
+            $parameters = $function | Get-ChatFunction | select-object -expandproperty Parameters
+
+            if ( ! ( $parameters.keys -contains 'input' ) ) {
+                throw [ArgumentException]::new("The specified function does not contain the mandatory parameter named 'input'")
+            }
+
+            @{FunctionDefinition=$FunctionDefinition}
+        } else {
+            @{}
+        }
+
         $replState = [ReplState]::new($sessionArgument.Session, 'NaturalLanguage')
 
         $soundParameters = @{}
         if ( $MessageSound.IsPresent ) { $soundParameters['MessageSound'] = $MessageSound }
         if ( $SoundPath ) { $soundParameters['SoundPath'] = $SoundPath }
 
-        $targetResponseBlock = @{}
+        $targetReceiveBlock = @{}
 
-        if ( $ResponseBlock ) {
-            $targetResponseBlock = @{ResponseBlock=$ResponseBlock}
+        if ( $ReceiveBlock ) {
+            $targetReceiveBlock = @{ReceiveBlock=$ReceiveBlock}
         }
 
         $initialResponse = $null
@@ -99,7 +125,7 @@ function Start-ChatREPL {
         $lastResponse = $initialResponse
 
         if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
-            TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @targetResponseBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
+            TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @targetReceiveBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
         }
     }
 
@@ -116,8 +142,8 @@ function Start-ChatREPL {
                 @{}
             }
 
-            $replyText = if ( $ReplyBlock -and ( $currentReplies -ne 0 ) ) {
-                $replyData = GetChatReply -SourceMessage $lastResponse.Response -ReplyBlock $ReplyBlock -MaxReplies $currentReplies
+            $replyText = if ( $UserReplyBlock -and ( $currentReplies -ne 0 ) ) {
+                $replyData = GetChatReply -SourceMessage $lastResponse.Response -ReplyBlock $UserReplyBlock -MaxReplies $currentReplies
 
                 if ( $replyData ) {
                     if ( $inputHintValue ) {
@@ -174,7 +200,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText -ForceChat:$forceChat @sessionArgument -OutputFormat $OutputFormat @targetResponseBlock @soundParameters -RawOutput:$RawOutput.IsPresent
+            $result = Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter
 
             $lastResponse = $result
 

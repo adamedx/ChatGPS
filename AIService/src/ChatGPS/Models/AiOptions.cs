@@ -34,6 +34,7 @@ public class AiProviderOptions
         this.TokenLimit = options.TokenLimit;
         this.OutputType = options.OutputType;
         this.SigninInteractionAllowed = options.SigninInteractionAllowed;
+        this.PlainTextApiKey = options.PlainTextApiKey;
     }
 
     public string? Provider {get; set;}
@@ -43,6 +44,7 @@ public class AiProviderOptions
     public string? DeploymentName { get; set; }
     public int? TokenLimit { get; set; }
     public bool? SigninInteractionAllowed { get; set; }
+    public bool? PlainTextApiKey { get; set; }
 
     public string? OutputType {get; set;}
 }

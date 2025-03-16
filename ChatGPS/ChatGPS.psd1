@@ -12,7 +12,7 @@
 RootModule = 'src/ChatGPS.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.1.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -72,19 +72,26 @@ FormatsToProcess = @('src/format/format.ps1xml')
  FunctionsToExport = @(
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
+    'Get-ChatEncryptedUnicodeKeyCredential'
     'Get-ChatFunction'
     'Get-ChatHistory'
     'Get-ChatSession'
+    'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
     'Invoke-ChatFunction'
     'New-ChatFunction'
     'New-ChatVoice'
     'New-ChatScriptBlock'
+    'New-ChatSettings'
     'Out-ChatVoice'
+    'Remove-ChatSession'
     'Remove-ChatFunction'
+    'Save-ChatSessionSetting'
+    'Select-ChatSession'
     'Send-ChatMessage'
     'Set-ChatCurrentVoice'
     'Start-ChatREPL'
+    'Update-ChatSettings'
 )
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
@@ -94,7 +101,14 @@ CmdletsToExport = @()
 VariablesToExport = '*'
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @()
+AliasesToExport = @(
+    'chatgps'
+    'frun'
+    'gss'
+    'ncs'
+    'sch'
+    'scs'
+)
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
@@ -116,19 +130,30 @@ FileList = @(
     'src/shell.ps1'
     'src/commands/Connect-ChatSession.ps1'
     'src/commands/Get-ChatCurrentVoice.ps1'
+    'src/commands/Get-ChatEncryptedUnicodeKeyCredential.ps1'
     'src/commands/Get-ChatFunction.ps1'
     'src/commands/Get-ChatHistory.ps1'
     'src/commands/Get-ChatSession.ps1'
+    'src/commands/Get-ChatSettingsInfo.ps1'
     'src/commands/Get-ChatVoiceName.ps1'
     'src/commands/Invoke-ChatFunction.ps1'
     'src/commands/New-ChatFunction.ps1'
-    'src/commands/New-ChatVoice.ps1'
     'src/commands/New-ChatScriptBlock.ps1'
+    'src/commands/New-ChatSettings.ps1'
+    'src/commands/New-ChatVoice.ps1'
     'src/commands/Out-ChatVoice.ps1'
     'src/commands/Remove-ChatFunction.ps1'
+    'src/commands/Remove-ChatSession.ps1'
+    'src/commands/Save-ChatSessionSetting.ps1'
+    'src/commands/Select-ChatSession.ps1'
     'src/commands/Send-ChatMessage.ps1'
     'src/commands/Set-ChatCurrentVoice.ps1'
     'src/commands/Start-ChatREPL.ps1'
+    'src/commands/Update-ChatSettings.ps1'
+    'src/aliases.ps1'
+    'src/config.ps1'
+    'src/config/Settings.ps1'
+    'src/format/colorstring.ps1'
     'src/format/format.ps1xml'
     'src/function.ps1'
     'src/function/Function.ps1'

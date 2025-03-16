@@ -12,7 +12,7 @@ namespace Modulus.ChatGPS;
 
 public class ChatGPS
 {
-    public static ChatSession CreateSession(AiOptions options, string? aiProxyHostPath, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? chatFunctionPrompt = null, string[]? chatFunctionParameters = null, string? logDirectoryPath = null, string? logLevel = null, IChatService? chatService = null)
+    public static ChatSession CreateSession(AiOptions options, string? aiProxyHostPath, string prompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, string? logDirectoryPath = null, string? logLevel = null, IChatService? chatService = null, int latestContextLimit = -1, object? customContext = null, string? name = null, string? userAgent = null)
     {
         var targetChatService = chatService;
 
@@ -38,12 +38,10 @@ public class ChatGPS
             {
                 ServiceBuilder builder = ServiceBuilder.CreateBuilder();
 
-                targetChatService = builder.WithOptions(options).Build();
+                targetChatService = builder.WithOptions(options).WithUserAgent(userAgent).Build();
             }
         }
 
-        string? targetChatFunctionPrompt = string.IsNullOrEmpty(chatFunctionPrompt) ? null : chatFunctionPrompt;
-
-        return new ChatSession(targetChatService, prompt, tokenStrategy, null, targetChatFunctionPrompt, chatFunctionParameters);
+        return new ChatSession(targetChatService, prompt, tokenStrategy, null, latestContextLimit, customContext, name);
     }
 }

@@ -16,15 +16,18 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 internal class ConversationBuilder
 {
-    internal ConversationBuilder(IChatService chatService, string? chatFunctionPrompt = null)
+    internal ConversationBuilder(IChatService chatService)
     {
-        this.chatFunctionPrompt = chatFunctionPrompt;
         this.chatService = chatService;
     }
 
     internal ChatHistory CreateConversationHistory(string systemPrompt)
     {
-        return this.chatService.CreateChat(systemPrompt);
+        var history = this.chatService.CreateChat(systemPrompt);
+
+        history[0].Metadata = CreateMessageProperties(new TimeSpan(0));
+
+        return history;
     }
 
     internal IChatService AIService
@@ -65,7 +68,7 @@ internal class ConversationBuilder
 
         if ( prompt is not null )
         {
-            AddMessageToConversation(chatHistory, AuthorRole.User, prompt);
+            AddMessageToConversation(chatHistory, AuthorRole.User, prompt, new TimeSpan(0));
         }
 
         var stopWatch = new Stopwatch();
@@ -142,6 +145,4 @@ internal class ConversationBuilder
     private IChatService chatService;
 
     private int messageIndex = 0;
-
-    private string? chatFunctionPrompt;
 }

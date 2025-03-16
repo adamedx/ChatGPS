@@ -4,16 +4,25 @@
 # All rights reserved.
 
 
+<#
+
+From earlier function prompt
+Specify FunctionPrompt so that all chat prompts will be processes through the function specified by FunctionPrompt. The function *must* specify the function using the Handlebars syntax with exactly one parameter named 'input'. See the New-ChatFunction command documentation for more details about function definition syntax.
+
+#>
+
 function Send-ChatMessage {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(position=0, mandatory=$true, valuefrompipeline=$true)]
         [string] $Message,
 
+        [string] $FunctionDefinition,
+
         [validateset('None', 'Markdown', 'PowerShellEscaped')]
         [string] $OutputFormat,
 
-        [ScriptBlock] $ResponseBlock,
+        [ScriptBlock] $ReceiveBlock,
 
         [ScriptBlock] $ReplyBlock,
 
@@ -30,9 +39,7 @@ function Send-ChatMessage {
 
         [switch] $MessageSound,
 
-        [string] $SoundPath,
-
-        [switch] $ForceChat
+        [string] $SoundPath
     )
 
     begin {
@@ -51,7 +58,21 @@ function Send-ChatMessage {
             [System.Media.SoundPlayer]::new($targetSoundPath)
         }
 
-        $targetSession = GetTargetSession $Session $true
+        $messageFunction = if ( $FunctionDefinition ) {
+            $function = New-ChatFunction $FunctionDefinition
+
+            $parameters = $function | Get-ChatFunction | select-object -expandproperty Parameters
+
+            if ( ! ( $parameters.keys -contains 'input' ) ) {
+                throw [ArgumentException]::new("The specified function does not contain the mandatory parameter named 'input'")
+            }
+
+            $FunctionDefinition
+        }
+
+        $targetSession = GetTargetSession $Session
+
+        SendConnectionTestMessage $targetSession $true
     }
 
     process {
@@ -60,7 +81,7 @@ function Send-ChatMessage {
 
             write-progress "Sending message" -percentcomplete 35
 
-            $response = SendMessage $targetSession $currentMessage $ForceChat.IsPresent
+            $response = SendMessage $targetSession $currentMessage $messageFunction
 
             write-progress "Response received, transforming" -percentcomplete 70
 

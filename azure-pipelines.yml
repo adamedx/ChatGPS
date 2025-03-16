@@ -1,6 +1,4 @@
-# Unit test pipeline for PowerShell Desktop platform
-# This pipeline uses the Pester test framework to
-# execute unit tests for the module.
+# CI pipeline configuration
 # https://aka.ms/yaml
 
 trigger:

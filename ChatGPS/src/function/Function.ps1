@@ -9,19 +9,8 @@ class Function {
     hidden static [System.Text.RegularExpressions.RegEx] $parameterMatcher = [System.Text.RegularExpressions.RegEx]::new('\{\{\$(?<' + ([Function]::captureGroupName) + '>([a-z]|[A-Z]|[0-9]|_)+)\}\}')
     hidden static [ScriptBlock] $FunctionNameCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-
-        $connection = $fakeBoundParameters['Connection']
-
-        $targetConnection = if ( $connection ) {
-            $Connection
-        } else {
-            GetCurrentSession $false
-        }
-
-        if ( $targetConnection ) {
-            $sessionFunctions = $targetConnection.SessionFunctions
-            $sessionFunctions.GetNamedFunctions().Name | where { $_.StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }
-        }
+        $functions = GetFunctionInfo
+        $functions.GetNamedFunctions().Name | where { $_.StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }
     }
 
     static [string[]] GetParametersFromDefinition([string] $definition) {
@@ -47,8 +36,6 @@ class Function {
     }
 }
 
-function GetSessionFunctions($userSpecifiedSession) {
-    $targetSession = GetTargetSession $userSpecifiedSession $true
-
-    $targetSession.SessionFunctions
+function GetFunctionInfo {
+    [Modulus.ChatGPS.Models.FunctionTable]::GlobalFunctions
 }

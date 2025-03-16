@@ -16,7 +16,7 @@ namespace Modulus.ChatGPS.Services;
 
 public class OpenAIChatService : ChatService
 {
-    internal OpenAIChatService(AiOptions options) : base(options) { }
+    internal OpenAIChatService(AiOptions options, string? userAgent = null) : base(options, userAgent) { }
 
     protected override Kernel GetKernel()
     {
@@ -37,9 +37,11 @@ public class OpenAIChatService : ChatService
 
         var builder = Kernel.CreateBuilder();
 
+        var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
+
         builder.AddOpenAIChatCompletion(
             modelId: this.options.ModelIdentifier,
-            apiKey: this.options.ApiKey);
+            apiKey: cleartextKey);
 
         // Configure throttling retry behavior
         builder.Services.ConfigureHttpClientDefaults(c =>
