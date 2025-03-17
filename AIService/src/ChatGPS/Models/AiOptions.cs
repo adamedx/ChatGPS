@@ -45,6 +45,7 @@ public class AiProviderOptions
     public int? TokenLimit { get; set; }
     public bool? SigninInteractionAllowed { get; set; }
     public bool? PlainTextApiKey { get; set; }
+    public bool? AllowAgentAccess { get; set; }
 
     public string? OutputType {get; set;}
 }

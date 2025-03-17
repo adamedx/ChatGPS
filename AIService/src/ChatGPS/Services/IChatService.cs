@@ -14,7 +14,7 @@ namespace Modulus.ChatGPS.Services;
 public interface IChatService
 {
     public ChatHistory CreateChat(string prompt);
-    public Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history);
+    public Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess = null);
     public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string, object?>? parameters);
     public AiOptions ServiceOptions { get; }
 }

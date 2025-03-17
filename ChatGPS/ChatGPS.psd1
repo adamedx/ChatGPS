@@ -79,6 +79,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
     'Invoke-ChatFunction'
+    'Invoke-ChatScriptBlock'
     'New-ChatFunction'
     'New-ChatVoice'
     'New-ChatScriptBlock'
