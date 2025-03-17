@@ -35,9 +35,9 @@ internal class ProxyService : IChatService
 
     public AiOptions ServiceOptions { get; private set; }
 
-    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
+    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
-        var sendChatRequest = new SendChatRequest(history);
+        var sendChatRequest = new SendChatRequest(history, allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(sendChatRequest);
 

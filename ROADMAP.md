@@ -115,7 +115,7 @@ Roadmap for ChatGPS
 * User-defined plugins should be their own config section
 * Change chat protocol to enable / disable function calling
 * Send-ChatCommand should have a parameter to control calling
-* Function calling should be a session option but overridable
+* Function calling should be a session option but overrideable
 * Session should be able to disable / enable function calling
 * Can plugins be removed?
 * Maybe use profiles to switch between sets of plugins?

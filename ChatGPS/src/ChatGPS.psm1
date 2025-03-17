@@ -14,6 +14,7 @@ $commands = @(
     'Get-ChatSession'
     'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
+    'Invoke-ChatScriptBlock'
     'Invoke-ChatFunction'
     'New-ChatFunction'
     'New-ChatScriptBlock'

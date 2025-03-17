@@ -36,13 +36,23 @@ public abstract class ChatService : IChatService
         }
     }
 
-    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
+    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
         IReadOnlyList<ChatMessageContent> result;
 
+        var requestSettings = new OpenAIPromptExecutionSettings();
+
+        var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
+
+        if ( allowFunctionCall )
+        {
+            requestSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
+        }
+
         try
         {
-            result = await GetChatCompletionService().GetChatMessageContentsAsync(history);
+            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, GetKernel());
             this.HasSucceeded = true;
         }
         catch (Exception exception)

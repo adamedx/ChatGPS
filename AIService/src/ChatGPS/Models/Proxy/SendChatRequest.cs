@@ -12,10 +12,11 @@ public class SendChatRequest : CommandRequest
 {
     public SendChatRequest() {}
 
-    public SendChatRequest(ChatHistory chatHistory)
+    public SendChatRequest(ChatHistory chatHistory, bool? allowFunctionCall = null)
     {
         this.History = chatHistory;
     }
 
-    public ChatHistory? History{ get; set; }
+    public ChatHistory? History { get; set; }
+    public bool? AllowFunctionCall { get; set; }
 }
