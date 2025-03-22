@@ -15,6 +15,7 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Proxy;
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
 using Modulus.ChatGPS.Models.Proxy;
 
 
@@ -26,6 +27,7 @@ internal class ProxyService : IChatService
         this.proxyConnection = new ProxyConnection(this.proxyTransport, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
         this.ServiceOptions = new AiOptions(options);
+        this.pluginTable = new PluginTable();
     }
 
     public ChatHistory CreateChat(string prompt)
@@ -83,10 +85,28 @@ internal class ProxyService : IChatService
         return invokeFunctionResponse.Output;
     }
 
+    public void AddPlugin(string pluginName, object[]? parameters)
+    {
+        this.pluginTable.AddPlugin(pluginName, parameters);
+    }
+
+    public void RemovePlugin(string pluginName)
+    {
+        this.pluginTable.RemovePlugin(pluginName);
+    }
+
+    public IEnumerable<PluginInfo> Plugins
+    {
+        get
+        {
+            return this.pluginTable.Plugins;
+        }
+    }
+
     Transport proxyTransport;
 
     bool whatIfMode;
 
     ProxyConnection proxyConnection;
-
+    PluginTable pluginTable;
 }

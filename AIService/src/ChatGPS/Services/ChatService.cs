@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Plugins.Core;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
 
 namespace Modulus.ChatGPS.Services;
 
@@ -52,7 +54,7 @@ public abstract class ChatService : IChatService
 
         try
         {
-            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, GetKernel());
+            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, GetKernelWithState());
             this.HasSucceeded = true;
         }
         catch (Exception exception)
@@ -65,15 +67,52 @@ public abstract class ChatService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
     {
-        var kernelFunction = GetKernel().CreateFunctionFromPrompt(definitionPrompt);
+        var kernelFunction = GetKernelWithState().CreateFunctionFromPrompt(definitionPrompt);
 
         var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>());
 
-        var result = await GetKernel().InvokeAsync(kernelFunction, kernelArguments);
+        var result = await GetKernelWithState().InvokeAsync(kernelFunction, kernelArguments);
 
         this.HasSucceeded = true;
 
         return new FunctionOutput(result);
+    }
+
+    public void AddPlugin(string pluginName, object[]? parameters)
+    {
+        GetKernelWithState();
+
+        if ( this.pluginTable is null )
+        {
+            throw new InvalidOperationException("The plugin table was not initialized");
+        }
+
+        this.pluginTable.AddPlugin(pluginName, parameters);
+    }
+
+    public void RemovePlugin(string pluginName)
+    {
+        GetKernelWithState();
+
+        if ( this.pluginTable is null )
+        {
+            throw new InvalidOperationException("The plugin table was not initialized");
+        }
+
+        this.pluginTable.RemovePlugin(pluginName);
+    }
+
+    public IEnumerable<PluginInfo> Plugins
+    {
+        get
+        {
+            if ( this.pluginTable is null )
+            {
+                throw new InvalidOperationException("The plugin table was not initialized");
+            }
+
+            return this.pluginTable.Plugins;
+        }
     }
 
     protected string GetCompatibleApiKey(string encryptedString, bool? isUnencrypted)
@@ -123,7 +162,7 @@ public abstract class ChatService : IChatService
 
     private KernelFunction CreateFunction(string definitionPrompt)
     {
-        var kernel = GetKernel();
+        var kernel = GetKernelWithState();
 
         var requestSettings = new OpenAIPromptExecutionSettings();
 
@@ -143,6 +182,18 @@ public abstract class ChatService : IChatService
 
     protected abstract Kernel GetKernel();
 
+    private Kernel GetKernelWithState()
+    {
+        var kernel = GetKernel();
+
+        if ( this.pluginTable is null )
+        {
+            this.pluginTable = new PluginTable(kernel);
+        }
+
+        return kernel;
+    }
+
     private IChatCompletionService GetChatCompletionService()
     {
         if ( this.chatCompletionService is null )
@@ -151,7 +202,7 @@ public abstract class ChatService : IChatService
 
             try
             {
-                kernel = GetKernel();
+                kernel = GetKernelWithState();
             }
             catch (Exception exception)
             {
@@ -180,4 +231,5 @@ public abstract class ChatService : IChatService
     protected IChatCompletionService? chatCompletionService;
     protected AiOptions options;
     protected string? userAgent;
+    protected PluginTable? pluginTable;
 }
