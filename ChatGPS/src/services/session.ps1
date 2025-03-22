@@ -62,8 +62,6 @@ function CreateSession {
 
         [switch] $Force,
 
-        [switch] $AllowAgentAccess,
-
         $BoundParameters
     )
 

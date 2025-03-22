@@ -416,6 +416,7 @@ function Connect-ChatSession {
     $options.LocalModelPath = $LocalModelPath
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
     $options.PlainTextApiKey = $PlainTextApiKey.IsPresent
+    $options.AllowAgentAccess = $AllowAgentAccess.IsPresent
 
     $isLocal = !  ( ! $options.LocalModelPath )
 
@@ -491,7 +492,7 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent) -AllowAgentAccess:($AllowAgentAccess.IsPresent) -BoundParameters $PSBoundParameters
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent) -BoundParameters $PSBoundParameters
 
     if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
         try {
