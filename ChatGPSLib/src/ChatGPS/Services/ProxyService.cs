@@ -39,7 +39,7 @@ internal class ProxyService : IChatService
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
-        var sendChatRequest = new SendChatRequest(history, allowAgentAccess);
+        var sendChatRequest = new SendChatRequest(history, this.pluginTable.Plugins, allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(sendChatRequest);
 
@@ -83,6 +83,11 @@ internal class ProxyService : IChatService
         }
 
         return invokeFunctionResponse.Output;
+    }
+
+    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
+    {
+        return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
     }
 
     public void AddPlugin(string pluginName, object[]? parameters)

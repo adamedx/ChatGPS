@@ -78,6 +78,19 @@ public abstract class ChatService : IChatService
         return new FunctionOutput(result);
     }
 
+
+    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
+    {
+        GetKernelWithState();
+
+        if ( this.pluginTable is null )
+        {
+            throw new InvalidOperationException("The plugin table was not initialized");
+        }
+
+        return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
+    }
+
     public void AddPlugin(string pluginName, object[]? parameters)
     {
         GetKernelWithState();
@@ -106,6 +119,8 @@ public abstract class ChatService : IChatService
     {
         get
         {
+            GetKernelWithState();
+
             if ( this.pluginTable is null )
             {
                 throw new InvalidOperationException("The plugin table was not initialized");
