@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 using Modulus.ChatGPS.Models.Proxy;
+using Modulus.ChatGPS.Plugins;
 
 internal class SendChatCommand : Command
 {
@@ -45,7 +46,9 @@ internal class SendChatCommand : Command
 
         var connection = this.processor.Connections.GetConnection(this.serviceConnectionId);
 
-        var task = connection.ChatService.GetChatCompletionAsync(this.arguments.History);
+        PluginTable.SynchronizePlugins(connection.ChatService, this.arguments.Plugins);
+
+        var task = connection.ChatService.GetChatCompletionAsync(this.arguments.History, this.arguments.AllowFunctionCall);
 
         var result = task.Result;
 
