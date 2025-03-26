@@ -42,7 +42,7 @@ public class PluginTable : IPluginTable
         return hasPlugin;
     }
 
-    public void AddPlugin(string name, object[]? parameters)
+    public void AddPlugin(string name, string[]? parameters)
     {
         var plugin = Plugin.GetPluginByName(name);
         var pluginInfo = new PluginInfo(name, plugin, parameters);
@@ -63,12 +63,14 @@ public class PluginTable : IPluginTable
 
         if ( this.kernel is not null )
         {
-            if ( pluginInfo.GetKernelPlugin() is null )
+            var kernelPlugin = pluginInfo.GetKernelPlugin();
+
+            if ( kernelPlugin is null )
             {
                 throw new InvalidOperationException($"The specified plugin {name} was not bound to a native plugin");
             }
 
-            this.kernel.Plugins.Remove(pluginInfo.GetKernelPlugin());
+            this.kernel.Plugins.Remove(kernelPlugin);
         }
 
         this.plugins.Remove(name);
@@ -88,15 +90,15 @@ public class PluginTable : IPluginTable
         {
             var latestPluginMap = ToPluginMap(latestPlugins);
 
-            foreach ( var latestPluginInfo in latestPlugins )
-            {
-                latestPluginMap.Add(latestPluginInfo.Name, latestPluginInfo);
-            }
-
             // Remove any plugins that have been removed from the latest list or
             // are out of date
             foreach ( var currentPlugin in pluginTable.Plugins )
             {
+                if ( currentPlugin.Name is null )
+                {
+                    throw new InvalidOperationException("The plugin information is null");
+                }
+
                 if ( ! latestPluginMap.ContainsKey(currentPlugin.Name) ||
                      ( latestPluginMap[currentPlugin.Name].Id != currentPlugin.Id ) )
                 {
@@ -104,9 +106,15 @@ public class PluginTable : IPluginTable
                 }
             }
 
+            // Add plugins from the latest list that aren't present in the current
             foreach ( var latestPluginInfo in latestPlugins )
             {
                 PluginInfo? foundPlugin;
+
+                if ( latestPluginInfo.Name is null )
+                {
+                    throw new InvalidOperationException("The plugin information is null");
+                }
 
                 if ( ! pluginTable.TryGetPluginInfo(latestPluginInfo.Name, out foundPlugin) )
                 {
@@ -125,6 +133,11 @@ public class PluginTable : IPluginTable
 
         foreach ( var pluginInfo in plugins )
         {
+            if ( pluginInfo.Name is null )
+            {
+                throw new InvalidOperationException("The plugin information is null");
+            }
+
             pluginMap.Add(pluginInfo.Name, pluginInfo);
         }
 

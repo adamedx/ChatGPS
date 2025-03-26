@@ -38,13 +38,13 @@ internal class ConversationBuilder
         }
     }
 
-    internal async Task<string> SendMessageAsync(ChatHistory chatHistory)
+    internal async Task<string> SendMessageAsync(ChatHistory chatHistory, bool? allowAgentAccess = null)
     {
         var stopWatch = new Stopwatch();
 
         stopWatch.Start();
 
-        var responses = await this.chatService.GetChatCompletionAsync(chatHistory);
+        var responses = await this.chatService.GetChatCompletionAsync(chatHistory, allowAgentAccess);
 
         stopWatch.Stop();
 

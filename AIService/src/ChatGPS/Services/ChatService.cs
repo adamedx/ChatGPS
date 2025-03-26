@@ -91,7 +91,7 @@ public abstract class ChatService : IChatService
         return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
     }
 
-    public void AddPlugin(string pluginName, object[]? parameters)
+    public void AddPlugin(string pluginName, string[]? parameters)
     {
         GetKernelWithState();
 
@@ -197,7 +197,7 @@ public abstract class ChatService : IChatService
 
     protected abstract Kernel GetKernel();
 
-    private Kernel GetKernelWithState()
+    protected Kernel GetKernelWithState()
     {
         var kernel = GetKernel();
 

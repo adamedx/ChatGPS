@@ -90,7 +90,7 @@ internal class ProxyService : IChatService
         return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
     }
 
-    public void AddPlugin(string pluginName, object[]? parameters)
+    public void AddPlugin(string pluginName, string[]? parameters)
     {
         this.pluginTable.AddPlugin(pluginName, parameters);
     }

@@ -14,14 +14,14 @@ function Get-ChatPlugin {
         [switch] $CurrentSession
     )
     begin {
-        $currentSession = if ( $CurrentSession.IsPresent ) {
+        $currentSessionInternal = if ( $CurrentSession.IsPresent ) {
             Get-ChatSession -Current
         }
     }
 
     process {
-        $targetSession = if ( $currentSession ) {
-            $currentSession
+        $targetSession = if ( $currentSessionInternal ) {
+            $currentSessionInternal
         } elseif ( $Session )  {
             $Session
         }

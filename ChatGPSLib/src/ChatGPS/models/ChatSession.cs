@@ -47,7 +47,7 @@ public class ChatSession
         this.Name = name;
     }
 
-    public string SendStandaloneMessage(string prompt)
+    public string SendStandaloneMessage(string prompt, bool? allowAgentAccess = null)
     {
         ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
 
@@ -57,7 +57,7 @@ public class ChatSession
 
         try
         {
-            messageTask = temporaryConversation.SendMessageAsync(history);
+            messageTask = temporaryConversation.SendMessageAsync(history, allowAgentAccess);
             messageTask.Wait();
         }
         catch (Exception e)
@@ -115,7 +115,7 @@ public class ChatSession
         this.CurrentHistory.Add(updatedMessage);
     }
 
-    public void AddPlugin(string name, object[]? parameters = null)
+    public void AddPlugin(string name, string[]? parameters = null)
     {
         this.chatService.AddPlugin(name, parameters);
     }

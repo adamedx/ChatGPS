@@ -10,15 +10,13 @@ namespace Modulus.ChatGPS.Plugins;
 
 public class PluginInfo
 {
-    public PluginInfo(string name, Plugin plugin, object[]? parameters)
-    {
-        if ( ! plugin.GetType().IsSubclassOf(typeof(Plugin)) )
-        {
-            throw new ArgumentException($"The specified type {plugin.GetType().FullName} of the specified plugin is not valid because it does not inherit from the type {typeof(Plugin).FullName}");
-        }
+    public PluginInfo() {}
 
+    public PluginInfo(string name, Plugin plugin, string[]? parameters)
+    {
         this.Name = name;
         this.Parameters = parameters;
+        this.Id = Guid.NewGuid();
     }
 
     internal void BindPlugin(KernelPlugin kernelPlugin)
@@ -36,9 +34,9 @@ public class PluginInfo
         return this.kernelPlugin;
     }
 
-    public string Name { get; set; }
-    public object[]? Parameters { get; set; }
-    public Guid Id { get; set; }
+    public string? Name { get; set; }
+    public string[]? Parameters { get; set; }
+    public Guid? Id { get; set; }
 
     private KernelPlugin? kernelPlugin;
 }
