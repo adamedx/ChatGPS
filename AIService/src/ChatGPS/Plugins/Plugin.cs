@@ -18,38 +18,16 @@ public abstract class Plugin
 
         #pragma warning disable SKEXP0050
         Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin)));
+        Plugin.RegisterPlugin(new WebSearchPlugin(WebSearchPlugin.SearchSource.Bing));
         #pragma warning restore SKEXP0050
     }
 
-    protected Plugin(string name, Type nativeType)
+    protected Plugin(string name)
     {
         this.Name = name;
-        this.NativeType = nativeType;
-        this.nativeInstance = null;
     }
 
-    protected Plugin(Type nativeType)
-    {
-        this.Name = nativeType.Name;
-        this.NativeType = nativeType;
-        this.nativeInstance = null;
-    }
-
-    internal object GetNativeInstance(object[]? parameters = null)
-    {
-        if ( this.nativeInstance is null )
-        {
-            var kernelPlugin = Activator.CreateInstance( this.NativeType );
-
-            if ( kernelPlugin is null )
-            {
-                throw new InvalidOperationException($"The plugin type '{this.NativeType.FullName}' could not be instantiated");
-            }
-            this.nativeInstance = kernelPlugin;
-        }
-
-        return this.nativeInstance;
-    }
+    internal abstract object GetNativeInstance(string[]? parameters = null);
 
     internal static void RegisterPlugin(Plugin plugin)
     {
@@ -66,9 +44,8 @@ public abstract class Plugin
         return Plugin.plugins[name];
     }
 
-    public string Name { get; set; }
-    public Type NativeType { get; set; }
+    public string Name { get; private set; }
 
     private static Dictionary<string, Plugin> plugins;
-    private object? nativeInstance;
+
 }
