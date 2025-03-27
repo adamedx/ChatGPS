@@ -3,6 +3,8 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Functions must specify plugins or use session plugins
+* Plugin support for functions
 * Use PowerShell commands as kernel plugins
 * Implement internal connect-chatsession, use it to create new sessions
 * Use chat session id as configuration value

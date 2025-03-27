@@ -67,9 +67,23 @@ public abstract class ChatService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
     {
+        var requestSettings = new PromptExecutionSettings();
+
+        var allowFunctionCall = this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false;
+
+        if ( allowFunctionCall )
+        {
+            requestSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
+        }
+
+        var executionSettings = new Dictionary<string,PromptExecutionSettings>
+        {
+            { PromptExecutionSettings.DefaultServiceId, requestSettings }
+        };
+
         var kernelFunction = GetKernelWithState().CreateFunctionFromPrompt(definitionPrompt);
 
-        var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>());
+        var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>(), executionSettings);
 
         var result = await GetKernelWithState().InvokeAsync(kernelFunction, kernelArguments);
 

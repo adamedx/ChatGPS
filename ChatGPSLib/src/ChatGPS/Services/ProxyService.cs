@@ -64,7 +64,7 @@ internal class ProxyService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
     {
-        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, parameters ?? new Dictionary<string,object?>());
+        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, this.pluginTable.Plugins, parameters ?? new Dictionary<string,object?>());
 
         var request = ProxyRequest.FromRequestCommand(invokeFunctionRequest);
 
