@@ -65,11 +65,12 @@ public abstract class ChatService : IChatService
         return result;
     }
 
-    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
+    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
         var requestSettings = new PromptExecutionSettings();
 
-        var allowFunctionCall = this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false;
+        var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
 
         if ( allowFunctionCall )
         {

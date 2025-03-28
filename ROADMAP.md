@@ -3,6 +3,10 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Agent concept
+* Type format for plugins
+* Logging (OpenTelemetry)
+* Friendly domain-specified log view
 * Functions must specify plugins or use session plugins
 * Plugin support for functions
 * Use PowerShell commands as kernel plugins
@@ -106,6 +110,8 @@ Roadmap for ChatGPS
 * Code of conduct
 * License
 * Remove session affinity for chat functions!
+* Aliases for set-chatcurrentsession, etc.
+* Show current session in list view
 
 ### Plugin notes
 

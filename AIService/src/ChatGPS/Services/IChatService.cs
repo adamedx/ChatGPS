@@ -16,6 +16,6 @@ public interface IChatService : IPluginTable
 {
     public ChatHistory CreateChat(string prompt);
     public Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess = null);
-    public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string, object?>? parameters);
+    public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string, object?>? parameters, bool? allowFunctionCall);
     public AiOptions ServiceOptions { get; }
 }

@@ -62,7 +62,7 @@ internal class ConversationBuilder
         return results;
     }
 
-    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, Function chatFunction, string? prompt = null)
+    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, Function chatFunction, string? prompt = null, bool? allowAgentAccess = null)
     {
         var targetPrompt = prompt is not null ? prompt : chatHistory[chatHistory.Count - 1].Content;
 
@@ -75,7 +75,7 @@ internal class ConversationBuilder
 
         stopWatch.Start();
 
-        var resultString = await chatFunction.InvokeFunctionAsync(this.chatService, new () { ["input"] = targetPrompt } );
+        var resultString = await chatFunction.InvokeFunctionAsync(this.chatService, new () { ["input"] = targetPrompt }, allowAgentAccess );
 
         stopWatch.Stop();
 
