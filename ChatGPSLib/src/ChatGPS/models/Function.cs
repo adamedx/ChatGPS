@@ -28,11 +28,11 @@ public class Function
         Initialize(name, parameters, definition);
     }
 
-    public async Task<string> InvokeFunctionAsync(IChatService chatService, Dictionary<string,object?>? boundParameters)
+    public async Task<string> InvokeFunctionAsync(IChatService chatService, Dictionary<string,object?>? boundParameters, bool? allowAgentAccess = null)
     {
         ValidateParameters(boundParameters);
 
-        var response = await chatService.InvokeFunctionAsync(this.Definition, boundParameters);
+        var response = await chatService.InvokeFunctionAsync(this.Definition, boundParameters, allowAgentAccess);
 
         return response.Result ?? "";
     }

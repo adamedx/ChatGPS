@@ -47,7 +47,7 @@ internal class InvokeFunctionCommand : Command
 
         PluginTable.SynchronizePlugins(connection.ChatService, this.arguments.Plugins);
 
-        var task = connection.ChatService.InvokeFunctionAsync(this.arguments.DefinitionPrompt, this.arguments.Parameters);
+        var task = connection.ChatService.InvokeFunctionAsync(this.arguments.DefinitionPrompt, this.arguments.Parameters, this.arguments.AllowFunctionCall);
 
         var result = task.Result;
 
