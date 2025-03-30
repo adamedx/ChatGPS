@@ -24,7 +24,7 @@ public class WebSearchPlugin : Plugin
         this.source = source;
     }
 
-    internal override object GetNativeInstance(string[]? parameters = null)
+    internal override object GetNativeInstance(object[]? parameters = null)
     {
         if ( parameters is null || parameters.Length < 1 )
         {
@@ -35,13 +35,13 @@ public class WebSearchPlugin : Plugin
         {
             #pragma warning disable SKEXP0050
 
-            var apiKey = parameters[0];
+            var apiKey = (string) parameters[0];
             IWebSearchEngineConnector connector;
 
             switch ( source )
             {
             case SearchSource.Bing:
-                var apiUri = parameters.Length > 1 ? new Uri(parameters[1]) : null;
+                var apiUri = parameters.Length > 1 ? new Uri((string) parameters[1]) : null;
                 connector = new BingConnector(apiKey, apiUri);
                 break;
             case SearchSource.Google:
@@ -50,7 +50,7 @@ public class WebSearchPlugin : Plugin
                     throw new ArgumentException("Invalid parameters specified -- the first must be the API key, the second parameter must be the search engine Id");
                 }
 
-                var searchEngineId = parameters[1];
+                var searchEngineId = (string) parameters[1];
                 connector = new GoogleConnector(apiKey, searchEngineId);
                 break;
             default:

@@ -12,10 +12,10 @@ public class PluginInfo
 {
     public PluginInfo() {}
 
-    public PluginInfo(string name, Plugin plugin, string[]? parameters)
+    public PluginInfo(string name, Plugin plugin, object[]? parameters)
     {
         this.Name = name;
-        this.Parameters = parameters;
+        this.Parameters = Plugin.TranslateSerializedParameters(parameters);
         this.Id = Guid.NewGuid();
     }
 
@@ -35,7 +35,7 @@ public class PluginInfo
     }
 
     public string? Name { get; set; }
-    public string[]? Parameters { get; set; }
+    public object[]? Parameters { get; set; }
     public Guid? Id { get; set; }
 
     private KernelPlugin? kernelPlugin;

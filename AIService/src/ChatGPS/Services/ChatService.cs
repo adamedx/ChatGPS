@@ -106,7 +106,7 @@ public abstract class ChatService : IChatService
         return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
     }
 
-    public void AddPlugin(string pluginName, string[]? parameters)
+    public void AddPlugin(string pluginName, object[]? parameters, bool noProxy = false)
     {
         GetKernelWithState();
 
@@ -115,7 +115,7 @@ public abstract class ChatService : IChatService
             throw new InvalidOperationException("The plugin table was not initialized");
         }
 
-        this.pluginTable.AddPlugin(pluginName, parameters);
+        this.pluginTable.AddPlugin(pluginName, parameters, noProxy);
     }
 
     public void RemovePlugin(string pluginName)

@@ -90,9 +90,14 @@ internal class ProxyService : IChatService
         return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
     }
 
-    public void AddPlugin(string pluginName, string[]? parameters)
+    public void AddPlugin(string pluginName, object[]? parameters, bool noProxy = false)
     {
-        this.pluginTable.AddPlugin(pluginName, parameters);
+        if ( noProxy )
+        {
+            throw new NotSupportedException("The noProxy parameter was specified as true; the proxy service does not support proxy service");
+        }
+
+        this.pluginTable.AddPlugin(pluginName, parameters, true);
     }
 
     public void RemovePlugin(string pluginName)

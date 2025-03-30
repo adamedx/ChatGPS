@@ -128,6 +128,14 @@ Roadmap for ChatGPS
 * Can plugins be removed?
 * Maybe use profiles to switch between sets of plugins?
 * PowerShell plugins will need to be a single type, but initialized from different objects
+  * In the .net library, we provide a base class with a method to invoke a scriptblock based on a function name -- call it B
+  * In PowerShell, a class that inherits from that .net class. Call it G
+    * It also has an interface for building a type -- this is method T
+    * That type is then defined by generating a scriptblock via builder pattern that dynamically defines a class D
+      * D has one method for each scriptblock given to it during builder pattern requests.
+  * The PowerShellScript plugin inherits from plugin -- call it P
+    * It takes as a parameter an instance of G
+    * It invokes G=>T to get an object instance to register with the kernel
 * Plugins need to be serialized with the session.
 * New custom plugins -- try to build with powershell
   * ShellInfo -- can have read-write mode
