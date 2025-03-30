@@ -42,14 +42,20 @@ public class PluginTable : IPluginTable
         return hasPlugin;
     }
 
-    public void AddPlugin(string name, string[]? parameters)
+    public void AddPlugin(string name, object[]? parameters, bool noProxy = false)
     {
         var plugin = Plugin.GetPluginByName(name);
+
+        if ( noProxy && plugin.NoProxy )
+        {
+            throw new InvalidOperationException("This plugin is not compatible with proxy mode; create a session with proxy mode disabled and retry the operation with that session");
+        }
+
         var pluginInfo = new PluginInfo(name, plugin, parameters);
 
         if ( this.kernel is not null )
         {
-            var nativePlugin = plugin.GetNativeInstance(parameters);
+            var nativePlugin = plugin.GetNativeInstance(pluginInfo.Parameters);
             var kernelPlugin = this.kernel.Plugins.AddFromObject(nativePlugin);
             pluginInfo.BindPlugin(kernelPlugin);
         }

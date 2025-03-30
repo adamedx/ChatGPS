@@ -19,7 +19,7 @@ public class StaticPlugin : Plugin
         this.nativeInstance = null;
     }
 
-    internal override object GetNativeInstance(string[]? parameters = null)
+    internal override object GetNativeInstance(object[]? parameters = null)
     {
         if ( this.nativeInstance is null )
         {
