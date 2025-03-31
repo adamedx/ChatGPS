@@ -361,6 +361,8 @@ function Connect-ChatSession {
 
         [ScriptBlock] $ReceiveBlock = $null,
 
+        [switch] $AllowAgentAccess,
+
         [switch] $PassThru,
 
         [switch] $NoSetCurrent,
@@ -414,6 +416,7 @@ function Connect-ChatSession {
     $options.LocalModelPath = $LocalModelPath
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
     $options.PlainTextApiKey = $PlainTextApiKey.IsPresent
+    $options.AllowAgentAccess = $AllowAgentAccess.IsPresent
 
     $isLocal = !  ( ! $options.LocalModelPath )
 

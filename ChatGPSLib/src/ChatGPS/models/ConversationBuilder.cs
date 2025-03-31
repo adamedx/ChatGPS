@@ -38,13 +38,13 @@ internal class ConversationBuilder
         }
     }
 
-    internal async Task<string> SendMessageAsync(ChatHistory chatHistory)
+    internal async Task<string> SendMessageAsync(ChatHistory chatHistory, bool? allowAgentAccess = null)
     {
         var stopWatch = new Stopwatch();
 
         stopWatch.Start();
 
-        var responses = await this.chatService.GetChatCompletionAsync(chatHistory);
+        var responses = await this.chatService.GetChatCompletionAsync(chatHistory, allowAgentAccess);
 
         stopWatch.Stop();
 
@@ -62,7 +62,7 @@ internal class ConversationBuilder
         return results;
     }
 
-    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, Function chatFunction, string? prompt = null)
+    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, Function chatFunction, string? prompt = null, bool? allowAgentAccess = null)
     {
         var targetPrompt = prompt is not null ? prompt : chatHistory[chatHistory.Count - 1].Content;
 
@@ -75,7 +75,7 @@ internal class ConversationBuilder
 
         stopWatch.Start();
 
-        var resultString = await chatFunction.InvokeFunctionAsync(this.chatService, new () { ["input"] = targetPrompt } );
+        var resultString = await chatFunction.InvokeFunctionAsync(this.chatService, new () { ["input"] = targetPrompt }, allowAgentAccess );
 
         stopWatch.Stop();
 

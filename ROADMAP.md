@@ -3,6 +3,18 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Major features:
+  * Custom PowerShell Plugins
+  * Vector search
+  * RAG
+  * Memory
+  * First-class agent abstraction
+* Agent concept
+* Type format for plugins
+* Logging (OpenTelemetry)
+* Friendly domain-specified log view
+* Functions must specify plugins or use session plugins
+* Plugin support for functions
 * Use PowerShell commands as kernel plugins
 * Implement internal connect-chatsession, use it to create new sessions
 * Use chat session id as configuration value
@@ -104,6 +116,8 @@ Roadmap for ChatGPS
 * Code of conduct
 * License
 * Remove session affinity for chat functions!
+* Aliases for set-chatcurrentsession, etc.
+* Show current session in list view
 
 ### Plugin notes
 
@@ -115,7 +129,7 @@ Roadmap for ChatGPS
 * User-defined plugins should be their own config section
 * Change chat protocol to enable / disable function calling
 * Send-ChatCommand should have a parameter to control calling
-* Function calling should be a session option but overridable
+* Function calling should be a session option but overrideable
 * Session should be able to disable / enable function calling
 * Can plugins be removed?
 * Maybe use profiles to switch between sets of plugins?

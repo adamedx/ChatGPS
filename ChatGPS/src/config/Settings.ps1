@@ -47,6 +47,7 @@ class ModelChatSession {
         $this.noProxy = $null
         $this.forceProxy = $null
         $this.plainTextApiKey = $null
+        $this.allowAgentAccess = $null
     }
 
     ModelChatSession([ModelChatSession] $source, [string] $nameOverride) {
@@ -73,6 +74,7 @@ class ModelChatSession {
     [int] $historyContextLimit
     [bool] $signinInteractionAllowed
     [bool] $plainTextApiKey
+    [bool] $allowAgentAccess
     [string] $logDirectory
     [string] $logLevel
 }
@@ -277,7 +279,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
         $sessionSettings.$_ = $sessionParameters[$_]
     }
 
-    'noProxy', 'forceProxy', 'signinInteractionAllowed', 'plainTextApiKey' |
+    'allowAgentAccess', 'noProxy', 'forceProxy', 'signinInteractionAllowed', 'plainTextApiKey' |
       where { $sessionParameters.ContainsKey($_) } |
       foreach {
         $sessionSettings.$_ = $sessionParameters[$_].IsPresent

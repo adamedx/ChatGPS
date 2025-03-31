@@ -7,11 +7,13 @@
 namespace Modulus.ChatGPS.Models;
 
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Modulus.ChatGPS.Services;
+using Modulus.ChatGPS.Plugins;
 
 public class ChatSession
 {
@@ -45,7 +47,7 @@ public class ChatSession
         this.Name = name;
     }
 
-    public string SendStandaloneMessage(string prompt)
+    public string SendStandaloneMessage(string prompt, bool? allowAgentAccess = null)
     {
         ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
 
@@ -55,7 +57,7 @@ public class ChatSession
 
         try
         {
-            messageTask = temporaryConversation.SendMessageAsync(history);
+            messageTask = temporaryConversation.SendMessageAsync(history, allowAgentAccess);
             messageTask.Wait();
         }
         catch (Exception e)
@@ -111,6 +113,16 @@ public class ChatSession
 
         this.History.Add(updatedMessage);
         this.CurrentHistory.Add(updatedMessage);
+    }
+
+    public void AddPlugin(string name, string[]? parameters = null)
+    {
+        this.chatService.AddPlugin(name, parameters);
+    }
+
+    public void RemovePlugin(string name)
+    {
+        this.chatService.RemovePlugin(name);
     }
 
     public ChatMessageHistory History
@@ -180,6 +192,14 @@ public class ChatSession
     public object? CustomContext { get; private set; }
 
     public string? Name { get; private set; }
+
+    public IEnumerable<PluginInfo> Plugins
+    {
+        get
+        {
+            return this.chatService.Plugins;
+        }
+    }
 
     private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
     {

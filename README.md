@@ -5,9 +5,9 @@ ChatGPS
 
 * Generate PowerShell code from natural language prompts within your PowerShell interactive experience
 * Create AI PowerShell functions / commands based on natural language instead of PowerShell code
-* Integrate AI into your PowerShell script library
 * Get help / "how-to" advice about PowerShell in the context of your existing PowerShell session
 * Create AI chatbots, whether purely conversational or focused on a specialization of your choosing
+* Build AI agents to automate tasks using your computer, data, and services on your behalf
 * Automate testing of various AI models
 
 ChatGPS allows you to choose the AI model that powers its experience and supports both remotely hosted models such as those provided by Azure OpenAI, Open AI, etc., as well as locally hosted models like Phi 3.

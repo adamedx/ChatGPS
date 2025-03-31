@@ -6,6 +6,7 @@
 
 using System.Text.Json;
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
 
 using Modulus.ChatGPS.Models.Proxy;
 
@@ -44,7 +45,9 @@ internal class InvokeFunctionCommand : Command
 
         var connection = this.processor.Connections.GetConnection(this.serviceConnectionId);
 
-        var task = connection.ChatService.InvokeFunctionAsync(this.arguments.DefinitionPrompt, this.arguments.Parameters);
+        PluginTable.SynchronizePlugins(connection.ChatService, this.arguments.Plugins);
+
+        var task = connection.ChatService.InvokeFunctionAsync(this.arguments.DefinitionPrompt, this.arguments.Parameters, this.arguments.AllowFunctionCall);
 
         var result = task.Result;
 

@@ -8,10 +8,12 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Plugins.Core;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
 
 namespace Modulus.ChatGPS.Services;
 
@@ -36,13 +38,23 @@ public abstract class ChatService : IChatService
         }
     }
 
-    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
+    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
         IReadOnlyList<ChatMessageContent> result;
 
+        var requestSettings = new OpenAIPromptExecutionSettings();
+
+        var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
+
+        if ( allowFunctionCall )
+        {
+            requestSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
+        }
+
         try
         {
-            result = await GetChatCompletionService().GetChatMessageContentsAsync(history);
+            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, GetKernelWithState());
             this.HasSucceeded = true;
         }
         catch (Exception exception)
@@ -53,17 +65,84 @@ public abstract class ChatService : IChatService
         return result;
     }
 
-    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
+    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
-        var kernelFunction = GetKernel().CreateFunctionFromPrompt(definitionPrompt);
+        var requestSettings = new PromptExecutionSettings();
 
-        var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>());
+        var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
 
-        var result = await GetKernel().InvokeAsync(kernelFunction, kernelArguments);
+        if ( allowFunctionCall )
+        {
+            requestSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
+        }
+
+        var executionSettings = new Dictionary<string,PromptExecutionSettings>
+        {
+            { PromptExecutionSettings.DefaultServiceId, requestSettings }
+        };
+
+        var kernelFunction = GetKernelWithState().CreateFunctionFromPrompt(definitionPrompt);
+
+        var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>(), executionSettings);
+
+        var result = await GetKernelWithState().InvokeAsync(kernelFunction, kernelArguments);
 
         this.HasSucceeded = true;
 
         return new FunctionOutput(result);
+    }
+
+
+    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
+    {
+        GetKernelWithState();
+
+        if ( this.pluginTable is null )
+        {
+            throw new InvalidOperationException("The plugin table was not initialized");
+        }
+
+        return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
+    }
+
+    public void AddPlugin(string pluginName, string[]? parameters)
+    {
+        GetKernelWithState();
+
+        if ( this.pluginTable is null )
+        {
+            throw new InvalidOperationException("The plugin table was not initialized");
+        }
+
+        this.pluginTable.AddPlugin(pluginName, parameters);
+    }
+
+    public void RemovePlugin(string pluginName)
+    {
+        GetKernelWithState();
+
+        if ( this.pluginTable is null )
+        {
+            throw new InvalidOperationException("The plugin table was not initialized");
+        }
+
+        this.pluginTable.RemovePlugin(pluginName);
+    }
+
+    public IEnumerable<PluginInfo> Plugins
+    {
+        get
+        {
+            GetKernelWithState();
+
+            if ( this.pluginTable is null )
+            {
+                throw new InvalidOperationException("The plugin table was not initialized");
+            }
+
+            return this.pluginTable.Plugins;
+        }
     }
 
     protected string GetCompatibleApiKey(string encryptedString, bool? isUnencrypted)
@@ -113,7 +192,7 @@ public abstract class ChatService : IChatService
 
     private KernelFunction CreateFunction(string definitionPrompt)
     {
-        var kernel = GetKernel();
+        var kernel = GetKernelWithState();
 
         var requestSettings = new OpenAIPromptExecutionSettings();
 
@@ -133,6 +212,18 @@ public abstract class ChatService : IChatService
 
     protected abstract Kernel GetKernel();
 
+    protected Kernel GetKernelWithState()
+    {
+        var kernel = GetKernel();
+
+        if ( this.pluginTable is null )
+        {
+            this.pluginTable = new PluginTable(kernel);
+        }
+
+        return kernel;
+    }
+
     private IChatCompletionService GetChatCompletionService()
     {
         if ( this.chatCompletionService is null )
@@ -141,7 +232,7 @@ public abstract class ChatService : IChatService
 
             try
             {
-                kernel = GetKernel();
+                kernel = GetKernelWithState();
             }
             catch (Exception exception)
             {
@@ -170,4 +261,5 @@ public abstract class ChatService : IChatService
     protected IChatCompletionService? chatCompletionService;
     protected AiOptions options;
     protected string? userAgent;
+    protected PluginTable? pluginTable;
 }

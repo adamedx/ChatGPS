@@ -15,6 +15,7 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Proxy;
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
 using Modulus.ChatGPS.Models.Proxy;
 
 
@@ -26,6 +27,7 @@ internal class ProxyService : IChatService
         this.proxyConnection = new ProxyConnection(this.proxyTransport, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
         this.ServiceOptions = new AiOptions(options);
+        this.pluginTable = new PluginTable();
     }
 
     public ChatHistory CreateChat(string prompt)
@@ -35,9 +37,9 @@ internal class ProxyService : IChatService
 
     public AiOptions ServiceOptions { get; private set; }
 
-    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history)
+    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
-        var sendChatRequest = new SendChatRequest(history);
+        var sendChatRequest = new SendChatRequest(history, this.pluginTable.Plugins, allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(sendChatRequest);
 
@@ -60,9 +62,9 @@ internal class ProxyService : IChatService
         return new ReadOnlyCollection<ChatMessageContent>(resultList);
     }
 
-    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters)
+    public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
-        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, parameters ?? new Dictionary<string,object?>());
+        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, this.pluginTable.Plugins, parameters ?? new Dictionary<string,object?>(), allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(invokeFunctionRequest);
 
@@ -83,10 +85,33 @@ internal class ProxyService : IChatService
         return invokeFunctionResponse.Output;
     }
 
+    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
+    {
+        return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
+    }
+
+    public void AddPlugin(string pluginName, string[]? parameters)
+    {
+        this.pluginTable.AddPlugin(pluginName, parameters);
+    }
+
+    public void RemovePlugin(string pluginName)
+    {
+        this.pluginTable.RemovePlugin(pluginName);
+    }
+
+    public IEnumerable<PluginInfo> Plugins
+    {
+        get
+        {
+            return this.pluginTable.Plugins;
+        }
+    }
+
     Transport proxyTransport;
 
     bool whatIfMode;
 
     ProxyConnection proxyConnection;
-
+    PluginTable pluginTable;
 }
