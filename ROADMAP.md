@@ -3,6 +3,12 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Major features:
+  * Custom PowerShell Plugins
+  * Vector search
+  * RAG
+  * Memory
+  * First-class agent abstraction
 * Agent concept
 * Type format for plugins
 * Logging (OpenTelemetry)
