@@ -115,7 +115,7 @@ public class ChatSession
         this.CurrentHistory.Add(updatedMessage);
     }
 
-    public void AddPlugin(string name, string[]? parameters = null)
+    public void AddPlugin(string name, object[]? parameters = null)
     {
         this.chatService.AddPlugin(name, parameters);
     }
