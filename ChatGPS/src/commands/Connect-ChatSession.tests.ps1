@@ -20,14 +20,16 @@ InModuleScope ChatGPS {
             # script block and generating a real script block to subsequently execute.
             . ([ScriptBlock]::Create(
 @'
-class MockChatService : Modulus.ChatGPS.Services.IChatService {
+class MockChatService : Modulus.ChatGPS.Plugins.PluginTable { # , Modulus.ChatGPS.Services.IChatService {
+    # Need to restore inheritance from IChatService interface
+    MockChatService() : base( $null ) {}
     [Microsoft.SemanticKernel.ChatCompletion.ChatHistory] CreateChat([string] $prompt) {
         return [Microsoft.SemanticKernel.ChatCompletion.ChatHistory]::new()
     }
-    [System.Threading.Tasks.Task[System.Collections.Generic.IReadOnlyList[Microsoft.SemanticKernel.ChatMessageContent]]] GetChatCompletionAsync([Microsoft.SemanticKernel.ChatCompletion.ChatHistory] $history) {
+    [System.Threading.Tasks.Task[System.Collections.Generic.IReadOnlyList[Microsoft.SemanticKernel.ChatMessageContent]]] GetChatCompletionAsync([Microsoft.SemanticKernel.ChatCompletion.ChatHistory] $history, [bool] $allowAgentAccess = $null) {
         return $null
     }
-    [System.Threading.Tasks.Task[Modulus.ChatGPS.Models.FunctionOutput]] InvokeFunctionAsync([string] $definitionPrompt, [System.Collections.Generic.Dictionary[string,object]] $parameters) {
+    [System.Threading.Tasks.Task[Modulus.ChatGPS.Models.FunctionOutput]] InvokeFunctionAsync([string] $definitionPrompt, [System.Collections.Generic.Dictionary[string,object]] $parameters, [bool] $allowFunctionCall) {
         return $null
     }
 
