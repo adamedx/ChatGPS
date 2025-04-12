@@ -157,6 +157,16 @@ public class ChatSession
          }
      }
 
+    public void ResetHistory(bool currentOnly)
+    {
+        this.publicChatHistory.Reset();
+
+        if ( ! currentOnly )
+        {
+            this.publicTotalChatHistory.Reset();
+        }
+    }
+
     public Guid Id { get; private set; }
 
     public AiProviderOptions AiOptions { get; private set; }

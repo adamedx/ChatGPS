@@ -142,7 +142,7 @@ function Start-ChatREPL {
                 @{}
             }
 
-            $replyText = if ( $UserReplyBlock -and ( $currentReplies -ne 0 ) ) {
+            $replyText = if ( $UserReplyBlock -and ( $currentReplies -ne 0 ) -and ( $lastResponse -ne $null ) ) {
                 $replyData = GetChatReply -SourceMessage $lastResponse.Response -ReplyBlock $UserReplyBlock -MaxReplies $currentReplies
 
                 if ( $replyData ) {

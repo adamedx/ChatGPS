@@ -71,6 +71,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
  FunctionsToExport = @(
     'Add-ChatPlugin'
+    'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
     'Get-ChatEncryptedUnicodeKeyCredential'
@@ -133,6 +134,7 @@ FileList = @(
     'src/services.ps1'
     'src/shell.ps1'
     'src/commands/Add-ChatPlugin.ps1'
+    'src/commands/Clear-ChatHistory.ps1'
     'src/commands/Connect-ChatSession.ps1'
     'src/commands/Get-ChatCurrentVoice.ps1'
     'src/commands/Get-ChatEncryptedUnicodeKeyCredential.ps1'
