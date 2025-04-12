@@ -216,6 +216,20 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         return publicItem;
     }
 
+    internal void Reset()
+    {
+        var systemMessage = sourceHistory.Count > 0 ?
+            GetPublicItem(sourceHistory[0]) :
+            null;
+
+        Clear();
+
+        if ( systemMessage is not null )
+        {
+            Add(systemMessage);
+        }
+    }
+
     private ChatHistory sourceHistory;
     private System.Collections.Generic.Dictionary<ChatMessageContent, ChatMessage> privateToPublicMap;
 }

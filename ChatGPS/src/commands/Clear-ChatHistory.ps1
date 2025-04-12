@@ -3,7 +3,7 @@
 #
 # All rights reserved.
 
-function Get-ChatHistory {
+function Clear-ChatHistory {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(valuefrompipeline=$true)]
@@ -14,20 +14,10 @@ function Get-ChatHistory {
 
     begin {
         $targetSession = GetTargetSession $Session
-
-        $targetHistory = if ( $CurrentContextOnly.IsPresent ) {
-            $targetSession.CurrentHistory
-        } else {
-            $targetSession.History
-        }
     }
 
     process {
-        foreach ( $message in $targetHistory ) {
-            if ( $message.Role.ToString() -ne 'system' ) {
-                $message
-            }
-        }
+        $targetSession.ResetHistory($CurrentContextOnly.IsPresent)
     }
 
     end {
