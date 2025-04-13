@@ -10,7 +10,7 @@ ChatGPS
 * Create AI chatbots, whether purely conversational or focused on a specialization of your choosing
 * Automate testing of various AI models
 
-ChatGPS allows you to choose the AI model that powers its experience and supports both remotely hosted models such as those provided by Azure OpenAI, Open AI, etc., as well as locally hosted models like Phi 3.
+ChatGPS allows you to choose the AI model that powers its experience and supports both remotely hosted models such as those provided by Azure OpenAI, Open AI, etc., as well as locally hosted models like Phi 3 / Phi 4, Llama 3, etc.
 
 ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic-kernel), and therefore should work well with any models and AI capabilities supported by SK.
 
@@ -32,7 +32,7 @@ Received                 Response
 * [PowerShell](https://github.com/PowerShell/PowerShell) 7.4 and higher on Windows, Linux, or MacOS
 * Models -- bring your own!
   * Remote: valid account credentials to a service like Azure OpenAI, OpenAI, etc.
-  * Local: for locally hosted models, GPU or NPU capabilities may be needed, see specific model requirements
+  * Local: for locally hosted models including [Onnx](https://onnx.ai) and [Ollama](https://ollama.com), GPU or NPU capabilities may be needed, see specific model requirements
 
 # Development and testing
 
@@ -174,7 +174,7 @@ Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
 
 #### Local model usage
 
-The `Connect-ChatSession` command also supports models hosted in the local file system. Use the `LocalModelPath` parameter with the appropriate `Provider` parameter that supports local models to specify the path to the model as in the example below:
+The `Connect-ChatSession` command also supports models hosted in the local file system. Use the `LocalModelPath` parameter with the appropriate `Provider` parameter that supports local models to specify the path to the model as in the example below which uses the `LocalOnnx` provider:
 
 ```powershell
 
@@ -186,6 +186,21 @@ Received                 Response
 9/15/2024 3:44:07 PM     Hello there! It's great to have a friendly chat with you. I'm Phi, your conversational
                          companion. I don't have hopes or dreams, but I'm here to help you share yours and make our
                          interaction meaningful. What's on your mind today?
+```
+
+And here's an example that uses a local Llama 3 via the Ollama provider, assuming the default local URI `http://localhost:11434` for Ollama:
+
+```powershell
+# You can run the 'ollama serve' command to discover the actual local URI for your Ollama configuration
+Connect-ChatSession -Provider Ollama -Apiendpoint 'http://localhost:11434' -ModelIdentifier llama3:latest
+Send-ChatMessage 'Hello!'
+
+Received                 Response
+--------                 --------
+4/13/2025 9:43:59 AM     Hello! It's nice to meet you. Is there something I can help
+                         you with or would you like to chat about a particular topic?
+                         I'm here to assist you with any questions or concerns you
+                         may have.
 ```
 
 #### Import the module
