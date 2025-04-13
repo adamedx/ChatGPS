@@ -177,7 +177,16 @@ public class ChatSession
     {
         get
         {
-            return ( this.AiOptions.LocalModelPath?.Length ?? 0 ) == 0;
+            bool isLocalUri = false;
+
+            if ( this.AiOptions.ApiEndpoint is not null )
+            {
+                isLocalUri = this.AiOptions.ApiEndpoint.IsLoopback ||
+                    this.AiOptions.ApiEndpoint.Scheme == "file";
+            }
+
+            return ( ( this.AiOptions.LocalModelPath?.Length ?? 0 ) == 0 ) &&
+                ! isLocalUri;
         }
     }
 

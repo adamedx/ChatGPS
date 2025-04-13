@@ -17,7 +17,8 @@ public enum ModelProvider
     Unspecified,
     AzureOpenAI,
     OpenAI,
-    LocalOnnx
+    LocalOnnx,
+    Ollama
 }
 
 public class AiProviderOptions
@@ -31,6 +32,7 @@ public class AiProviderOptions
         this.LocalModelPath = options.LocalModelPath;
         this.ModelIdentifier = options.ModelIdentifier;
         this.DeploymentName = options.DeploymentName;
+        this.ServiceIdentifier = options.ServiceIdentifier;
         this.TokenLimit = options.TokenLimit;
         this.OutputType = options.OutputType;
         this.SigninInteractionAllowed = options.SigninInteractionAllowed;
@@ -42,6 +44,7 @@ public class AiProviderOptions
     public string? LocalModelPath { get; set; }
     public string? ModelIdentifier { get; set; }
     public string? DeploymentName { get; set; }
+    public string? ServiceIdentifier { get; set; }
     public int? TokenLimit { get; set; }
     public bool? SigninInteractionAllowed { get; set; }
     public bool? PlainTextApiKey { get; set; }

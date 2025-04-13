@@ -49,6 +49,9 @@ For local models such as those supported by the LocalOnnx provider this is the p
 .PARAMETER ModelIdentifier
 This parameter may be required for certain providers, particularly for local models.
 
+.PARAMETER ServiceIdentifier
+This parameter may be required for certain providers such as Ollama.
+
 .PARAMETER TokenLimit
 Specifies the maximum number of tokens that should be sent to the model. Tokens are units of semantic meaning similar to the concept of a "word"; messages sent to the model are interpreted as tokens, and models have a limit on the number of tokens that can be processed in a request or returned as a response. The default value of 4096 may be sufficient for most use cases, but some models may support fewer tokens, so the value can be changed so that message commands can attempt to "compress" messages at the expense of losing context / meaning. Alternatively, models that have much higher limits can be fully utilized by setting this value higher so that commands will not prematurely attempt to throw away valuable context.
 
@@ -63,6 +66,9 @@ The SendBlock parameter allows specification of a PowerShell script block that i
 
 .PARAMETER ReceiveBlock
 The ReceiveBlock parameter allows specification of a PowerShell script block that is executed after the model has returned a response message and before the response is relayed as the output of a command. The first parameter of the scriptblock is the model's response, and the output of the script block is the text that should be returned to the command that triggered the response. This can be used post-process text received from the model, which is useful for providing additional formatting or other processing in a deterministic fashion as opposed to allowing the model to perform the processing. If an exception is thrown by the script block the command used to send the message will fail and the response will be treated as an error. The chat history of the session will reflect the text that returned by the scriptblock after processing the model's response, not the text that was returned directly by the model.
+
+.PARAMETER AllowAgentAccess
+This parameter enables "agent" behavior, i.e. the ability of ChatGPS to leverage plugins configured through the Add-Plugin command to automatically send information about the local computer to the model service AND also to take local actions (e.g. issuing web search requests, creating files locally) based on responses from the model; these behaviors occur on your behalf. This setting is required for commands such as Add-Plugin to have any impact; without this setting any plugins configured through Add-Plugin are ignored. This setting is also equivalent to enabling "function calling" features of the model.
 
 .PARAMETER PassThru
 By default, Connect-ChatSession returns no output; it simply has the side effect of changing the current session. Specify PassThru to return the value of the session regardless whether the current session is overridden (default behavior) or not (when NoSave is specified). The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction.
@@ -306,8 +312,10 @@ Select-ChatSession
 Remove-ChatSession
 Send-ChatMessage
 Get-ChatHistory
+Clear-ChatHistory
 Start-ChatRepl
 Invoke-ChatFunction
+Add-Plugin
 #>
 function Connect-ChatSession {
     [cmdletbinding(positionalbinding=$false)]
@@ -322,7 +330,7 @@ function Connect-ChatSession {
         [string] $CustomSystemPrompt,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx')]
+        [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx', 'Ollama')]
         [string] $Provider,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
@@ -348,6 +356,9 @@ function Connect-ChatSession {
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $ModelIdentifier,
+
+        [parameter(valuefrompipelinebypropertyname=$true)]
+        [string] $ServiceIdentifier,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
         [int32] $TokenLimit = 4096,
@@ -411,6 +422,7 @@ function Connect-ChatSession {
     $options.ApiEndpoint = $ApiEndpoint
     $options.DeploymentName = $DeploymentName
     $options.ModelIdentifier = $ModelIdentifier
+    $options.ServiceIdentifier = $ServiceIdentifier
     $options.ApiKey = $targetApiKey
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
