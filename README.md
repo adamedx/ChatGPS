@@ -194,11 +194,13 @@ Received                 Response
                          interaction meaningful. What's on your mind today?
 ```
 
-And here's an example that uses a local Llama 3 via the Ollama provider, assuming the default local URI `http://localhost:11434` for Ollama:
+And here's an example that uses a local Llama 3 via the Ollama provider; when the `ApiEndpoint` parameter is not specified, a default local URI `http://localhost:11434` is assumed for Ollama:
 
 ```powershell
-# You can run the 'ollama serve' command to discover the actual local URI for your Ollama configuration
-Connect-ChatSession -Provider Ollama -Apiendpoint 'http://localhost:11434' -ModelIdentifier llama3:latest
+# You can run the 'ollama serve' command to discover the actual local URI for your Ollama configuration.
+# You can specify the ApiEndpoint parameter if you have Ollama configured to use a URI other than
+# the default http://localhost:11434:
+Connect-ChatSession -Provider Ollama -ModelIdentifier llama3:latest
 Send-ChatMessage 'Hello!'
 
 Received                 Response

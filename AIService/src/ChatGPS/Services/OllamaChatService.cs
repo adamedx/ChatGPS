@@ -16,6 +16,8 @@ namespace Modulus.ChatGPS.Services;
 
 public class OllamaChatService : ChatService
 {
+    readonly Uri DefaultUri = new Uri("http://localhost:11434");
+
     internal OllamaChatService(AiOptions options, string? userAgent = null) : base(options, userAgent) { }
 
     protected override Kernel GetKernel()
@@ -32,7 +34,7 @@ public class OllamaChatService : ChatService
 
         if ( this.options.ApiEndpoint == null || this.options.ApiEndpoint.ToString().Length == 0 )
         {
-            throw new ArgumentException("An API endpoint must be specified.");
+            this.options.ApiEndpoint = DefaultUri;
         }
 
         var builder = Kernel.CreateBuilder();

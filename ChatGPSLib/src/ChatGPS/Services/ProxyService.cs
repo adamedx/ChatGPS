@@ -26,14 +26,23 @@ internal class ProxyService : IChatService
         this.proxyTransport = new Transport();
         this.proxyConnection = new ProxyConnection(this.proxyTransport, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
-        this.ServiceOptions = new AiOptions(options);
         this.pluginTable = new PluginTable();
+
+        // Must explicitly init within this constructor itself, a method
+        // invoked from the constructor is not enough to avoid a superfluous CS8618
+        // See https://github.com/dotnet/roslyn/issues/32358
+        this.serviceOptions = new AiOptions(options);
+
         this.initialized = false;
     }
 
     public void Initialize()
     {
         this.ServiceOptions.Validate();
+
+        this.proxyConnection.Initialize();
+
+        UpdateServiceOptions(this.proxyConnection.ServiceOptions);
 
         if ( this.initialized )
         {
@@ -49,7 +58,13 @@ internal class ProxyService : IChatService
         return new ChatHistory(prompt);
     }
 
-    public AiOptions ServiceOptions { get; private set; }
+    public AiOptions ServiceOptions
+    {
+        get
+        {
+            return this.serviceOptions;
+        }
+    }
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
@@ -137,6 +152,12 @@ internal class ProxyService : IChatService
         }
     }
 
+    private void UpdateServiceOptions(AiOptions serviceOptions)
+    {
+        // This constructor strips out any sensitive fields
+        this.serviceOptions = new AiOptions(serviceOptions);
+    }
+
     private void CheckInitialized()
     {
         if ( ! this.initialized )
@@ -148,6 +169,8 @@ internal class ProxyService : IChatService
     Transport proxyTransport;
 
     bool whatIfMode;
+
+    AiOptions serviceOptions;
 
     ProxyConnection proxyConnection;
     PluginTable pluginTable;

@@ -36,6 +36,8 @@ public class ChatSession
         this.chatService = chatService;
 
         this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
+        this.OriginalAiOptions = new AiProviderOptions(chatService.ServiceOptions);
+
         this.AccessValidated = false;
 
         this.LastResponseError = null;
@@ -175,6 +177,8 @@ public class ChatSession
 
     public AiProviderOptions AiOptions { get; private set; }
 
+    public AiProviderOptions OriginalAiOptions { get; private set; }
+
     public bool AccessValidated { get; private set; }
 
     public bool IsRemote
@@ -183,13 +187,15 @@ public class ChatSession
         {
             bool isLocalUri = false;
 
-            if ( this.AiOptions.ApiEndpoint is not null )
+            var realizedOptions = this.chatService.ServiceOptions;
+
+            if ( realizedOptions is not null && realizedOptions.ApiEndpoint is not null )
             {
-                isLocalUri = this.AiOptions.ApiEndpoint.IsLoopback ||
-                    this.AiOptions.ApiEndpoint.Scheme == "file";
+                isLocalUri = realizedOptions.ApiEndpoint.IsLoopback ||
+                    realizedOptions.ApiEndpoint.Scheme == "file";
             }
 
-            return ( ( this.AiOptions.LocalModelPath?.Length ?? 0 ) == 0 ) &&
+            return ( ( realizedOptions?.LocalModelPath?.Length ?? 0 ) == 0 ) &&
                 ! isLocalUri;
         }
     }
