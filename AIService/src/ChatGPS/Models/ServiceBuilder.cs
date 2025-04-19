@@ -50,6 +50,9 @@ public class ServiceBuilder
             case ModelProvider.Ollama:
                 newService = new OllamaChatService( this.options );
                 break;
+            case ModelProvider.Google:
+                newService = new GoogleChatService( this.options );
+                break;
             default:
                 throw new NotImplementedException($"Support for the model provider id '{options.Provider}' is not yet implemented");
         }

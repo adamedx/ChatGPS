@@ -19,7 +19,7 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, int latestContextLimit = -1, object? customContext = null, string? name = null)
     {
-        chatService.ServiceOptions.Validate();
+        chatService.Initialize();
 
         this.Id = Guid.NewGuid();
 
@@ -47,11 +47,15 @@ public class ChatSession
         this.Name = name;
     }
 
-    public string SendStandaloneMessage(string prompt, bool? allowAgentAccess = null)
+    public string SendStandaloneMessage(string prompt, string? customSystemPrompt, bool? allowAgentAccess = null)
     {
         ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
 
-        var history = conversationBuilder.CreateConversationHistory(prompt);
+        var temporarySystemPrompt = customSystemPrompt ?? this.chatHistory[0].Content ?? "You are a friendly conversationalist.";
+
+        var history = conversationBuilder.CreateConversationHistory(temporarySystemPrompt);
+
+        temporaryConversation.AddMessageToConversation(history, AuthorRole.User, prompt);
 
         Task<string> messageTask;
 

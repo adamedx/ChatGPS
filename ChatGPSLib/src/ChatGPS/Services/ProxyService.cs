@@ -28,10 +28,24 @@ internal class ProxyService : IChatService
         this.whatIfMode = whatIfMode;
         this.ServiceOptions = new AiOptions(options);
         this.pluginTable = new PluginTable();
+        this.initialized = false;
+    }
+
+    public void Initialize()
+    {
+        this.ServiceOptions.Validate();
+
+        if ( this.initialized )
+        {
+            throw new InvalidOperationException("The object may not be re-initialized");
+        }
+
+        this.initialized = true;
     }
 
     public ChatHistory CreateChat(string prompt)
     {
+        CheckInitialized();
         return new ChatHistory(prompt);
     }
 
@@ -39,6 +53,8 @@ internal class ProxyService : IChatService
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
+        CheckInitialized();
+
         var sendChatRequest = new SendChatRequest(history, this.pluginTable.Plugins, allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(sendChatRequest);
@@ -64,6 +80,8 @@ internal class ProxyService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
+        CheckInitialized();
+
         var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, this.pluginTable.Plugins, parameters ?? new Dictionary<string,object?>(), allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(invokeFunctionRequest);
@@ -87,11 +105,15 @@ internal class ProxyService : IChatService
 
     public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
     {
+        CheckInitialized();
+
         return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
     }
 
     public void AddPlugin(string pluginName, object[]? parameters, bool noProxy = false)
     {
+        CheckInitialized();
+
         if ( noProxy )
         {
             throw new NotSupportedException("The noProxy parameter was specified as true; the proxy service does not support proxy service");
@@ -102,6 +124,7 @@ internal class ProxyService : IChatService
 
     public void RemovePlugin(string pluginName)
     {
+        CheckInitialized();
         this.pluginTable.RemovePlugin(pluginName);
     }
 
@@ -109,7 +132,16 @@ internal class ProxyService : IChatService
     {
         get
         {
+            CheckInitialized();
             return this.pluginTable.Plugins;
+        }
+    }
+
+    private void CheckInitialized()
+    {
+        if ( ! this.initialized )
+        {
+            throw new InvalidOperationException("The object has not been initialized");
         }
     }
 
@@ -119,4 +151,6 @@ internal class ProxyService : IChatService
 
     ProxyConnection proxyConnection;
     PluginTable pluginTable;
+
+    bool initialized;
 }

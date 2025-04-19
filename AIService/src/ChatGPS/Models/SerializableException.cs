@@ -12,6 +12,12 @@ public class SerializableException : Exception
         this.Properties = new Dictionary<string,object>();
     }
 
+    public SerializableException(string message) : base(message) {
+        this.OriginalMessage = message;
+        this.Properties = new Dictionary<string,object>();
+    }
+
+
     // In general, exceptions cannot be safely serialized due to security concerns,
     // so we convert exceptions to an instance of this type that carries forward some
     // of the information about the inner exception, though it does not maintain the chain
@@ -20,11 +26,13 @@ public class SerializableException : Exception
     // This extracts serializable data from the sourceException but keeps innerException null
     protected SerializableException(Exception? originalException = null) : base ( "An unexpected error was encountered." )
     {
+        this.OriginalMessage = this.Message;
         InitializeFromException(originalException);
     }
 
     protected SerializableException(string message, (string key, object value)[]? pairs ) : base ( message)
     {
+        this.OriginalMessage = message;
         InitializeFromException(null, pairs);
     }
 
@@ -32,6 +40,7 @@ public class SerializableException : Exception
     // properties of the inner exception to the newly constructed instance
     protected SerializableException(string message, SerializableException? serializableInnerException = null) : base(message)
     {
+        this.OriginalMessage = message;
         InitializeFromException(serializableInnerException);
     }
 
@@ -39,6 +48,8 @@ public class SerializableException : Exception
     // from it and make that accessible via public properties
     protected SerializableException(string message, Exception? innerException, SerializableException? serializableException = null) : base(message)
     {
+        this.OriginalMessage = message;
+
         Exception? targetException = innerException ?? serializableException;
 
         if ( targetException is not null )
@@ -52,12 +63,21 @@ public class SerializableException : Exception
         return $"{this.OriginalMessage}: {base.ToString()}";
     }
 
+    public override string Message
+    {
+        get
+        {
+            return ( ( ( this.OriginalMessage is not null ) && this.OriginalMessage.Length > 0 ) ? this.OriginalMessage : this.Message ) ?? "";
+        }
+    }
+
     private void InitializeFrom(SerializableException? serializableException)
     {
         if ( serializableException is not null )
         {
             this.StackTrace = serializableException.StackTrace;
             this.OriginalMessage = serializableException.OriginalMessage;
+//            this.OriginalMessage = ( ( ( serializableException.Message is not null ) && serializableException.Message.Length > 0 ) ? serializableException.Message : serializableException.OriginalMessage) ?? "";
             this.OriginalExceptionTypeName = serializableException.OriginalExceptionTypeName;
         }
     }

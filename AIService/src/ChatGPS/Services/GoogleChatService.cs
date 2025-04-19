@@ -7,16 +7,16 @@
 using System.Collections.Generic;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.Ollama;
+using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.Extensions.DependencyInjection;
 
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
-public class OllamaChatService : ChatService
+public class GoogleChatService : ChatService
 {
-    internal OllamaChatService(AiOptions options, string? userAgent = null) : base(options, userAgent) { }
+    internal GoogleChatService(AiOptions options, string? userAgent = null) : base(options, userAgent) { }
 
     protected override Kernel GetKernel()
     {
@@ -30,19 +30,21 @@ public class OllamaChatService : ChatService
             throw new ArgumentException("A deployment name for the language model must be specified.");
         }
 
-        if ( this.options.ApiEndpoint == null || this.options.ApiEndpoint.ToString().Length == 0 )
+        if ( this.options.ApiKey is null )
         {
-            throw new ArgumentException("An API endpoint must be specified.");
+            throw new ArgumentException("A an API key is required for the language model service.");
         }
 
         var builder = Kernel.CreateBuilder();
 
+        var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
+
 #pragma warning disable SKEXP0070
 
-        builder.AddOllamaChatCompletion(
+        builder.AddGoogleAIGeminiChatCompletion(
             modelId : this.options.ModelIdentifier,
             serviceId : this.options.ServiceIdentifier,
-            endpoint : this.options.ApiEndpoint);
+            apiKey: cleartextKey);
 
 #pragma warning restore SKEXP0070
 

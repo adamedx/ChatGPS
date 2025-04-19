@@ -3,6 +3,8 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Remove SK types from proxy format
+* Make an iplugintable property of ichatservice vs inheritance
 * Agent concept
 * Type format for plugins
 * Logging (OpenTelemetry)
@@ -33,7 +35,6 @@ Roadmap for ChatGPS
 * VectorDB support
 * Remove unneeded PowerShell classes
 * Context-aware summarization for code -- it compresses but does not truncate functions or produce inaccurate summary
-* Fix session creation to not create a session if it can't connect.
 * Command to trigger re-auth?
 * Generalize tokenlimit handling across services
 * Last error for session
@@ -112,6 +113,7 @@ Roadmap for ChatGPS
 * Remove session affinity for chat functions!
 * Aliases for set-chatcurrentsession, etc.
 * Show current session in list view
+* Fix session creation to not create a session if it can't connect.
 
 ### Plugin notes
 

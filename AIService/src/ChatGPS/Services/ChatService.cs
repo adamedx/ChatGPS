@@ -23,6 +23,19 @@ public abstract class ChatService : IChatService
     {
         this.options = options;
         this.userAgent = userAgent;
+        this.initialized = false;
+    }
+
+    public void Initialize()
+    {
+        if ( this.initialized )
+        {
+            throw new InvalidOperationException("The object may not be re-initialized");
+        }
+
+        GetKernel();
+
+        this.initialized = true;
     }
 
     public ChatHistory CreateChat(string prompt)
@@ -187,7 +200,6 @@ public abstract class ChatService : IChatService
         return result;
     }
 
-
     protected bool HasSucceeded { get; private set; }
 
     private KernelFunction CreateFunction(string definitionPrompt)
@@ -214,6 +226,8 @@ public abstract class ChatService : IChatService
 
     protected Kernel GetKernelWithState()
     {
+        CheckInitialized();
+
         var kernel = GetKernel();
 
         if ( this.pluginTable is null )
@@ -222,6 +236,14 @@ public abstract class ChatService : IChatService
         }
 
         return kernel;
+    }
+
+    protected void CheckInitialized()
+    {
+        if ( ! this.initialized )
+        {
+            throw new InvalidOperationException("The object has not been initialized");
+        }
     }
 
     private IChatCompletionService GetChatCompletionService()
@@ -262,4 +284,5 @@ public abstract class ChatService : IChatService
     protected AiOptions options;
     protected string? userAgent;
     protected PluginTable? pluginTable;
+    protected bool initialized;
 }
