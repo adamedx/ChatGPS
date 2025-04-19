@@ -172,6 +172,12 @@ $configpath = "$configfolder/openai.config"
 Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
 ```
 
+**Google:**
+
+```powershell
+Connect-ChatSession -Provider Google -ModelIdentifier gemini-2.0-flash-001 -ReadApiKey
+```
+
 #### Local model usage
 
 The `Connect-ChatSession` command also supports models hosted in the local file system. Use the `LocalModelPath` parameter with the appropriate `Provider` parameter that supports local models to specify the path to the model as in the example below which uses the `LocalOnnx` provider:

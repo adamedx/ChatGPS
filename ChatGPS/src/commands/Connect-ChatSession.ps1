@@ -330,7 +330,7 @@ function Connect-ChatSession {
         [string] $CustomSystemPrompt,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx', 'Ollama')]
+        [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx', 'Ollama', 'Google')]
         [string] $Provider,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
@@ -505,38 +505,6 @@ function Connect-ChatSession {
     }
 
     $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent) -BoundParameters $PSBoundParameters
-
-    if ( ! $isLocal -and ! $NoConnect.IsPresent ) {
-        try {
-            SendConnectionTestMessage $session
-        } catch {
-            $exceptionMessage = if ( $_.Exception.InnerException ) {
-                $_.Exception.InnerException.Message
-            } else {
-                $_.Exception.Message
-            }
-
-            $apiEndpointAdvice = if ( $ApiEndpoint ) {
-                "Ensure that the remote API URI '$($ApiEndpoint)' is accessible from this device."
-            } else {
-                "Ensure that you have network connectivity to the remote service hosting the model."
-            }
-
-            $signinAdvice = if ( $ApiKey ) {
-                'Also ensure that the specified API key is valid for the given model API URI.'
-            } else {
-                'Also ensure that you have signed in using a valid identity that has been granted access to the given model API URI. ' +
-                '(e.g. for Azure OpenAI models try signing out with Logout-AzAccount, then retry the command, or explicitly use ' +
-                'LoginAzAccount to sign in as the correct identity). You can also specify the AllowInteractiveSignin parameter with ' +
-                'with this command and retry if you do not have access to signin tools for the remote model; this may result in ' +
-                'multiple requests to re-authenticate.'
-            }
-            throw [ApplicationException]::new("Attempt to establish a test connection to the remote model failed.`n" +
-                                              "$($apiEndpointAdvice)`n" +
-                                              "$($signinAdvice)`nSpecify the NoConnect option to skip this test when invoking this command.`n" +
-                                              "$($exceptionMessage)", $_.Exception)
-        }
-    }
 
     if ( $PassThru.IsPresent -or $NoSave.IsPresent ) {
         $session

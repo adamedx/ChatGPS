@@ -18,7 +18,8 @@ public enum ModelProvider
     AzureOpenAI,
     OpenAI,
     LocalOnnx,
-    Ollama
+    Ollama,
+    Google
 }
 
 public class AiProviderOptions

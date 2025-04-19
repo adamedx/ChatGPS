@@ -83,11 +83,49 @@ function CreateSession {
 
     $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
 
+    TestSession $session $Options $NoConnect.IsPresent
+
     $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $BoundParameters
 
     AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent $sessionSettings
 
     $session
+}
+
+function TestSession($session, [Modulus.ChatGPS.Models.AiOptions] $originalAiOptions, [bool] $noConnect) {
+    if ( $Session.IsRemote -and ! $noConnect ) {
+        try {
+            SendConnectionTestMessage $session
+        } catch {
+            $exceptionMessage = if ( $_.Exception.InnerException ) {
+                $_.Exception.InnerException.Message
+            } else {
+                $_.Exception.Message
+            }
+
+            $apiEndpoint = $originalAiOptions.ApiEndpoint
+
+            $apiEndpointAdvice = if ( $apiEndpoint ) {
+                "Ensure that the remote API URI '$($apiEndpoint)' is accessible from this device."
+            } else {
+                "Ensure that you have network connectivity to the remote service hosting the model."
+            }
+
+            $signinAdvice = if ( $originalAiOptions.ApiKey ) {
+                'Also ensure that the specified API key is valid for the given model API URI.'
+            } else {
+                'Also ensure that you have signed in using a valid identity that has been granted access to the given model API URI. ' +
+                '(e.g. for Azure OpenAI models try signing out with Logout-AzAccount, then retry the command, or explicitly use ' +
+                'LoginAzAccount to sign in as the correct identity). You can also specify the AllowInteractiveSignin parameter with ' +
+                'with this command and retry if you do not have access to signin tools for the remote model; this may result in ' +
+                'multiple requests to re-authenticate.'
+            }
+            throw [ApplicationException]::new("Attempt to establish a test connection to the remote model failed.`n" +
+                                              "$($apiEndpointAdvice)`n" +
+                                              "$($signinAdvice)`nSpecify the NoConnect option to skip this test when invoking this command.`n" +
+                                              "$($exceptionMessage)", $_.Exception)
+        }
+    }
 }
 
 function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $false, [bool] $forceOnNameCollision, $sourceSettings = $null) {
@@ -240,7 +278,7 @@ function SendMessage($session, $prompt, $functionDefinition) {
 function SendConnectionTestMessage($session) {
     if ( ! $session.AccessValidated -and $session.IsRemote ) {
         write-progress "Connecting" -Percent 25
-        $session.SendStandaloneMessage("Hello from $($session.id)", $false) | out-null
+        $session.SendStandaloneMessage("Hello from $($session.id)", 'You are a friendly conversationalist.', $false) | out-null
         write-progress "Connecting" -Completed
     }
 }
