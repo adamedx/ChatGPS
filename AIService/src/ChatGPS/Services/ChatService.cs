@@ -106,44 +106,7 @@ public abstract class ChatService : IChatService
         return new FunctionOutput(result);
     }
 
-
-    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
-    {
-        GetKernelWithState();
-
-        if ( this.pluginTable is null )
-        {
-            throw new InvalidOperationException("The plugin table was not initialized");
-        }
-
-        return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
-    }
-
-    public void AddPlugin(string pluginName, object[]? parameters, bool noProxy = false)
-    {
-        GetKernelWithState();
-
-        if ( this.pluginTable is null )
-        {
-            throw new InvalidOperationException("The plugin table was not initialized");
-        }
-
-        this.pluginTable.AddPlugin(pluginName, parameters, noProxy);
-    }
-
-    public void RemovePlugin(string pluginName)
-    {
-        GetKernelWithState();
-
-        if ( this.pluginTable is null )
-        {
-            throw new InvalidOperationException("The plugin table was not initialized");
-        }
-
-        this.pluginTable.RemovePlugin(pluginName);
-    }
-
-    public IEnumerable<PluginInfo> Plugins
+    public IPluginTable Plugins
     {
         get
         {
@@ -154,7 +117,7 @@ public abstract class ChatService : IChatService
                 throw new InvalidOperationException("The plugin table was not initialized");
             }
 
-            return this.pluginTable.Plugins;
+            return this.pluginTable;
         }
     }
 

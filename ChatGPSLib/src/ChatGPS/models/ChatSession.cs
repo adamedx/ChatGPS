@@ -115,7 +115,9 @@ public class ChatSession
         this.History.RemoveAt(this.History.Count - 1);
         this.CurrentHistory.RemoveAt(this.CurrentHistory.Count - 1);
 
-        var updatedMessage = new ChatMessage(new ChatMessageContent(lastMessage.SourceChatMessageContent.Role, updatedResponse, lastMessage.SourceChatMessageContent.ModelId, lastMessage.SourceChatMessageContent.InnerContent, lastMessage.SourceChatMessageContent.Encoding, lastMessage.SourceChatMessageContent.Metadata));
+        var sourceChatMessageContent = (ChatMessageContent) lastMessage.GetSourceChatMessageContent();
+
+        var updatedMessage = new ChatMessage(new ChatMessageContent(sourceChatMessageContent.Role, updatedResponse, sourceChatMessageContent.ModelId, sourceChatMessageContent.InnerContent, sourceChatMessageContent.Encoding, sourceChatMessageContent.Metadata));
 
         this.History.Add(updatedMessage);
         this.CurrentHistory.Add(updatedMessage);
@@ -123,12 +125,12 @@ public class ChatSession
 
     public void AddPlugin(string name, object[]? parameters = null)
     {
-        this.chatService.AddPlugin(name, parameters);
+        this.chatService.Plugins.AddPlugin(name, parameters);
     }
 
     public void RemovePlugin(string name)
     {
-        this.chatService.RemovePlugin(name);
+        this.chatService.Plugins.RemovePlugin(name);
     }
 
     public ChatMessageHistory History
@@ -221,14 +223,6 @@ public class ChatSession
     public object? CustomContext { get; private set; }
 
     public string? Name { get; private set; }
-
-    public IEnumerable<PluginInfo> Plugins
-    {
-        get
-        {
-            return this.chatService.Plugins;
-        }
-    }
 
     private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
     {

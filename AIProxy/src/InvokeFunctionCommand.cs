@@ -45,7 +45,7 @@ internal class InvokeFunctionCommand : Command
 
         var connection = this.processor.Connections.GetConnection(this.serviceConnectionId);
 
-        PluginTable.SynchronizePlugins(connection.ChatService, this.arguments.Plugins);
+        PluginTable.SynchronizePlugins(connection.ChatService.Plugins, this.arguments.Plugins);
 
         var task = connection.ChatService.InvokeFunctionAsync(this.arguments.DefinitionPrompt, this.arguments.Parameters, this.arguments.AllowFunctionCall);
 

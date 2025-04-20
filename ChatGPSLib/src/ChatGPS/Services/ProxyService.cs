@@ -118,37 +118,13 @@ internal class ProxyService : IChatService
         return invokeFunctionResponse.Output;
     }
 
-    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
-    {
-        CheckInitialized();
-
-        return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
-    }
-
-    public void AddPlugin(string pluginName, object[]? parameters, bool noProxy = false)
-    {
-        CheckInitialized();
-
-        if ( noProxy )
-        {
-            throw new NotSupportedException("The noProxy parameter was specified as true; the proxy service does not support proxy service");
-        }
-
-        this.pluginTable.AddPlugin(pluginName, parameters, true);
-    }
-
-    public void RemovePlugin(string pluginName)
-    {
-        CheckInitialized();
-        this.pluginTable.RemovePlugin(pluginName);
-    }
-
-    public IEnumerable<PluginInfo> Plugins
+    public IPluginTable Plugins
     {
         get
         {
             CheckInitialized();
-            return this.pluginTable.Plugins;
+
+            return this.pluginTable;
         }
     }
 
