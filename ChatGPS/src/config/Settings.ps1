@@ -48,6 +48,7 @@ class ModelChatSession {
         $this.forceProxy = $null
         $this.plainTextApiKey = $null
         $this.allowAgentAccess = $null
+        $this.historyContextLimit = -1
     }
 
     ModelChatSession([ModelChatSession] $source, [string] $nameOverride) {

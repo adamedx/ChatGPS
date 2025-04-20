@@ -19,8 +19,6 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, int latestContextLimit = -1, object? customContext = null, string? name = null)
     {
-        chatService.Initialize();
-
         this.Id = Guid.NewGuid();
 
         this.conversationBuilder = new ConversationBuilder(chatService);
@@ -51,6 +49,8 @@ public class ChatSession
 
     public string SendStandaloneMessage(string prompt, string? customSystemPrompt, bool? allowAgentAccess = null)
     {
+        LazyInitialize();
+
         ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
 
         var temporarySystemPrompt = customSystemPrompt ?? this.chatHistory[0].Content ?? "You are a friendly conversationalist.";
@@ -98,6 +98,8 @@ public class ChatSession
 
     public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
     {
+        LazyInitialize();
+
         var function = FunctionTable.GlobalFunctions.GetFunctionById(functionId);
 
         return await function.InvokeFunctionAsync(this.chatService, boundParameters);
@@ -123,13 +125,27 @@ public class ChatSession
         this.CurrentHistory.Add(updatedMessage);
     }
 
+    public IEnumerable<PluginInfo> Plugins
+    {
+        get
+        {
+            LazyInitialize();
+
+            return this.chatService.Plugins.Plugins;
+        }
+    }
+
     public void AddPlugin(string name, object[]? parameters = null)
     {
+        LazyInitialize();
+
         this.chatService.Plugins.AddPlugin(name, parameters);
     }
 
     public void RemovePlugin(string name)
     {
+        LazyInitialize();
+
         this.chatService.Plugins.RemovePlugin(name);
     }
 
@@ -150,7 +166,7 @@ public class ChatSession
     }
 
     public ReadOnlyCollection<double> ExceededTokenLimitSizeList
-     {
+    {
          get
          {
              return new ReadOnlyCollection<double>(this.tokenReducer.PastLimitTokenSize);
@@ -158,7 +174,7 @@ public class ChatSession
      }
 
     public ReadOnlyCollection<double> ReducedTokenSizeList
-     {
+    {
          get
          {
              return new ReadOnlyCollection<double>(this.tokenReducer.ReducedTokenSize);
@@ -224,8 +240,20 @@ public class ChatSession
 
     public string? Name { get; private set; }
 
+    private void LazyInitialize()
+    {
+        if ( ! this.initialized )
+        {
+            chatService.Initialize();
+
+            this.initialized = true;
+        }
+    }
+
     private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
     {
+        LazyInitialize();
+
         var newMessageRole = AuthorRole.User;
 
         this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt, new TimeSpan(0));
@@ -407,5 +435,7 @@ public class ChatSession
     private TokenReducer tokenReducer;
     private IChatService chatService;
     private int latestContextLimit;
+
+    bool initialized = false;
 }
 

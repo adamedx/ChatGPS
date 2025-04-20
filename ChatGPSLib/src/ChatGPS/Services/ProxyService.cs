@@ -54,7 +54,7 @@ internal class ProxyService : IChatService
 
     public ChatHistory CreateChat(string prompt)
     {
-        CheckInitialized();
+        // No CheckInitialized since this is a purely local operation
         return new ChatHistory(prompt);
     }
 

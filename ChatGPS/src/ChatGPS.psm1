@@ -31,7 +31,7 @@ $commands = @(
     'Select-ChatSession'
     'Send-ChatMessage'
     'Set-ChatCurrentVoice'
-    'Start-ChatREPL'
+    'Start-ChatShell'
     'Update-ChatSettings'
 )
 
@@ -41,7 +41,8 @@ $aliases = @(
     'gss'
     'ncs'
     'sch'
-    'scs'
+    'scs',
+    'Start-ChatRepl'
 )
 
 export-modulemember -function $commands -alias $aliases

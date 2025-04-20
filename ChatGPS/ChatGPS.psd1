@@ -95,7 +95,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Select-ChatSession'
     'Send-ChatMessage'
     'Set-ChatCurrentVoice'
-    'Start-ChatREPL'
+    'Start-ChatShell'
     'Update-ChatSettings'
 )
 
@@ -113,6 +113,7 @@ AliasesToExport = @(
     'ncs'
     'sch'
     'scs'
+    'Start-ChatRepl'
 )
 
 # DSC resources to export from this module
@@ -158,7 +159,7 @@ FileList = @(
     'src/commands/Select-ChatSession.ps1'
     'src/commands/Send-ChatMessage.ps1'
     'src/commands/Set-ChatCurrentVoice.ps1'
-    'src/commands/Start-ChatREPL.ps1'
+    'src/commands/Start-ChatShell.ps1'
     'src/commands/Update-ChatSettings.ps1'
     'src/aliases.ps1'
     'src/config.ps1'
@@ -179,6 +180,7 @@ FileList = @(
     'src/shell.ps1'
     'src/shell/replcommand.ps1'
     'src/shell/ReplState.ps1'
+    'src/shell/shellux.ps1'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
@@ -187,7 +189,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi')
+        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi', 'Ollama', 'Gemini')
 
         # A URL to the license for this module.
         # LicenseUri = ''

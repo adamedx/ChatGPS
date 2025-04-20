@@ -21,6 +21,7 @@ function Save-ChatSessionSetting {
 
         [string] $ProfileName = $null,
 
+        [Alias('Path')]
         [string] $SettingsFilePath = $null,
 
         [switch] $NoCreateProfile,
@@ -29,7 +30,7 @@ function Save-ChatSessionSetting {
 
         [switch] $DefaultSession,
 
-        [switch] $NewFile,
+        [switch] $NoNewFile,
 
         [switch] $NoWrite,
 
@@ -60,15 +61,13 @@ function Save-ChatSessionSetting {
 
         $settingsExist = $false
 
-        $settings = if ( ! $NewFile.IsPresent ) {
-            if ( test-path $targetPath ) {
-                $settingsExist = $true
-                $content = Get-Content $targetPath -raw
+        $settings = if ( test-path $targetPath ) {
+            $settingsExist = $true
+            $content = Get-Content $targetPath -raw
 
-                SettingsJsonToStrongTypedSettings $content $targetPath
-            } elseif ( $SettingsFilePath ) {
-                write-error "The specified settings file at '$SettingsFilePath' does not exist. Specify a valid path and then retry the operation."
-            }
+            SettingsJsonToStrongTypedSettings $content $targetPath
+        } elseif ( $NoNewFile.IsPresent -and $SettingsFilePath ) {
+            write-error "The specified settings file at '$SettingsFilePath' does not exist. Specify a valid path and then retry the operation."
         }
 
         if ( ! $settings ) {

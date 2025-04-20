@@ -4,7 +4,7 @@
 # All rights reserved.
 
 
-function Start-ChatREPL {
+function Start-ChatShell {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='chat')]
     param(
         [parameter(position=0)]
@@ -22,19 +22,21 @@ function Start-ChatREPL {
         [validateset('None', 'Markdown', 'PowerShellEscaped')]
         [string] $OutputFormat = 'None',
 
-        [ScriptBlock] $InputHint = { $userName = $env:USER ? $env:USER : $env:USERNAME; "($($userName)) ChatGPS>" },
+        [ScriptBlock] $PromptHint = $null,
 
         [switch] $HideInitialPrompt,
 
         [switch] $HideInitialResponse,
 
-        [switch] $HideInputHint,
+        [switch] $HidePrompt,
 
         [switch] $NoEcho,
 
         [switch] $NoOutput,
 
         [switch] $RawOutput,
+
+        [switch] $NoWelcome,
 
         [ScriptBlock] $ReceiveBlock,
 
@@ -45,6 +47,8 @@ function Start-ChatREPL {
         [switch] $NoAutoConnect,
 
         [switch] $MessageSound,
+
+        [switch] $AllowInitialReceiveBlock,
 
         [string] $SoundPath,
 
@@ -116,17 +120,26 @@ function Start-ChatREPL {
             }
         }
 
-        $inputHintArgument = if ( ! $HideInputHint.IsPresent -and ! $NoEcho.IsPresent ) {
-            @{Prompt=$InputHint}
+        $inputHintArgument = if ( ! $HidePrompt.IsPresent -and ! $NoEcho.IsPresent ) {
+            $targetPrompt = if ( $PromptHint ) {
+                $PromptHint
+            } else {
+                { $prefix = $targetSession.Name ? $targetSession.Name : ( $env:USER ? $env:USER : $env:USERNAME ); "($($prefix)) ChatGPS>" }
+            }
+            @{Prompt=$targetPrompt}
         } else {
             @{}
         }
 
         $lastResponse = $initialResponse
 
+        $initialReceiveBlock = $AllowInitialReceiveBlock.IsPresent ? $targetReceiveBlock : @{}
+
         if ( $initialResponse -and ! $HideInitialResponse.IsPresent -and ! $NoOutput.IsPresent ) {
-            TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @targetReceiveBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
+            TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @initialReceiveBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
         }
+
+        ShowWelcome $NoWelcome.IsPresent
     }
 
     process {
@@ -200,7 +213,7 @@ function Start-ChatREPL {
                 $forceChat = $true
             }
 
-            $result = Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter
+             $result = Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter
 
             $lastResponse = $result
 

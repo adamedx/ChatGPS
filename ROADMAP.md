@@ -3,8 +3,23 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* .clearhistory command for start-chatshell
+* AI grep
+* AI Browser
+* .showconnection command for start-chatshell
+* Fix proxy use at startup
+* Web plugin
+* Make default inputhint part of connection or just a new setting
+* Rename InputHint PromptBlock
+* Make Start-Chat vs. Start-ChatShell? Wrapper parameters?
+* Align UserReplyBlock and ReplyBlock in Send-ChatMessage
+* Decide on whether default setting values should be specified in config or modeled explicitly
+* Add plugins to connect-chatsession
+* Add SendBlock to start-chatshell?
+* Add .replay command to re-run list n command
+* Change prompt to show connection name
+* Add plugins to settings
 * Remove SK types from proxy format
-* Make an iplugintable property of ichatservice vs inheritance
 * Agent concept
 * Type format for plugins
 * Logging (OpenTelemetry)
@@ -24,14 +39,11 @@ Roadmap for ChatGPS
 * Update-ChatSettings -- nosetcurrent
 * Voice management (Remove-ChatVoice)?
 * Voice settings?
-* Send session id in hello message
 * Deferred interactive key entry on first message
 * Show last error in session connection status
 * Last error command for session
-* Aliases for set-chatcurrentsession, etc.
 * Show current session in list view
 * Basic help for start-chatrepl
-* Rename start-chatrepl to start-chatshell?
 * VectorDB support
 * Remove unneeded PowerShell classes
 * Context-aware summarization for code -- it compresses but does not truncate functions or produce inaccurate summary
@@ -88,7 +100,6 @@ Roadmap for ChatGPS
 * Add preprocess and postprocess scriptblocks to connection that take input as a parameter
 * Add zero context scenario (or N lines of latest context) for sending context to the model
 * Examples for receive and sendblocks
-* Change block names in start-chatrepl for consistency with connect-chatsession
 * Move function prompt out of session context
 * Redesign function prompts
 * Add function to start-chatrepl
@@ -114,6 +125,13 @@ Roadmap for ChatGPS
 * Aliases for set-chatcurrentsession, etc.
 * Show current session in list view
 * Fix session creation to not create a session if it can't connect.
+* Make an iplugintable property of ichatservice vs inheritance
+* Send session id in hello message
+* Aliases for set-chatcurrentsession, etc.
+* Rename start-chatrepl to start-chatshell?
+* Change block names in start-chatshell (nee start-chatrepl) for consistency with connect-chatsession
+* Make connection name part of default prompt if it is available
+* Fix receiveblock on startup -- this was actually an issue with userreplyblock, not receiveblock, and it was by design.
 
 ### Plugin notes
 

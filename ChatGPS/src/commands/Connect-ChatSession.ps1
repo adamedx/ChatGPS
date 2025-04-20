@@ -71,10 +71,10 @@ The ReceiveBlock parameter allows specification of a PowerShell script block tha
 This parameter enables "agent" behavior, i.e. the ability of ChatGPS to leverage plugins configured through the Add-Plugin command to automatically send information about the local computer to the model service AND also to take local actions (e.g. issuing web search requests, creating files locally) based on responses from the model; these behaviors occur on your behalf. This setting is required for commands such as Add-Plugin to have any impact; without this setting any plugins configured through Add-Plugin are ignored. This setting is also equivalent to enabling "function calling" features of the model.
 
 .PARAMETER PassThru
-By default, Connect-ChatSession returns no output; it simply has the side effect of changing the current session. Specify PassThru to return the value of the session regardless whether the current session is overridden (default behavior) or not (when NoSave is specified). The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction.
+By default, Connect-ChatSession returns no output; it simply has the side effect of changing the current session. Specify PassThru to return the value of the session regardless whether the current session is overridden (default behavior) or not (when NoSave is specified). The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatShell, or Invoke-ChatFunction.
 
 .PARAMETER NoSetCurrent
-Specify NoSetCurrent so that the implicit "current" session is not overwritten or otherwise set when this command executes successfully. Instead, a new session independent from any current session will be returned as output of the command. The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatRepl, or Invoke-ChatFunction. Thus Connect-ChatSession can be used to create multiple independent chat sessions for different purposes without affecting the current default session.
+Specify NoSetCurrent so that the implicit "current" session is not overwritten or otherwise set when this command executes successfully. Instead, a new session independent from any current session will be returned as output of the command. The resulting output may be used as a parameter to other commands that access models such as Send-ChatMessage, Start-ChatShell, or Invoke-ChatFunction. Thus Connect-ChatSession can be used to create multiple independent chat sessions for different purposes without affecting the current default session.
 
 .PARAMETER NoSave
 By default, all sessions returned by the Connect-ChatSession command are saved in a list of connections that can be viewed by the Get-ChatSession command and otherwise managed by the Select-ChatSession and Remove-ChatSession commands. Specify the NoSave parameter so that Connect-ChatSession does not add the session created by this invocation to the session list. This is useful for maintaining "private" sessions visible only to certain scripts or commands; the limited visibility protects those sessions from being corrupted or deleted by other applications or scripts. When this parameter is specified, the command will output the newly created connection even if the PassThru option is not specified.
@@ -139,7 +139,7 @@ Id                                   Provider    Name ModelIdentifier
 15934765-10c5-4caf-b477-180abd9d893d OpenAI           gpt-4o-mini
 
 .EXAMPLE
-This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatRepl command is used to start an interactive conversation.
+This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatShell command is used to start an interactive conversation.
 
 PS > Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5
 PS > Get-ChatSession
@@ -148,7 +148,7 @@ Id                                   Provider    Name ModelIdentifier
 --                                   --------    ---- ---------------
 5825858e-5fe3-489e-a04f-aa4d494f91b5 LocalOnnx        phi-3.5
 
-PS > Start-ChatRepl
+PS > Start-ChatShell
 
 (morpheus) ChatGPS>: hello
 
@@ -211,7 +211,7 @@ PS > Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatHistory | S
 
 PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
 
-PS > Start-ChatRepl
+PS > Start-ChatShell
 
 (morpheus) ChatGPS>: hello
 
@@ -249,10 +249,10 @@ Timestamp                  Role      Message
 2/9/2025 7:53:58 PM -08:00 User      In what year was integration of schools in Little Rock, Arkansas first attempted?
 2/9/2025 7:53:59 PM -08:00 Assistant The integration of schools in Little Rock, Arkansas, was first attempted in 1957.…
 
-This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatHistory command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatRepl command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
+This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatHistory command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatShell command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
 
 .EXAMPLE
-In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatRepl command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatRepl is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatRepl as it still shows the last response from the previous Start-ChatRepl usage on that session as the latest response.
+In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatShell command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatShell is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatShell as it still shows the last response from the previous Start-ChatShell usage on that session as the latest response.
 
 PS > Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
@@ -261,7 +261,7 @@ PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-
 PS > $unreadMail = GetUnreadMail
 PS > $emailSummary = Invoke-ChatFunction SummarizeMail $unreadMail -Session $work2 | Show-Markdown
 
-PS > Start-ChatRepl
+PS > Start-ChatShell
 
 (morpheus) ChatGPS>: please translate this Chinese text: '我应该乘坐什么火车去机场？'
 
@@ -292,7 +292,7 @@ Received                 Response
                          - **New Year's Day (Wednesday):** Snow likely mainly before 4 PM, mostly cloudy, high near
                          29°F, and a 70% chance of precipitation with 1 to 2 inches of new snow expected.
 
-PS > Start-ChatRepl
+PS > Start-ChatShell
 
 Received                 Response
 --------                 --------
@@ -313,7 +313,7 @@ Remove-ChatSession
 Send-ChatMessage
 Get-ChatHistory
 Clear-ChatHistory
-Start-ChatRepl
+Start-ChatShell
 Invoke-ChatFunction
 Add-Plugin
 #>

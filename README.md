@@ -83,9 +83,7 @@ Received                 Response
 ```
 
 In this example, a session was created using a locally hosted model stored at the file system path specified by the `LocalModelPath`
-parameter. Additional invocations of `Send-ChatMessage` can be used to continue the conversation with further messages.
-
-The `Start-ChatRepl`
+parameter. Subsequent invocations of `Send-ChatMessage` or `Start-ChatShell` (alias `chatgps`) can be used to continue the conversation with further messages.
 
 #### Configuring the language model
 
@@ -214,20 +212,20 @@ Received                 Response
 #### Import the module
 
 To experience the actual module, you'll need to import it into your session *after you've built it* as described earlier.
-The example below uses the `Start-ChatRepl` command to create an interactive chat below -- this is useful for extended
+The example below uses the `Start-ChatShell` command to create an interactive chat below -- this is useful for extended
 human or automated engagement with the model, as opposed to one-off interactions:
 
 ```powershell
 cd <your-chatgps-repositoryroot>
 import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS/ChatGPS.psd1
 Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
-Start-ChatRepl # This starts a "Read-Eval-Print-Loop (REPL)" as your interactive chat session
+Start-ChatShell # This starts a "Read-Eval-Print-Loop (REPL)" as your interactive chat session
 ```
 
 If all commands succeed, you should have an interactive prompt that will allow you to interact with the model, e.g.:
 
 ```powershell
-PS /home/ryu> Start-ChatRepl
+PS /home/ryu> Start-ChatShell
 
 (ryu) ChatGPS>: hello
 
@@ -245,12 +243,12 @@ Received                 Response
 
 To exit the REPL, enter the command `.exit`.
 
-Note that `Send-Chat` and `Start-ChatRepl` contribute to the same session, so you can use one, then switch to the other,
+Note that `Send-Chat` and `Start-ChatShell` contribute to the same session, so you can use one, then switch to the other,
 and of course switch again, and the conversation will simply continue.
 
 Whenever you need a fresh or separate conversation session, use `Connect-ChatSession` to create a new session -- specify
 the `NoSetCurrent` parameter and save the output of the command in a variable to capture this new session connection. Commands
-like `Send-ChatMessage` and `Start-ChatRepl` accept a `Connection` parameter to which this variable can be specified to
+like `Send-ChatMessage` and `Start-ChatShell` accept a `Connection` parameter to which this variable can be specified to
 support multiple parallel conversations.
 
 ## General usage
