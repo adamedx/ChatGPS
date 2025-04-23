@@ -19,8 +19,13 @@ public abstract class Plugin
 
         #pragma warning disable SKEXP0050
         Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin)));
+        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.MathPlugin)));
+        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin)));
+        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin)));
         Plugin.RegisterPlugin(new WebSearchPlugin(WebSearchPlugin.SearchSource.Bing));
         Plugin.RegisterPlugin(new WebSearchPlugin(WebSearchPlugin.SearchSource.Google));
+        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin)));
+        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin)));
         Plugin.RegisterPlugin(new PowerShellPlugin());
         #pragma warning restore SKEXP0050
     }

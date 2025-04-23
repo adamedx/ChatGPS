@@ -3,12 +3,9 @@ Roadmap for ChatGPS
 
 ## To-do items
 
-* .clearhistory command for start-chatshell
 * AI grep
 * AI Browser
 * .showconnection command for start-chatshell
-* Fix proxy use at startup
-* Web plugin
 * Make default inputhint part of connection or just a new setting
 * Rename InputHint PromptBlock
 * Make Start-Chat vs. Start-ChatShell? Wrapper parameters?
@@ -132,6 +129,10 @@ Roadmap for ChatGPS
 * Change block names in start-chatshell (nee start-chatrepl) for consistency with connect-chatsession
 * Make connection name part of default prompt if it is available
 * Fix receiveblock on startup -- this was actually an issue with userreplyblock, not receiveblock, and it was by design.
+* Fix bug where plugins aren't being resent on each request
+* .clearhistory command for start-chatshell
+* Fix proxy use at startup
+* Web plugin
 
 ### Plugin notes
 

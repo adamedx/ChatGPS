@@ -38,6 +38,7 @@ public class AiProviderOptions
         this.OutputType = options.OutputType;
         this.SigninInteractionAllowed = options.SigninInteractionAllowed;
         this.PlainTextApiKey = options.PlainTextApiKey;
+        this.AllowAgentAccess = options.AllowAgentAccess;
     }
 
     public string? Provider {get; set;}
