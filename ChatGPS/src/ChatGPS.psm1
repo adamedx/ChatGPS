@@ -30,6 +30,7 @@ $commands = @(
     'Save-ChatSessionSetting'
     'Select-ChatSession'
     'Send-ChatMessage'
+    'Set-ChatAgentAccess'
     'Set-ChatCurrentVoice'
     'Start-ChatShell'
     'Update-ChatSettings'

@@ -11,6 +11,7 @@ $ReplCommands = @{
     Last = {param([HashTable] $ReplState) ReplCommandHistory 1 1}
     Help = {param([HashTable] $ReplState) ReplCommandHelp}
     ClearHistory = {param([HashTable] $ReplState) ReplCommandClearHistory}
+    ShowConnection = {param([HashTable] $ReplState) ReplCommandShowConnection}
 }
 
 function InvokeReplCommand {
@@ -135,4 +136,8 @@ function ReplCommandHistory( $LatestCount = -1, $Length = -1) {
 function ReplCommandClearHistory {
     Clear-ChatHistory -Session $ReplState.Connection
     ToCommandOutput "Chat history cleared at $([DateTime]::now)."
+}
+
+function ReplCommandShowConnection {
+    ToCommandOutput $ReplState.Connection
 }

@@ -77,14 +77,14 @@ public class ChatSession
         return messageTask.Result;
     }
 
-    public string GenerateMessage(string prompt)
+    public string GenerateMessage(string prompt, bool? allowAgentAccess = null)
     {
-        return GenerateMessageInternal(prompt);
+        return GenerateMessageInternal(prompt, allowAgentAccess);
     }
 
-    public string GenerateFunctionResponse(string functionDefinition, string prompt)
+    public string GenerateFunctionResponse(string functionDefinition, string prompt, bool? allowAgentAccess = null)
     {
-        return GenerateMessageInternal(prompt, functionDefinition);
+        return GenerateMessageInternal(prompt, allowAgentAccess, functionDefinition);
     }
 
     public Function CreateFunction(string name, string[] parameters, string definition, bool replace = false)
@@ -240,6 +240,19 @@ public class ChatSession
 
     public string? Name { get; private set; }
 
+    public bool AllowAgentAccess
+    {
+        get
+        {
+            return this.AiOptions?.AllowAgentAccess ?? false;
+        }
+
+        set
+        {
+            this.AiOptions.AllowAgentAccess = value;
+        }
+    }
+
     private void LazyInitialize()
     {
         if ( ! this.initialized )
@@ -250,9 +263,12 @@ public class ChatSession
         }
     }
 
-    private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
+    private string GenerateMessageInternal(string prompt, bool? allowAgentAccess, string? functionDefinition = null)
     {
         LazyInitialize();
+
+        var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.AiOptions.AllowAgentAccess is not null ? (bool) this.AiOptions.AllowAgentAccess : false );
 
         var newMessageRole = AuthorRole.User;
 
@@ -282,13 +298,13 @@ public class ChatSession
                 {
                     var chatFunction = new Function(new string[] {"input"}, functionDefinition);
 
-                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, chatFunction, prompt);
+                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, chatFunction, prompt, allowAgentAccessParameter);
                 }
                 else
                 {
                     UpdateHistoryContextFromLimit();
 
-                    messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
+                    messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory, allowAgentAccessParameter);
                 }
 
                 messageTask.Wait();

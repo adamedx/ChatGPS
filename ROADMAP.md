@@ -3,9 +3,10 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Invoke-ChatFunction, Send-ChatMessage should have allow agent access
+* Add ListAvailable to Get-ChatPlugin
 * AI grep
 * AI Browser
-* .showconnection command for start-chatshell
 * Make default inputhint part of connection or just a new setting
 * Rename InputHint PromptBlock
 * Make Start-Chat vs. Start-ChatShell? Wrapper parameters?
@@ -133,6 +134,9 @@ Roadmap for ChatGPS
 * .clearhistory command for start-chatshell
 * Fix proxy use at startup
 * Web plugin
+* .showconnection command for start-chatshell
+* Add Set-ChatAgentAccess on connection
+
 
 ### Plugin notes
 

@@ -168,7 +168,7 @@ All Rights Reserved.
             <Wrap/>
             <TableColumnItems>
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $curid = GetCurrentSessionId; ( ( $session.IsRemote ? 'r' : 'l'), ( $session.IsRemote ? ( $session.AccessValidated ? 'c' : 'd') : '-') , ( ( $session.exceededtokenLimitsizelist.count -gt 0 ) ? 'x' : ($session.History.Count -gt 0 ? 's' : '-') ), ( $session.id -eq $curid ? ' >' : '  ') ) -join ''}, @($_))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $curid = GetCurrentSessionId; ( ($session.AllowAgentAccess ? '+' : ' ' ), ( $session.IsRemote ? 'r' : 'l'), ( $session.IsRemote ? ( $session.AccessValidated ? 'c' : 'd') : '-') , ( ( $session.exceededtokenLimitsizelist.count -gt 0 ) ? 'x' : ($session.History.Count -gt 0 ? 's' : '-') ), ( $session.id -eq $curid ? ' >' : '  ') ) -join ''}, @($_))</ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <ScriptBlock>(Get-Module ChatGPS).Invoke({param($id) $id -eq ( GetCurrentSessionId ) ? (HighlightText $id 4) : $id},@($_.id))</ScriptBlock>
@@ -238,6 +238,10 @@ All Rights Reserved.
               <ListItem>
                 <Label>AccessValidated</Label>
                 <PropertyName>AccessValidated</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>AllowAgentAccess</Label>
+                <PropertyName>AllowAgentAccess</PropertyName>
               </ListItem>
               <ListItem>
                 <Label>LocalModelPath</Label>
