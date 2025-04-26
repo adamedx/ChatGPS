@@ -3,6 +3,8 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Use SessionName instead of Session in commands
+* Fix valuefrompipelinebypropertyname scenarios with specific name
 * Invoke-ChatFunction, Send-ChatMessage should have allow agent access
 * Add ListAvailable to Get-ChatPlugin
 * AI grep

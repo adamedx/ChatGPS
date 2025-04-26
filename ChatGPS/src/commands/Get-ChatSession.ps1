@@ -8,7 +8,8 @@ function Get-ChatSession {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='byname')]
     param(
         [parameter(parametersetname='byname', position=0)]
-        $Name,
+        [Alias('Name')]
+        $SessionName,
 
         [parameter(parametersetname='byid', mandatory=$true, valuefrompipelinebypropertyname=$true)]
         $Id,
@@ -21,16 +22,16 @@ function Get-ChatSession {
         GetCurrentSession
     } else {
         $sessions = GetChatSessions | where {
-            ( $null -eq $Id -and $null -eq $Name ) -or
-            ( $_.Name -eq $Name ) -or
+            ( $null -eq $Id -and $null -eq $SessionName ) -or
+            ( $_.Name -eq $SessionName ) -or
             ( $_.Id -eq $Id )
         }
 
         if ( ! $sessions ) {
             if ( $Id ) {
-                throw [ArgumentException]::new("The session with the specified id '$Id' could not be found.")
-            } elseif ( $Name ) {
-                throw [ArgumentException]::new("The session with the specified name '$Name' could not be found.")
+                write-error "The session with the specified id '$Id' could not be found."
+            } elseif ( $SessionName ) {
+                write-error "The session with the specified name '$SessionName' could not be found."
             }
         }
 
@@ -39,5 +40,5 @@ function Get-ChatSession {
     }
 }
 
-RegisterSessionCompleter Get-ChatSession Name
+RegisterSessionCompleter Get-ChatSession SessionName
 RegisterSessionCompleter Get-ChatSession Id

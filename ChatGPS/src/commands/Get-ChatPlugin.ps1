@@ -5,34 +5,48 @@
 
 
 function Get-ChatPlugin {
-    [cmdletbinding(positionalbinding=$false, defaultparametersetname='availableplugins')]
+    [cmdletbinding(positionalbinding=$false)]
     param(
-        [parameter(parametersetname='bysession', valuefrompipelinebypropertyname=$true, mandatory=$true)]
-        [Modulus.ChatGPS.Models.ChatSession] $Session,
+        [parameter(parametersetname='byname', position=0)]
+        [parameter(parametersetname='listavailable', position=0)]
+        [string] $PluginName,
 
-        [parameter(parametersetname='currentsession', mandatory=$true)]
-        [switch] $CurrentSession
+        [parameter(parametersetname='bysession', valuefrompipelinebypropertyname=$true, mandatory=$true)]
+        [string] $SessionName,
+
+        [parameter(parametersetname='listavailable', mandatory=$true)]
+        [switch] $ListAvailable
     )
+
     begin {
-        $currentSessionInternal = if ( $CurrentSession.IsPresent ) {
-            Get-ChatSession -Current
+        $filter = if ( $PluginName ) {
+            { $_.Name -eq $PluginName }
+        } else {
+            { $true }
         }
     }
 
     process {
-        $targetSession = if ( $currentSessionInternal ) {
-            $currentSessionInternal
-        } elseif ( $Session )  {
-            $Session
+        $targetSession = if ( ! $ListAvailable.IsPresent ) {
+            if ( $SessionName ) {
+                Get-ChatSession $SessionName
+            } else {
+                Get-ChatSession -Current
+            }
         }
 
-        if ( ! $targetSession ) {
-            [Modulus.ChatGPS.Plugins.Plugin]::GetPlugins() | sort-object Name
+        $plugins = if ( ! $targetSession ) {
+            [Modulus.ChatGPS.Plugins.Plugin]::GetPlugins()
         } else {
-            $targetSession.Plugins | sort-object Name
+            $targetSession.Plugins
         }
+
+        $plugins | where $filter | sort-object Name
     }
 
     end {
     }
 }
+
+RegisterPluginCompleter Get-ChatPlugin PluginName
+RegisterSessionCompleter Get-ChatPlugin SessionName

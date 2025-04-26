@@ -7,27 +7,26 @@
 function Remove-ChatPlugin {
     [cmdletbinding(positionalbinding=$false)]
     param(
-        [parameter(position=0, mandatory=$true)]
+        [parameter(position=0, valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [string[]] $PluginName,
 
-        [parameter(valuefrompipelinebypropertyname=$true)]
-        [Modulus.ChatGPS.Models.ChatSession] $Session
+        [string] $SessionName
     )
     begin {
+        $targetSession = if ( ! $SessionName ) {
+            Get-ChatSession -Current
+        } else {
+            Get-ChatSession $SessionName
+        }
     }
 
     process {
-        $targetSession = if ( ! $Session ) {
-            Get-ChatSession -Current
-        } else {
-            $Session
-        }
-
-        foreach ( $name in $pluginName ) {
-            $targetSession.RemovePlugin($name)
-        }
+        $targetSession.RemovePlugin($PluginName)
     }
 
     end {
     }
 }
+
+RegisterPluginCompleter Remove-ChatPlugin PluginName
+RegisterSessionCompleter Remove-ChatSession SessionName

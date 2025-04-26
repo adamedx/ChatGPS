@@ -240,6 +240,14 @@ public class ChatSession
 
     public string? Name { get; private set; }
 
+    public string? SessionName
+    {
+        get
+        {
+            return Name;
+        }
+    }
+
     public bool AllowAgentAccess
     {
         get

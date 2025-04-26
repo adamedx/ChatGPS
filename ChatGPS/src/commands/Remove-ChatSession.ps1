@@ -8,7 +8,8 @@ function Remove-ChatSession {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='byname')]
     param(
         [parameter(parametersetname='byname', mandatory=$true, position=0)]
-        $Name,
+        [Alias('Name')]
+        $SessionName,
 
         [parameter(parametersetname='byid', mandatory=$true, valuefrompipelinebypropertyname=$true)]
         $Id,
@@ -20,8 +21,8 @@ function Remove-ChatSession {
     }
 
     process {
-        $nameOrId = if ( $Name ) {
-            @{Name=$Name}
+        $nameOrId = if ( $SessionName ) {
+            @{Name=$SessionName}
         } else {
             @{Id=$Id}
         }
@@ -35,4 +36,4 @@ function Remove-ChatSession {
     }
 }
 
-RegisterSessionCompleter 'Remove-ChatSession' 'Name'
+RegisterSessionCompleter Remove-ChatSession SessionName

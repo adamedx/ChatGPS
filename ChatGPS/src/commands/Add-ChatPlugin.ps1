@@ -11,31 +11,31 @@ function Add-ChatPlugin {
         [string[]] $PluginName,
 
         [parameter(position=1)]
-        [object[][]] $PluginParameters,
+        [object[][]] $Parameters,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [Modulus.ChatGPS.Models.ChatSession] $Session
+        [string] $SessionName
     )
     begin {
-        if ( $PluginParameters ) {
-            if ( $PluginName.Length -ne $PluginParameters.Length ) {
-                throw [ArgumentException]::new("The number of plugins ($($PluginName.Count)) must match the number of parameter arrays $($PluginParameters)")
+        if ( $Parameters ) {
+            if ( $PluginName.Length -ne $Parameters.Length ) {
+                throw [ArgumentException]::new("The number of plugins ($($PluginName.Count)) must match the number of parameter arrays $($Parameters)")
             }
         }
     }
 
     process {
-        $targetSession = if ( ! $Session ) {
+        $targetSession = if ( ! $SessionName ) {
             Get-ChatSession -Current
         } else {
-            $Session
+            Get-ChatSession $SessionName
         }
 
         $pluginIndex = 0
 
-        foreach ( $name in $pluginName ) {
-            $parameter = if ( $PluginParameters ) {
-                $PluginParameters[$pluginIndex++]
+        foreach ( $name in $PluginName ) {
+            $parameter = if ( $Parameters ) {
+                $Parameters[$pluginIndex++]
             }
             $targetSession.AddPlugin($name, $parameter)
         }
@@ -44,3 +44,6 @@ function Add-ChatPlugin {
     end {
     }
 }
+
+RegisterPluginCompleter Add-ChatPlugin PluginName
+RegisterSessionCompleter Add-ChatPlugin SessionName

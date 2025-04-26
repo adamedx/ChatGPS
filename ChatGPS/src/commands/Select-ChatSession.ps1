@@ -8,14 +8,14 @@ function Select-ChatSession {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='byname')]
     param(
         [parameter(parametersetname='byname', mandatory=$true, position=0)]
-        $Name,
+        $SessionName,
 
         [parameter(parametersetname='byid', mandatory=$true, valuefrompipelinebypropertyname=$true)]
         $Id
     )
 
-    $nameOrId = if ( $Name ) {
-        @{Name=$Name}
+    $nameOrId = if ( $SessionName ) {
+        @{Name=$SessionName}
     } else {
         @{Id=$Id}
     }
@@ -25,5 +25,5 @@ function Select-ChatSession {
     SetCurrentSession $session
 }
 
-RegisterSessionCompleter Select-ChatSession Name
+RegisterSessionCompleter Select-ChatSession SessionName
 RegisterSessionCompleter Select-ChatSession Id
