@@ -7,6 +7,7 @@
 
 $commands = @(
     'Add-ChatPlugin'
+    'Add-ChatPluginFunction'
     'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
@@ -20,6 +21,7 @@ $commands = @(
     'Invoke-ChatScriptBlock'
     'Invoke-ChatFunction'
     'New-ChatFunction'
+    'New-ChatPlugin'
     'New-ChatScriptBlock'
     'New-ChatSettings'
     'New-ChatVoice'

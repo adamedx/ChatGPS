@@ -67,7 +67,7 @@ public abstract class ChatService : IChatService
 
         try
         {
-            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, GetKernelWithState());
+            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, GetKernelWithState()).ConfigureAwait(false);
             this.HasSucceeded = true;
         }
         catch (Exception exception)
@@ -99,7 +99,7 @@ public abstract class ChatService : IChatService
 
         var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>(), executionSettings);
 
-        var result = await GetKernelWithState().InvokeAsync(kernelFunction, kernelArguments);
+        var result = await GetKernelWithState().InvokeAsync(kernelFunction, kernelArguments).ConfigureAwait(false);
 
         this.HasSucceeded = true;
 

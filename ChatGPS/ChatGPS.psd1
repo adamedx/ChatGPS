@@ -71,6 +71,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
  FunctionsToExport = @(
     'Add-ChatPlugin'
+    'Add-ChatPluginFunction'
     'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
@@ -84,6 +85,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Invoke-ChatFunction'
     'Invoke-ChatScriptBlock'
     'New-ChatFunction'
+    'New-ChatPlugin'
     'New-ChatVoice'
     'New-ChatScriptBlock'
     'New-ChatSettings'

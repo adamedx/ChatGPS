@@ -17,6 +17,8 @@ public class PluginInfo
         this.Name = name;
         this.Parameters = Plugin.TranslateSerializedParameters(parameters);
         this.Id = Guid.NewGuid();
+        this.PluginDataJson = plugin.GetPluginDataJson();
+        this.PluginType = plugin.GetType().FullName;
     }
 
     internal void BindPlugin(KernelPlugin kernelPlugin)
@@ -37,6 +39,8 @@ public class PluginInfo
     public string? Name { get; set; }
     public object[]? Parameters { get; set; }
     public Guid? Id { get; set; }
+    public string[]? PluginDataJson { get; set; }
+    public string? PluginType { get; set ; }
 
     private KernelPlugin? kernelPlugin;
 }

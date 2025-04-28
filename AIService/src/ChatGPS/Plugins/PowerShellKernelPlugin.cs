@@ -10,32 +10,16 @@ using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public abstract class PowerShellKernelPlugin
+public class PowerShellKernelPlugin
 {
-    protected PowerShellKernelPlugin(Dictionary<string,IPowerShellScriptBlock> scriptBlocks)
+    protected PowerShellKernelPlugin(string pluginName, string pluginDescription, Dictionary<string,PowerShellScriptBlock> scriptBlocks)
     {
-        this.scriptBlocks = scriptBlocks;
+        this.ScriptBlocks = scriptBlocks;
+        this.PluginName = pluginName;
+        this.PluginDescription = pluginDescription;
     }
 
-    protected string InvokeFunctionAndReturnAsJson(string functionName, Dictionary<string,object> parameters)
-    {
-        var result = this.scriptBlocks[functionName].InvokeAndReturnAsJson(parameters);
-
-        return SerializeToJson(result);
-    }
-
-    protected void AddScriptBlock(string functionName, IPowerShellScriptBlock scriptBlock)
-    {
-        scriptBlocks.Add(functionName, scriptBlock);
-    }
-
-    virtual protected string SerializeToJson(object? scriptOutput)
-    {
-        var jsonOptions = new JsonSerializerOptions();
-        jsonOptions.MaxDepth = 10;
-
-        return scriptOutput is null ? "" : JsonSerializer.Serialize(scriptOutput, scriptOutput.GetType(), jsonOptions);
-    }
-
-    private Dictionary<string,IPowerShellScriptBlock> scriptBlocks;
+    public Dictionary<string,PowerShellScriptBlock> ScriptBlocks { get; set; }
+    public string PluginName { get; set; }
+    public string PluginDescription { get; set; }
 }

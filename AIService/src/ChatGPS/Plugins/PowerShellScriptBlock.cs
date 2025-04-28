@@ -5,27 +5,30 @@
 //
 
 using System.Collections.Generic;
+using System.Management.Automation;
+
 using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class PowerShellScriptBlockBase : IPowerShellScriptBlock
+public class PowerShellScriptBlock
 {
-    public PowerShellScriptBlockBase(string name, string description, string? outputDescription = null)
+    public PowerShellScriptBlock(string name, string scriptBlock, Dictionary<string,string> parameterTable, string description, string? outputType, string? outputDescription = null)
     {
         this.Name = name;
         this.Description = description;
+        this.OutputType = outputType;
         this.OutputDescription = outputDescription ?? "This function returns no output; it only produces side effects";
-        this.ParameterTable = new Dictionary<string,string>();
+        this.ScriptBlock = scriptBlock;
+        this.ParameterTable = parameterTable;
     }
 
-    public string Name { get; set; }
-    public string Description { get;  set; }
-    public string OutputDescription { get; set; }
-    public Dictionary<string,string> ParameterTable { get; set; }
+    public PowerShellScriptBlock() {}
 
-    public object? InvokeAndReturnAsJson(Dictionary<string,object> parameters)
-    {
-        throw new NotImplementedException("This method must be overridden");
-    }
+    public string? Name { get; set; }
+    public string? Description { get;  set; }
+    public string? OutputType { get; set; }
+    public string? OutputDescription { get; set; }
+    public string? ScriptBlock { get; set; }
+    public Dictionary<string,string>? ParameterTable { get; set; }
 }

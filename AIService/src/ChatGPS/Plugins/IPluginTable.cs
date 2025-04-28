@@ -11,7 +11,7 @@ namespace Modulus.ChatGPS.Plugins;
 
 public interface IPluginTable
 {
-    void AddPlugin(string name, object[]? parameters, bool noProxy = false);
+    void AddPlugin(string name, object[]? parameters = null);
     void RemovePlugin(string name);
     bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo);
     IEnumerable<PluginInfo> Plugins {get;}

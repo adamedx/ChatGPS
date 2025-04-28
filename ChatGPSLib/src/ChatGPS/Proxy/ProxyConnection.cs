@@ -6,6 +6,7 @@
 
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
+using Modulus.ChatGPS.Communication;
 
 namespace Modulus.ChatGPS.Proxy;
 

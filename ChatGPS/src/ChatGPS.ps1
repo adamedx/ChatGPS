@@ -12,6 +12,7 @@ $erroractionpreference = 'stop'
 . (join-path $psscriptroot presentation.ps1)
 . (join-path $psscriptroot shell.ps1)
 . (join-path $psscriptroot function.ps1)
+. (join-path $psscriptroot plugin.ps1)
 . (join-path $psscriptroot config.ps1)
 . (join-path $psscriptroot commands.ps1)
 . (join-path $psscriptroot aliases.ps1)

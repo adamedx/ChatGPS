@@ -5,6 +5,8 @@
 //
 
 using System.Collections.Generic;
+using System.Text.Json;
+
 using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
@@ -16,7 +18,6 @@ public class PluginTable : IPluginTable
         this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,PluginInfo>(StringComparer.OrdinalIgnoreCase);
 
         SynchronizePlugins(plugins);
-
         this.kernel = kernel;
     }
 
@@ -42,16 +43,11 @@ public class PluginTable : IPluginTable
         return hasPlugin;
     }
 
-    public void AddPlugin(string name, object[]? parameters, bool noProxy = false)
+    public void AddPlugin(string name, object[]? parameters)
     {
         var plugin = Plugin.GetPluginByName(name);
 
-        if ( noProxy && plugin.NoProxy )
-        {
-            throw new InvalidOperationException("This plugin is not compatible with proxy mode; create a session with proxy mode disabled and retry the operation with that session");
-        }
-
-        var pluginInfo = new PluginInfo(name, plugin, parameters);
+        var pluginInfo = new PluginInfo(plugin.Name, plugin, parameters);
 
         if ( this.kernel is not null )
         {
@@ -60,7 +56,7 @@ public class PluginTable : IPluginTable
             pluginInfo.BindPlugin(kernelPlugin);
         }
 
-        this.plugins.Add(name, pluginInfo);
+        this.plugins.Add(plugin.Name, pluginInfo);
     }
 
     public void RemovePlugin(string name)
@@ -124,14 +120,53 @@ public class PluginTable : IPluginTable
 
                 if ( ! pluginTable.TryGetPluginInfo(latestPluginInfo.Name, out foundPlugin) )
                 {
+                    if ( latestPluginInfo.PluginDataJson is not null )
+                    {
+                        if ( latestPluginInfo.PluginType is null )
+                        {
+                            throw new ArgumentException($"The specified plugin '{latestPluginInfo.Name}' did not include a type name for the plugin.");
+                        }
+
+                        var pluginIsRegistered = false;
+
+                        try
+                        {
+                            Plugin.GetPluginByName(latestPluginInfo.Name);
+                            pluginIsRegistered = true;
+                        }
+                        catch
+                        {
+                        }
+
+                        if ( ! pluginIsRegistered )
+                        {
+                            var pluginType = Type.GetType(latestPluginInfo.PluginType);
+
+                            if ( pluginType is null )
+                            {
+                                throw new ArgumentException($"The specified plugin type '{latestPluginInfo.PluginType}' is not a valid type");
+                            }
+
+                            var constructorArguments = new string[] { latestPluginInfo.Name };
+                            var externalPlugin = (Plugin?) Activator.CreateInstance( pluginType, constructorArguments );
+
+                            if ( externalPlugin is null )
+                            {
+                                throw new InvalidOperationException($"The attempt to create a new instance of the plugin type '{latestPluginInfo.PluginType}' failed.");
+                            }
+
+                            externalPlugin.InitializeInstanceFromData(latestPluginInfo.PluginDataJson);
+
+                            Plugin.RegisterPlugin(externalPlugin);
+                        }
+                    }
+
                     pluginTable.AddPlugin(latestPluginInfo.Name, latestPluginInfo.Parameters);
                 }
             }
 
         }
     }
-
-    internal Dictionary<string,PluginInfo> plugins { get; set; }
 
     private static Dictionary<string,PluginInfo> ToPluginMap(IEnumerable<PluginInfo> plugins)
     {
@@ -156,4 +191,5 @@ public class PluginTable : IPluginTable
     }
 
     private Kernel? kernel;
+    private Dictionary<string,PluginInfo> plugins;
 }

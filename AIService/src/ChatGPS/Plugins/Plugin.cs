@@ -26,17 +26,17 @@ public abstract class Plugin
         Plugin.RegisterPlugin(new WebSearchPlugin(WebSearchPlugin.SearchSource.Google));
         Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin)));
         Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin)));
-        Plugin.RegisterPlugin(new PowerShellPlugin());
         #pragma warning restore SKEXP0050
     }
 
-    protected Plugin(string name, bool noProxy = false)
+    protected Plugin(string name)
     {
         this.Name = name;
-        this.NoProxy = noProxy;
     }
 
     internal abstract object GetNativeInstance(object[]? parameters = null);
+
+    internal virtual void InitializeInstanceFromData(string[] jsonData) { }
 
     internal static object[]? TranslateSerializedParameters(object[]? parameters)
     {
@@ -75,10 +75,28 @@ public abstract class Plugin
         return result;
     }
 
-
-    internal static void RegisterPlugin(Plugin plugin)
+    internal static object? RegisterPlugin(Plugin plugin, object[]? instanceParameters = null, bool getNativeInstance = false)
     {
+        object? result = null;
+
+        if ( Plugin.plugins.ContainsKey(plugin.Name) )
+        {
+            throw new ArgumentException($"The specified plugin '{plugin.Name}' already exists");
+        }
+
+        if ( getNativeInstance )
+        {
+            result = plugin.GetNativeInstance( instanceParameters );
+        }
+
         Plugin.plugins.Add(plugin.Name, plugin);
+
+        return result;
+    }
+
+    public static object? NewPlugin(Plugin plugin, object[]? instanceParameters = null)
+    {
+        return RegisterPlugin(plugin, instanceParameters, true);
     }
 
     public static IEnumerable<Plugin> GetPlugins()
@@ -86,14 +104,17 @@ public abstract class Plugin
         return Plugin.plugins.Values;
     }
 
-    internal static Plugin GetPluginByName(string name)
+    public static Plugin GetPluginByName(string name)
     {
         return Plugin.plugins[name];
     }
 
     public string Name { get; private set; }
 
-    public bool NoProxy { get; set; }
+    internal virtual string[]? GetPluginDataJson()
+    {
+        return null;
+    }
 
     private static Dictionary<string, Plugin> plugins;
 
