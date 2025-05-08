@@ -22,17 +22,24 @@ function InvokeReplCommand {
         [PSModuleInfo] $targetModule = $null
     )
 
-    $trimmedText = $InputText.Trim()
-
-    $argumentStart = $trimmedText.IndexOf(' ')
+    $trimmedText = $InputText -ne '?' ? $InputText.Trim() : '.help'
 
     $commandName = $null
+
+    $argumentStart = $trimmedText.IndexOf(' ')
 
     $commandBlock = if ( $trimmedText[0] -eq '.' ) {
         $commandLength = $argumentStart -gt 0 ? $argumentStart - 1: $trimmedText.Length - 1
         $commandName = $trimmedText.SubString(1, $commandLength)
 
-        $script:ReplCommands[$commandName]
+        $block = $script:ReplCommands[$commandName]
+
+        if ( ! $block ) {
+            write-error -erroraction continue "The command '$commandName' is not a valid command."
+            $block = $script:ReplCommands['help']
+        }
+
+        $block
     }
 
     if ( $commandBlock ) {
@@ -80,7 +87,12 @@ function ReplCommandHelp {
         "." + $commandName.ToLower()
     }
 
-    ToCommandOutput ( $result | sort-object )
+    ToCommandOutput (
+        & {
+            "`nShell commands must start with '.'; valid commands are:`n"
+            ( $result | sort-object )
+        }
+    )
 }
 
 

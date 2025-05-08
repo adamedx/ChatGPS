@@ -213,7 +213,18 @@ function Start-ChatShell {
                 $forceChat = $true
             }
 
-             $result = Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter
+            $failed = $false
+
+            $result = try {
+                Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter
+            } catch {
+                $failed = $true
+                write-error -erroraction continue $_.tostring()
+            }
+
+            if ( $failed ) {
+                continue
+            }
 
             $lastResponse = $result
 

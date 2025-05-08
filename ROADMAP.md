@@ -4,10 +4,9 @@ Roadmap for ChatGPS
 ## To-do items
 
 * Add timeouts to powershell plugin
-* Add progress to powershell pluginI'
+* Add progress to powershell plugin
 * Start-Shell should show last response even on first run
 * Get rid of multiple plugin.ps1 files
-* Use start-threadjob / wait-threadjob as a workaround for hangs
 * Support module reload for plugins
 * Add Remove-ChatPlugin global scope or Unregister-ChatPlugin
 * Use SessionName instead of Session in commands
