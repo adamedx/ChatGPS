@@ -84,6 +84,9 @@ Roadmap for ChatGPS
 
 ## Completed items
 
+* Plugin: Better metadata, e.g. builtin vs. not
+* Plugin: allow plugin type registration by type name
+* Encrypted Plugin parameters
 * Function definition
 * Function invocation
 * Function deletion
@@ -147,6 +150,12 @@ Roadmap for ChatGPS
 * Make add-chatplugin create a builder if one is not passed in
 
 ### Plugin notes
+
+* Plugin types should be refactored / renamed:
+  * PluginInfo -> Plugin
+  * Plugin -> PluginProvider
+  * \*Plugin -> \*PluginProvider
+  * PowerShellKernelPlugin -> PowerShellNativePluginBase
 
 * There should be commands that list plugins from different sources
 * The sources should include built-in supplied by Semantic Kernel, some supplied with Chat GPS, and user defined

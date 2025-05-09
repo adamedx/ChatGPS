@@ -13,31 +13,31 @@ namespace Modulus.ChatGPS.Plugins;
 
 public class PluginTable : IPluginTable
 {
-    internal PluginTable(Kernel kernel, IEnumerable<PluginInfo>? plugins = null)
+    internal PluginTable(Kernel kernel, IEnumerable<Plugin>? plugins = null)
     {
-        this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,PluginInfo>(StringComparer.OrdinalIgnoreCase);
+        this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
 
         SynchronizePlugins(plugins);
         this.kernel = kernel;
     }
 
-    public PluginTable(IEnumerable<PluginInfo>? plugins = null)
+    public PluginTable(IEnumerable<Plugin>? plugins = null)
     {
-        this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,PluginInfo>(StringComparer.OrdinalIgnoreCase);
+        this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
         this.kernel = null;
     }
 
-    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
+    public bool TryGetPlugin(string name, out Plugin? plugin)
     {
         var hasPlugin = this.plugins.ContainsKey(name);
 
         if ( hasPlugin )
         {
-            pluginInfo = this.plugins[name];
+            plugin = this.plugins[name];
         }
         else
         {
-            pluginInfo = null;
+            plugin = null;
         }
 
         return hasPlugin;
@@ -45,27 +45,27 @@ public class PluginTable : IPluginTable
 
     public void AddPlugin(string name, object[]? parameters)
     {
-        var plugin = Plugin.GetPluginByName(name);
+        var provider = PluginProvider.GetProviderByName(name);
 
-        var pluginInfo = new PluginInfo(plugin.Name, plugin, parameters);
+        var plugin = new Plugin(provider.Name, provider, parameters);
 
         if ( this.kernel is not null )
         {
-            var nativePlugin = plugin.GetNativeInstance(pluginInfo.Parameters);
+            var nativePlugin = provider.GetNativeInstance(plugin.Parameters);
             var kernelPlugin = this.kernel.Plugins.AddFromObject(nativePlugin);
-            pluginInfo.BindPlugin(kernelPlugin);
+            plugin.BindPlugin(kernelPlugin);
         }
 
-        this.plugins.Add(plugin.Name, pluginInfo);
+        this.plugins.Add(provider.Name, plugin);
     }
 
     public void RemovePlugin(string name)
     {
-        var pluginInfo = this.plugins[name];
+        var plugin = this.plugins[name];
 
         if ( this.kernel is not null )
         {
-            var kernelPlugin = pluginInfo.GetKernelPlugin();
+            var kernelPlugin = plugin.GetKernelPlugin();
 
             if ( kernelPlugin is null )
             {
@@ -78,7 +78,7 @@ public class PluginTable : IPluginTable
         this.plugins.Remove(name);
     }
 
-    public IEnumerable<PluginInfo> Plugins
+    public IEnumerable<Plugin> Plugins
     {
         get
         {
@@ -86,7 +86,7 @@ public class PluginTable : IPluginTable
         }
     }
 
-    public static void SynchronizePlugins(IPluginTable pluginTable, IEnumerable<PluginInfo>? latestPlugins)
+    public static void SynchronizePlugins(IPluginTable pluginTable, IEnumerable<Plugin>? latestPlugins)
     {
         if ( latestPlugins is not null )
         {
@@ -109,29 +109,29 @@ public class PluginTable : IPluginTable
             }
 
             // Add plugins from the latest list that aren't present in the current
-            foreach ( var latestPluginInfo in latestPlugins )
+            foreach ( var latestPlugin in latestPlugins )
             {
-                PluginInfo? foundPlugin;
+                Plugin? foundPlugin;
 
-                if ( latestPluginInfo.Name is null )
+                if ( latestPlugin.Name is null )
                 {
                     throw new InvalidOperationException("The plugin information is null");
                 }
 
-                if ( ! pluginTable.TryGetPluginInfo(latestPluginInfo.Name, out foundPlugin) )
+                if ( ! pluginTable.TryGetPlugin(latestPlugin.Name, out foundPlugin) )
                 {
-                    if ( latestPluginInfo.PluginDataJson is not null )
+                    if ( latestPlugin.PluginDataJson is not null )
                     {
-                        if ( latestPluginInfo.PluginType is null )
+                        if ( latestPlugin.PluginType is null )
                         {
-                            throw new ArgumentException($"The specified plugin '{latestPluginInfo.Name}' did not include a type name for the plugin.");
+                            throw new ArgumentException($"The specified plugin '{latestPlugin.Name}' did not include a type name for the plugin.");
                         }
 
                         var pluginIsRegistered = false;
 
                         try
                         {
-                            Plugin.GetPluginByName(latestPluginInfo.Name);
+                            PluginProvider.GetProviderByName(latestPlugin.Name);
                             pluginIsRegistered = true;
                         }
                         catch
@@ -140,56 +140,56 @@ public class PluginTable : IPluginTable
 
                         if ( ! pluginIsRegistered )
                         {
-                            var pluginType = Type.GetType(latestPluginInfo.PluginType);
+                            var pluginType = Type.GetType(latestPlugin.PluginType);
 
                             if ( pluginType is null )
                             {
-                                throw new ArgumentException($"The specified plugin type '{latestPluginInfo.PluginType}' is not a valid type");
+                                throw new ArgumentException($"The specified plugin provider type '{latestPlugin.PluginType}' is not a valid type");
                             }
 
-                            var constructorArguments = new string[] { latestPluginInfo.Name };
-                            var externalPlugin = (Plugin?) Activator.CreateInstance( pluginType, constructorArguments );
+                            var constructorArguments = new string[] { latestPlugin.Name };
+                            var customProvider = (PluginProvider?) Activator.CreateInstance( pluginType, constructorArguments );
 
-                            if ( externalPlugin is null )
+                            if ( customProvider is null )
                             {
-                                throw new InvalidOperationException($"The attempt to create a new instance of the plugin type '{latestPluginInfo.PluginType}' failed.");
+                                throw new InvalidOperationException($"The attempt to create a new instance of the plugin provider type '{latestPlugin.PluginType}' failed.");
                             }
 
-                            externalPlugin.InitializeInstanceFromData(latestPluginInfo.PluginDataJson);
+                            customProvider.InitializeInstanceFromData(latestPlugin.PluginDataJson);
 
-                            Plugin.RegisterPlugin(externalPlugin);
+                            PluginProvider.RegisterProvider(customProvider);
                         }
                     }
 
-                    pluginTable.AddPlugin(latestPluginInfo.Name, latestPluginInfo.Parameters);
+                    pluginTable.AddPlugin(latestPlugin.Name, latestPlugin.Parameters);
                 }
             }
 
         }
     }
 
-    private static Dictionary<string,PluginInfo> ToPluginMap(IEnumerable<PluginInfo> plugins)
+    private static Dictionary<string,Plugin> ToPluginMap(IEnumerable<Plugin> plugins)
     {
-        var pluginMap = new Dictionary<string,PluginInfo>(StringComparer.OrdinalIgnoreCase);
+        var pluginMap = new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
 
-        foreach ( var pluginInfo in plugins )
+        foreach ( var plugin in plugins )
         {
-            if ( pluginInfo.Name is null )
+            if ( plugin.Name is null )
             {
                 throw new InvalidOperationException("The plugin information is null");
             }
 
-            pluginMap.Add(pluginInfo.Name, pluginInfo);
+            pluginMap.Add(plugin.Name, plugin);
         }
 
         return pluginMap;
     }
 
-    private void SynchronizePlugins(IEnumerable<PluginInfo>? latestPlugins)
+    private void SynchronizePlugins(IEnumerable<Plugin>? latestPlugins)
     {
         PluginTable.SynchronizePlugins(this, latestPlugins);
     }
 
     private Kernel? kernel;
-    private Dictionary<string,PluginInfo> plugins;
+    private Dictionary<string,Plugin> plugins;
 }

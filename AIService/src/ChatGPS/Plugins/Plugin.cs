@@ -8,24 +8,25 @@ using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class PluginInfo
+public class Plugin
 {
-    public PluginInfo() {}
+    public Plugin() {}
 
-    public PluginInfo(string name, Plugin plugin, object[]? parameters)
+    public Plugin(string name, PluginProvider provider, object[]? parameters)
     {
         this.Name = name;
-        this.Parameters = Plugin.TranslateSerializedParameters(parameters);
+        this.Parameters = PluginProvider.TranslateSerializedParameters(parameters);
         this.Id = Guid.NewGuid();
-        this.PluginDataJson = plugin.GetPluginDataJson();
-        this.PluginType = plugin.GetType().FullName;
+        this.PluginDataJson = provider.GetProviderDataJson();
+        this.PluginType = provider.GetType().FullName;
     }
 
+    // Should be BindKernelPlugin
     internal void BindPlugin(KernelPlugin kernelPlugin)
     {
         if ( this.kernelPlugin is not null )
         {
-            throw new InvalidOperationException("The object is already bound to an existing plugin");
+            throw new InvalidOperationException("The object is already bound to an existing kernel plugin");
         }
 
         this.kernelPlugin = kernelPlugin;

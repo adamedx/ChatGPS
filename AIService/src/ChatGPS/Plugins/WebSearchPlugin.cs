@@ -11,7 +11,7 @@ using Microsoft.SemanticKernel.Plugins.Web.Google;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class WebSearchPlugin : Plugin
+public class WebSearchPlugin : PluginProvider
 {
     internal enum SearchSource
     {

@@ -13,7 +13,7 @@ using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class PowerShellPlugin : Plugin
+public class PowerShellPlugin : PluginProvider
 {
     public PowerShellPlugin(string name, object kernelPlugin, string? generationScriptPath) : base(name)
     {
@@ -42,7 +42,7 @@ public class PowerShellPlugin : Plugin
         this.generationScriptPath = (string?) JsonSerializer.Deserialize<string?>(jsonData[3]);
     }
 
-    internal override string[]? GetPluginDataJson()
+    internal override string[]? GetProviderDataJson()
     {
         var nameJson = JsonSerializer.Serialize(this.Name, this.Name.GetType());
         var descriptionJson = this.PluginDescription is not null ? JsonSerializer.Serialize(this.PluginDescription, this.PluginDescription.GetType()) : "";

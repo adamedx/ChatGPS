@@ -9,7 +9,7 @@ using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class StaticPlugin : Plugin
+public class StaticPlugin : PluginProvider
 {
     internal StaticPlugin(Type kernelPluginType) : this(kernelPluginType.Name, kernelPluginType) {}
 
@@ -27,7 +27,7 @@ public class StaticPlugin : Plugin
 
             if ( kernelPlugin is null )
             {
-                throw new InvalidOperationException($"The plugin type '{this.NativeType.FullName}' could not be instantiated");
+                throw new InvalidOperationException($"The plugin provider type '{this.NativeType.FullName}' could not be instantiated");
             }
             this.nativeInstance = kernelPlugin;
         }

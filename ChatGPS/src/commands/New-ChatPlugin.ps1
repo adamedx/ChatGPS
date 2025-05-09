@@ -28,5 +28,5 @@ function New-ChatPlugin {
 
     $newPlugin = [Modulus.ChatGPS.Plugins.PowerShellPlugin]::new($Name, $Description, $targetScripts, [PowerShellKernelPluginBuilder]::GenerationFiles[0])
 
-    [Modulus.ChatGPS.Plugins.Plugin]::NewPlugin($newplugin)
+    [Modulus.ChatGPS.Plugins.PluginProvider]::NewProvider($newplugin)
 }

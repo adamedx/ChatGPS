@@ -125,7 +125,7 @@ public class ChatSession
         this.CurrentHistory.Add(updatedMessage);
     }
 
-    public IEnumerable<PluginInfo> Plugins
+    public IEnumerable<Plugin> Plugins
     {
         get
         {

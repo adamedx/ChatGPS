@@ -11,26 +11,26 @@ using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public abstract class Plugin
+public abstract class PluginProvider
 {
-    static Plugin()
+    static PluginProvider()
     {
-        Plugin.plugins = new Dictionary<string, Plugin>(StringComparer.OrdinalIgnoreCase);
+        PluginProvider.providers = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
 
         #pragma warning disable SKEXP0050
-        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin)));
-        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.MathPlugin)));
-        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin)));
-        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin)));
-        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.TimePlugin)));
-        Plugin.RegisterPlugin(new WebSearchPlugin(WebSearchPlugin.SearchSource.Bing));
-        Plugin.RegisterPlugin(new WebSearchPlugin(WebSearchPlugin.SearchSource.Google));
-        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin)));
-        Plugin.RegisterPlugin(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin)));
+        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin)));
+        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.MathPlugin)));
+        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin)));
+        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin)));
+        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.TimePlugin)));
+        PluginProvider.RegisterProvider(new WebSearchPlugin(WebSearchPlugin.SearchSource.Bing));
+        PluginProvider.RegisterProvider(new WebSearchPlugin(WebSearchPlugin.SearchSource.Google));
+        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin)));
+        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin)));
         #pragma warning restore SKEXP0050
     }
 
-    protected Plugin(string name)
+    protected PluginProvider(string name)
     {
         this.Name = name;
     }
@@ -76,47 +76,47 @@ public abstract class Plugin
         return result;
     }
 
-    internal static object? RegisterPlugin(Plugin plugin, object[]? instanceParameters = null, bool getNativeInstance = false)
+    internal static object? RegisterProvider(PluginProvider provider, object[]? instanceParameters = null, bool getNativeInstance = false)
     {
         object? result = null;
 
-        if ( Plugin.plugins.ContainsKey(plugin.Name) )
+        if ( PluginProvider.providers.ContainsKey(provider.Name) )
         {
-            throw new ArgumentException($"The specified plugin '{plugin.Name}' already exists");
+            throw new ArgumentException($"The specified plugin provider '{provider.Name}' already exists");
         }
 
         if ( getNativeInstance )
         {
-            result = plugin.GetNativeInstance( instanceParameters );
+            result = provider.GetNativeInstance( instanceParameters );
         }
 
-        Plugin.plugins.Add(plugin.Name, plugin);
+        PluginProvider.providers.Add(provider.Name, provider);
 
         return result;
     }
 
-    public static object? NewPlugin(Plugin plugin, object[]? instanceParameters = null)
+    public static object? NewProvider(PluginProvider provider, object[]? instanceParameters = null)
     {
-        return RegisterPlugin(plugin, instanceParameters, true);
+        return RegisterProvider(provider, instanceParameters, true);
     }
 
-    public static IEnumerable<Plugin> GetPlugins()
+    public static IEnumerable<PluginProvider> GetProviders()
     {
-        return Plugin.plugins.Values;
+        return PluginProvider.providers.Values;
     }
 
-    public static Plugin GetPluginByName(string name)
+    public static PluginProvider GetProviderByName(string name)
     {
-        return Plugin.plugins[name];
+        return PluginProvider.providers[name];
     }
 
     public string Name { get; private set; }
 
-    internal virtual string[]? GetPluginDataJson()
+    internal virtual string[]? GetProviderDataJson()
     {
         return null;
     }
 
-    private static Dictionary<string, Plugin> plugins;
+    private static Dictionary<string, PluginProvider> providers;
 
 }
