@@ -41,7 +41,7 @@ class PowerShellKernelPluginBuilder  {
         $this.Scripts.Add($methodName, $newMethod)
     }
 
-    [Modulus.ChatGPS.Plugins.PowerShellKernelPlugin] ToKernelPlugin() {
+    [Modulus.ChatGPS.Plugins.PowerShellNativePluginBase] ToKernelPlugin() {
         if ( $this.Buildcomplete ) {
             throw [InvalidOperationException]::new("The object has already been built")
         }

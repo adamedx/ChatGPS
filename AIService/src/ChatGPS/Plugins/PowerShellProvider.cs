@@ -13,22 +13,22 @@ using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class PowerShellPlugin : PluginProvider
+public class PowerShellPluginProvider : PluginProvider
 {
-    public PowerShellPlugin(string name, object kernelPlugin, string? generationScriptPath) : base(name)
+    public PowerShellPluginProvider(string name, object kernelPlugin, string? generationScriptPath) : base(name)
     {
         this.generationScriptPath = generationScriptPath;
         this.kernelPlugin = kernelPlugin;
     }
 
-    public PowerShellPlugin(string name, string description, Dictionary<string,PowerShellScriptBlock>? scripts, string? generationScriptPath) : base(name)
+    public PowerShellPluginProvider(string name, string description, Dictionary<string,PowerShellScriptBlock>? scripts, string? generationScriptPath) : base(name)
     {
         this.PluginDescription = description;
         this.Scripts = scripts;
         this.generationScriptPath = generationScriptPath;
     }
 
-    public PowerShellPlugin(string name) : base(name) { }
+    public PowerShellPluginProvider(string name) : base(name) { }
 
     internal override void InitializeInstanceFromData(string[] jsonData)
     {

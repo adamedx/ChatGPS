@@ -6,13 +6,11 @@ Roadmap for ChatGPS
 * Add timeouts to powershell plugin
 * Add progress to powershell plugin
 * Start-Shell should show last response even on first run
-* Get rid of multiple plugin.ps1 files
 * Support module reload for plugins
 * Add Remove-ChatPlugin global scope or Unregister-ChatPlugin
 * Use SessionName instead of Session in commands
 * Fix valuefrompipelinebypropertyname scenarios with specific name
 * Invoke-ChatFunction, Send-ChatMessage should have allow agent access
-* Add ListAvailable to Get-ChatPlugin
 * AI grep
 * AI Browser
 * Make default inputhint part of connection or just a new setting
@@ -23,7 +21,6 @@ Roadmap for ChatGPS
 * Add plugins to connect-chatsession
 * Add SendBlock to start-chatshell?
 * Add .replay command to re-run list n command
-* Change prompt to show connection name
 * Add plugins to settings
 * Remove SK types from proxy format
 * Agent concept
@@ -148,6 +145,9 @@ Roadmap for ChatGPS
 * .showconnection command for start-chatshell
 * Add Set-ChatAgentAccess on connection
 * Make add-chatplugin create a builder if one is not passed in
+* Get rid of multiple plugin.ps1 files
+* Add ListAvailable to Get-ChatPlugin
+* Change prompt to show connection name
 
 ### Plugin notes
 

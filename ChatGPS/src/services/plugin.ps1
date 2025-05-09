@@ -17,7 +17,7 @@ function RegisterPluginCompleter([string] $command, [string] $parameterName) {
             # Hard-coding the command name here is not great, but I don't see the obvious way to parameterize
             # this completer other than using [ScriptBlock]::Create(). Confirmed that I used the Create()
             # approach in previous projects. Sigh.
-            [Modulus.ChatGPS.Plugins.Plugin]::GetPlugins()
+            [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviders()
         } else {
             $targetSession = if ( $fakeBoundParameters.Contains($sessionParameterName) ) {
                 Get-ChatSession -SessionName $fakeBoundParameters.Contains($sessionParameterName)

@@ -26,7 +26,7 @@ function RenderClassDefinition(
 
     $pluginTemplate = @'
 [System.ComponentModel.Description("{2}")]
-class {0} : Modulus.ChatGPS.Plugins.PowerShellKernelPlugin {{
+class {0} : Modulus.ChatGPS.Plugins.PowerShellNativePluginBase {{
 
     {0}([System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $scriptBlocks) : base("{0}", "{2}", $scriptBlocks) {{ }}
 

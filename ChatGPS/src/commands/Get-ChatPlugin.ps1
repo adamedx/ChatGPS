@@ -36,7 +36,7 @@ function Get-ChatPlugin {
         }
 
         $plugins = if ( ! $targetSession ) {
-            [Modulus.ChatGPS.Plugins.Plugin]::GetPlugins()
+            [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviders()
         } else {
             $targetSession.Plugins
         }

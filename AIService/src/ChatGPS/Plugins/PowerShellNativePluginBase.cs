@@ -10,9 +10,9 @@ using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class PowerShellKernelPlugin
+public class PowerShellNativePluginBase
 {
-    protected PowerShellKernelPlugin(string pluginName, string pluginDescription, Dictionary<string,PowerShellScriptBlock> scriptBlocks)
+    protected PowerShellNativePluginBase(string pluginName, string pluginDescription, Dictionary<string,PowerShellScriptBlock> scriptBlocks)
     {
         this.ScriptBlocks = scriptBlocks;
         this.PluginName = pluginName;

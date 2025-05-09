@@ -9,11 +9,11 @@ using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class StaticPlugin : PluginProvider
+public class StaticPluginProvider : PluginProvider
 {
-    internal StaticPlugin(Type kernelPluginType) : this(kernelPluginType.Name, kernelPluginType) {}
+    internal StaticPluginProvider(Type kernelPluginType) : this(kernelPluginType.Name, kernelPluginType) {}
 
-    internal StaticPlugin(string name, Type kernelPluginType) : base(name)
+    internal StaticPluginProvider(string name, Type kernelPluginType) : base(name)
     {
         this.NativeType = kernelPluginType;
         this.nativeInstance = null;

@@ -18,15 +18,15 @@ public abstract class PluginProvider
         PluginProvider.providers = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
 
         #pragma warning disable SKEXP0050
-        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin)));
-        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.MathPlugin)));
-        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin)));
-        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin)));
-        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Core.TimePlugin)));
-        PluginProvider.RegisterProvider(new WebSearchPlugin(WebSearchPlugin.SearchSource.Bing));
-        PluginProvider.RegisterProvider(new WebSearchPlugin(WebSearchPlugin.SearchSource.Google));
-        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin)));
-        PluginProvider.RegisterProvider(new StaticPlugin(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin)));
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin)));
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.MathPlugin)));
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin)));
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin)));
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TimePlugin)));
+        PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Bing));
+        PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Google));
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin)));
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin)));
         #pragma warning restore SKEXP0050
     }
 
