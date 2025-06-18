@@ -12,17 +12,16 @@ public class Plugin
 {
     public Plugin() {}
 
-    public Plugin(string name, PluginProvider provider, object[]? parameters)
+    public Plugin(string name, PluginProvider provider, Dictionary<string,PluginParameterValue>? parameters)
     {
         this.Name = name;
-        this.Parameters = PluginProvider.TranslateSerializedParameters(parameters);
+        this.Parameters = parameters is not null ? new Dictionary<string,PluginParameterValue>(parameters, StringComparer.OrdinalIgnoreCase) : null;
         this.Id = Guid.NewGuid();
         this.PluginDataJson = provider.GetProviderDataJson();
         this.PluginType = provider.GetType().FullName;
     }
 
-    // Should be BindKernelPlugin
-    internal void BindPlugin(KernelPlugin kernelPlugin)
+    internal void BindKernelPlugin(KernelPlugin kernelPlugin)
     {
         if ( this.kernelPlugin is not null )
         {
@@ -38,7 +37,7 @@ public class Plugin
     }
 
     public string? Name { get; set; }
-    public object[]? Parameters { get; set; }
+    public Dictionary<string,PluginParameterValue>? Parameters { get; set; }
     public Guid? Id { get; set; }
     public string[]? PluginDataJson { get; set; }
     public string? PluginType { get; set ; }

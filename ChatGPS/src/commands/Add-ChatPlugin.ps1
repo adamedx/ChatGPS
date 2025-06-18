@@ -5,23 +5,29 @@
 #
 
 function Add-ChatPlugin {
-    [cmdletbinding(positionalbinding=$false)]
+    [cmdletbinding(positionalbinding=$false, defaultparametersetname='noparameters')]
     param(
         [parameter(position=0, mandatory=$true)]
-        [string[]] $PluginName,
+        [string] $PluginName,
 
-        [parameter(position=1)]
-        [object[][]] $Parameters,
+        [parameter(parametersetname='parameterlist', position=1, mandatory=$true)]
+        [string[]] $ParameterNames,
+
+        [parameter(parametersetname='parametertable', position=1, mandatory=$true)]
+        [HashTable] $ParameterTable,
+
+        [parameter(parametersetname='parameterlist', position=2, mandatory=$true)]
+        [object[]] $ParameterValues,
+
+        [parameter(parametersetname='parameterlist')]
+        [parameter(parametersetname='parametertable')]
+        [string[]] $UnencryptedParameters,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
         [string] $SessionName
     )
     begin {
-        if ( $Parameters ) {
-            if ( $PluginName.Length -ne $Parameters.Length ) {
-                throw [ArgumentException]::new("The number of plugins ($($PluginName.Count)) must match the number of parameter arrays $($Parameters)")
-            }
-        }
+        $parameterInfo = GetParameters $PluginName $ParameterTable $ParameterNames $ParameterValues $UnencryptedParameters
     }
 
     process {
@@ -30,15 +36,7 @@ function Add-ChatPlugin {
         } else {
             Get-ChatSession $SessionName
         }
-
-        $pluginIndex = 0
-
-        foreach ( $name in $PluginName ) {
-            $parameter = if ( $Parameters ) {
-                $Parameters[$pluginIndex++]
-            }
-            $targetSession.AddPlugin($name, $parameter)
-        }
+        $targetSession.AddPlugin($PluginName, $parameterInfo)
     }
 
     end {

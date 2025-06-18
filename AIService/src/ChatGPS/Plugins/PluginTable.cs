@@ -43,7 +43,7 @@ public class PluginTable : IPluginTable
         return hasPlugin;
     }
 
-    public void AddPlugin(string name, object[]? parameters)
+    public void AddPlugin(string name, Dictionary<string,PluginParameterValue>? parameters)
     {
         var provider = PluginProvider.GetProviderByName(name);
 
@@ -53,7 +53,7 @@ public class PluginTable : IPluginTable
         {
             var nativePlugin = provider.GetNativeInstance(plugin.Parameters);
             var kernelPlugin = this.kernel.Plugins.AddFromObject(nativePlugin);
-            plugin.BindPlugin(kernelPlugin);
+            plugin.BindKernelPlugin(kernelPlugin);
         }
 
         this.plugins.Add(provider.Name, plugin);

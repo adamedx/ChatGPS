@@ -11,19 +11,31 @@ namespace Modulus.ChatGPS.Plugins;
 
 public class StaticPluginProvider : PluginProvider
 {
-    internal StaticPluginProvider(Type kernelPluginType) : this(kernelPluginType.Name, kernelPluginType) {}
+    internal StaticPluginProvider(Type kernelPluginType, string? description) : this(kernelPluginType.Name, kernelPluginType, description) {}
 
-    internal StaticPluginProvider(string name, Type kernelPluginType) : base(name)
+    internal StaticPluginProvider(string name, Type kernelPluginType, string? description) : base(name, description)
     {
         this.NativeType = kernelPluginType;
         this.nativeInstance = null;
     }
 
-    internal override object GetNativeInstance(object[]? parameters = null)
+    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null)
     {
         if ( this.nativeInstance is null )
         {
-            var kernelPlugin = Activator.CreateInstance( this.NativeType, parameters );
+            var nativeParameters = new object?[ parameters?.Count ?? 0 ];
+
+            if ( parameters is not null )
+            {
+                int parameterIndex = 0;
+
+                foreach ( var parameter in parameters.Values )
+                {
+                    nativeParameters[parameterIndex++] = parameter.GetValue();
+                }
+            }
+
+            var kernelPlugin = Activator.CreateInstance( this.NativeType, nativeParameters );
 
             if ( kernelPlugin is null )
             {

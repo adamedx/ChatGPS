@@ -135,7 +135,7 @@ public class ChatSession
         }
     }
 
-    public void AddPlugin(string name, object[]? parameters = null)
+    public void AddPlugin(string name, Dictionary<string,PluginParameterValue>? parameters = null)
     {
         LazyInitialize();
 
