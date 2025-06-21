@@ -27,7 +27,7 @@ function Add-ChatPlugin {
         [string] $SessionName
     )
     begin {
-        $parameterInfo = GetParameters $PluginName $ParameterTable $ParameterNames $ParameterValues $UnencryptedParameters
+        $parameterInfo = GetPluginParameterInfo $PluginName $ParameterTable $ParameterNames $ParameterValues $UnencryptedParameters
     }
 
     process {

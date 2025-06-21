@@ -62,6 +62,10 @@ function CreateSession {
 
         [switch] $Force,
 
+        [string[]] $PluginNames,
+
+        [HashTable] $ParameterTables,
+
         $BoundParameters
     )
 
@@ -86,6 +90,8 @@ function CreateSession {
     TestSession $session $Options $NoConnect.IsPresent
 
     $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $BoundParameters
+
+    ConfigureSessionPlugins $PluginNames $ParameterTables
 
     AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent $sessionSettings
 
@@ -125,6 +131,22 @@ function TestSession($session, [Modulus.ChatGPS.Models.AiOptions] $originalAiOpt
                                               "$($signinAdvice)`nSpecify the NoConnect option to skip this test when invoking this command.`n" +
                                               "$($exceptionMessage)", $_.Exception)
         }
+    }
+}
+
+function ConfigureSessionPlugins([string[]] $pluginNames, [HashTable] $parameterTables) {
+    $parametersByPlugin = $null -ne $parameterTables ? $parameterTables : @{}
+
+    foreach ( $pluginName in $pluginNames ) {
+        $parameterTable = $parametersByPlugin[$pluginName]
+
+        if ( $parameterTable -and $parameterTable -isnot [HashTable] ) {
+            throw [ArgumentException]::new("The parameter information for the plugin '$pluginName' was specified as type '$($parameterTable.GetType().FullName)'; it must be of type '$([HashTable].FullName)'")
+        }
+
+        $parameterInfo = GetPluginParameterInfo $pluginName $parameterTable
+
+        $session.AddPlugin($pluginName, $parameterInfo)
     }
 }
 

@@ -4,7 +4,7 @@
 # All rights reserved.
 #
 
-function GetParameters(
+function GetPluginParameterInfo(
     [string] $pluginProviderName,
     [HashTable] $parameterTable = $null,
     [string[]] $parameterNameList = $null,

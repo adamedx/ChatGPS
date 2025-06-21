@@ -13,7 +13,7 @@ function RegisterPluginCompleter([string] $command, [string] $parameterName) {
         # Note that switch parameters show as boolean types here rather than switch parameter types... ?
         $availablePluginsRequested = $fakeBoundParameters.Contains('ListAvailable') -and $fakeBoundParameters['ListAvailable']
 
-        $plugins = if ( $commandName -eq 'Add-ChatPlugin' -or $availablePluginsRequested ) {
+        $plugins = if ( $commandName -eq 'Add-ChatPlugin' -or $commandName -eq 'Connect-ChatSession' -or $availablePluginsRequested ) {
             # Hard-coding the command name here is not great, but I don't see the obvious way to parameterize
             # this completer other than using [ScriptBlock]::Create(). Confirmed that I used the Create()
             # approach in previous projects. Sigh.
