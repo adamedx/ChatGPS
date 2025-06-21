@@ -36,3 +36,29 @@ function RegisterPluginCompleter([string] $command, [string] $parameterName) {
 
     Register-ArgumentCompleter -commandname $command -ParameterName $parameterName -ScriptBlock $pluginNameCompleter
 }
+
+function RegisterPluginParameterCompleter([string] $command, [string] $commandParameterName) {
+    $pluginParameterCompleter = {
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+
+        $pluginCommandParameterName = 'PluginName'
+
+        $currentPlugin = if ( $fakeBoundParameters.Contains($pluginCommandParameterName) ) {
+            [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviders() |
+              where Name -eq $fakeBoundParameters[$pluginCommandParameterName]
+        }
+
+        if ( $currentPlugin ) {
+            $currentValue = $fakeBoundParameters[$parameterName]
+            $currentPlugin.Parameters.Name |
+              sort-object |
+              where { $null -eq $currentValue -or $_ -notin $currentValue } |
+              where-object {
+                  $_.StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase)
+              }
+        }
+    }
+
+    Register-ArgumentCompleter -commandname $command -ParameterName $commandParameterName -ScriptBlock $pluginParameterCompleter
+}
+

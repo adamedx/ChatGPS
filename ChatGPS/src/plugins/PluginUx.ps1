@@ -63,7 +63,7 @@ function GetParameters(
 
         $specifiedParameterValue = $specifiedParameterValues[$parameterIndex]
 
-        $isEncrypted = $unusedParameters[$parameterName].Encrypted && ! $unencryptedParameters.ContainsKey($parameterName)
+        $isEncrypted = $unusedParameters[$parameterName].Encrypted -and ! $unencryptedParameters.ContainsKey($parameterName)
 
         $readEncryptedValue = $isEncrypted -and
             $interactiveEncryptedParameters -and
