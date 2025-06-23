@@ -45,5 +45,5 @@ function Add-ChatPlugin {
 
 RegisterPluginCompleter Add-ChatPlugin PluginName
 RegisterSessionCompleter Add-ChatPlugin SessionName
-RegisterPluginParameterCompleter Add-ChatPlugin ParameterNames
-RegisterPluginParameterCompleter Add-ChatPlugin UnencryptedParameters
+RegisterPluginParameterNameCompleter Add-ChatPlugin ParameterNames
+RegisterPluginParameterNameCompleter Add-ChatPlugin UnencryptedParameters

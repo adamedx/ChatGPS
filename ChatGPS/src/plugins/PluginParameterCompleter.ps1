@@ -37,7 +37,7 @@ function RegisterPluginCompleter([string] $command, [string] $parameterName) {
     Register-ArgumentCompleter -commandname $command -ParameterName $parameterName -ScriptBlock $pluginNameCompleter
 }
 
-function RegisterPluginParameterCompleter([string] $command, [string] $commandParameterName) {
+function RegisterPluginParameterNameCompleter([string] $command, [string] $commandParameterName) {
     $pluginParameterCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
