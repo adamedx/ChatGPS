@@ -31,7 +31,7 @@ public class StaticPluginProvider : PluginProvider
 
                 foreach ( var parameter in parameters.Values )
                 {
-                    nativeParameters[parameterIndex++] = parameter.GetValue();
+                    nativeParameters[parameterIndex++] = parameter.GetDecryptedValue();
                 }
             }
 

@@ -3,6 +3,7 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Make session listing hide id by default
 * Add timeouts to powershell plugin
 * Add progress to powershell plugin
 * Start-Shell should show last response even on first run
@@ -148,6 +149,7 @@ Roadmap for ChatGPS
 * Get rid of multiple plugin.ps1 files
 * Add ListAvailable to Get-ChatPlugin
 * Change prompt to show connection name
+* Make Save-ChatSessionSetting SaveAs reload the new setting
 
 ### Plugin notes
 

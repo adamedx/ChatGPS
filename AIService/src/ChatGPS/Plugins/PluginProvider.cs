@@ -126,7 +126,7 @@ public abstract class PluginProvider
         {
             try
             {
-                parameterData = parameterValue.GetValue();
+                parameterData = parameterValue.GetDecryptedValue();
             }
             catch (Exception e)
             {

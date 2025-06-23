@@ -6,6 +6,8 @@
 $jsonOptions = [System.Text.Json.JsonSerializerOptions]::new()
 $jsonOptions.IncludeFields = $true
 
+$jsonPSSerializerDepth = 10
+
 $LastUsedSettingsPath = $null
 $LastSettingsJson = $null
 $LastSettings = $null
@@ -27,6 +29,7 @@ class RootSettings {
     [ProfileSettings]$profiles
     [SessionSettings]$sessions
     [ModelResourceSettings]$models
+    [PluginResourceSettings]$customPlugins
 }
 
 class Profile {
@@ -51,13 +54,26 @@ class ModelChatSession {
         $this.historyContextLimit = -1
     }
 
-    ModelChatSession([ModelChatSession] $source, [string] $nameOverride) {
-        foreach ( $member in ($source | get-member -membertype property).name ) {
-            $this.$_ = $source.$_
+    ModelChatSession([Modulus.ChatGPS.Models.ChatSession] $session, [ModelChatSession] $originalSettings) {
+        foreach ( $member in ($originalSettings | get-member -membertype property).name ) {
+            $this.$member = $originalSettings.$member
         }
 
-        if ( $nameOverride ) {
-            $this.name = $nameOverride
+        # Now initialize any mutable settings
+        $this.allowAgentAccess = $session.AiOptions.AllowAgentAccess
+
+        [ModelChatSession]::SetPlugins($this, $session.Plugins)
+    }
+
+    static [void] SetPlugins([ModelChatSession] $sessionSettings, [System.Collections.Generic.IEnumerable[Modulus.ChatGPS.Plugins.Plugin]] $plugins) {
+        $sessionSettings = if ( $plugins ) {
+            $sessionPlugins = [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]]::new()
+
+            foreach ( $plugin in $plugins ) {
+                $sessionPlugins.Add($plugin.Name, $plugin.Parameters)
+            }
+
+            $sessionSettings
         }
     }
 
@@ -76,6 +92,7 @@ class ModelChatSession {
     [bool] $signinInteractionAllowed
     [bool] $plainTextApiKey
     [bool] $allowAgentAccess
+    [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]] $plugins
     [string] $logDirectory
     [string] $logLevel
 }
@@ -130,6 +147,16 @@ class ModelResourceSettings {
     [System.Collections.Generic.List[ModelResource]] $list
 }
 
+class PluginResource {
+    [string] $Name
+    [string] $PluginType
+    [System.Collections.Generic.Dictionary[string,string]] $Functions
+}
+
+class PluginResourceSettings {
+    [System.Collections.Generic.List[PluginResource]] $list
+}
+
 function GetDefaultSettingsLocation {
     if ( ! $env:CHATGPS_DEFAULT_SETTINGS_PATH_OVERRIDE ) {
         "~/.chatgps/settings.json"
@@ -178,7 +205,7 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
         # types for instance.
         $untypedSettings = SettingsJsonToUntypedSettings $settingsJson
 
-        $sessions = GetSessionSettingsFromSettings $untypedSettings
+        $sessions = CreateSessionFromSettings $untypedSettings
 
         $currentProfile = GetConfiguredProfileFromSettings $typedSettings
 
@@ -239,9 +266,16 @@ function GetModelResourcesFromSettings($settings) {
     }
 }
 
+function GetPluginResourcesFromSettings($settings) {
+    if ( ( $settings | get-member plugins ) -and $settings.plugins ) {
+        if ( $settings.plugins | get-member list ) {
+            $settings.plugins.list
+        }
+    }
+}
+
 function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParameters) {
     $sessionSettings = [ModelChatSession]::new()
-    $modelSettings = [ModelResource]::new()
 
     if ( ! $sessionParameters ) {
         throw [ArgumentException]::new('The specified session does not contain configuration information')
@@ -290,8 +324,29 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     'sendblock', 'receiveBlock' |
       where { $sessionParameters.ContainsKey($_) } |
       foreach {
-        $sessionSettings.$_ = $sessionParameters[$_].ToString
+          $sessionSettings.$_ = $sessionParameters[$_].ToString()
       }
+
+    $sessionPlugins = $null
+
+    if ( $sessionParameters.ContainsKey('Plugins') ) {
+        $sessionPlugins = [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]]::new()
+        $pluginNames = $sessionParameters['Plugins']
+        $pluginParameters = if ( $sessionParameters.ContainsKey('PluginParameters') ) {
+            $sessionParameters['pluginParameters']
+        } else {
+            @{}
+        }
+
+        foreach ( $pluginName in $pluginNames ) {
+            if ( $null -ne $pluginParameters -and $pluginParameters.ContainsKey($pluginName) ) {
+                $parameterInfo = GetPluginParameterInfo $pluginName $pluginParameters[$pluginName]
+                $sessionPlugins.Add($pluginName, $parameterInfo)
+            }
+        }
+    }
+
+    $sessionSettings.plugins = $sessionPlugins
 
     if ( ! $sessionSettings.apiKey -and $session.CustomContext['AiOptions'] ) {
         $sessionSettings.apiKey = $session.CustomContext['AiOptions'].ApiKey
@@ -314,19 +369,25 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     }
 }
 
-function GetSessionSettingsFromSettings($settings) {
+function CreateSessionFromSettings($settings, $sessionName = $null) {
     $defaultSessionValues = $null
 
     $sessionList = if ( $settings.sessions ) {
         $defaultSessionValues = $settings.sessions.defaults
-        $settings.sessions.list
+        if ( $sessionName ) {
+            $settings.sessions.list | where Name -eq $sessionName
+        } else {
+            $settings.sessions.list
+        }
     }
 
     $models = GetModelResourcesFromSettings $settings
 
+    $plugins = GetPluginResourcesFromSettings $settings
+
     if ( $models ) {
         foreach ( $sessionSetting in $sessionList ) {
-            SessionSettingToSession $sessionSetting $defaultSessionValues $models
+            SessionSettingToSession $sessionSetting $defaultSessionValues $models $plugins
         }
     } else {
         if ( $sessionList ) {
@@ -335,14 +396,23 @@ function GetSessionSettingsFromSettings($settings) {
     }
 }
 
-function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
+function SessionSettingToSession($sessionSetting, $defaultValues, $models, $plugins) {
     $sourceSetting = [ModelChatSession]::new()
 
     $members = ($sourceSetting | Get-Member -MemberType Property).Name
 
     foreach ( $member in $members ) {
         if ( $sessionSetting | get-member $member ) {
-            $sourceSetting.$member = $sessionSetting.$member
+            $deserializedValue = $sessionSetting.$member
+
+            $normalizedValue = if ( $member -eq 'Plugins' -and $null -ne $deserializedValue -and $deserializedValue -is [PSCustomObject] ) {
+                $reserializedValue = $deserializedValue | ConvertTo-json -depth $jsonPSSerializerDepth
+                [System.Text.Json.JsonSerializer]::Deserialize($reserializedValue, [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]])
+            } else {
+                $deserializedValue
+            }
+
+            $sourceSetting.$member = $normalizedValue
         } elseif ( $defaultValues ) {
             if ( $defaultValues | get-member $member ) {
                 $sourceSetting.$member = $defaultValues.$member
@@ -353,6 +423,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     $sessionParameters = @{
         Name = $sourceSetting.name
         AllowInteractiveSignin = [System.Management.Automation.SwitchParameter]::new($sourceSetting.signinInteractionAllowed)
+        AllowAgentAccess = [System.Management.Automation.SwitchParameter]::new($sourceSetting.allowAgentAccess)
     }
 
     $isValidSetting = if ( $null -eq $sourceSetting.name ) {
@@ -371,12 +442,6 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
         }
 
         if ( $model ) {
-            'forceProxy', 'noProxy' | foreach {
-                if ( $model | get-member $_ ) {
-                    $sessionParameters.Add($_, [System.Management.Automation.SwitchParameter]::new($model.$_))
-                }
-            }
-
             'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'deploymentName' | foreach {
                 $value = if ( $model | get-member $_ ) {
                     # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
@@ -385,6 +450,12 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
                 if ( $null -ne $value ) {
                     $sessionParameters.Add($_, $value)
+                }
+            }
+
+            'forceProxy', 'noProxy' | foreach {
+                if ( $sourceSetting | get-member $_ ) {
+                    $sessionParameters.Add($_, [System.Management.Automation.SwitchParameter]::new($sourceSetting.$_))
                 }
             }
 
@@ -419,6 +490,22 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
         if ( $sessionParameters.ContainsKey('apiKey') ) {
             $sessionParameters.Add('plainTextApiKey', [System.Management.Automation.SwitchParameter]::new($sourceSetting.plainTextApiKey))
+        }
+
+        if ( $sourceSetting.plugins ) {
+            $pluginTable = @{}
+
+            foreach ( $pluginName in $sourceSetting.plugins.Keys ) {
+                $parameters = @{}
+
+                foreach ( $parameterName in $sourceSetting.plugins[$pluginName].Keys ) {
+                    $parameters.Add($parameterName, $sourceSetting.plugins[$pluginName][$parameterName].GetValue())
+                }
+
+                $pluginTable.Add($pluginName, $parameters)
+            }
+            $sessionParameters.Add('Plugins', $sourceSetting.plugins.Keys)
+            $sessionParameters.Add('PluginParameters', $pluginTable)
         }
 
         try {
@@ -552,7 +639,7 @@ function WriteSettings([RootSettings] $settings, [string] $settingsPath, [bool] 
     $settings.lastUpdatedTool = 'ChatGPS Save-ChatSettings'
 
     if ( ! $noWrite ) {
-        $settings | convertto-json -depth 5 | set-content -encoding utf8 -path $settingsPath
+        $settings | convertto-json -depth $jsonPSSerializerDepth | set-content -encoding utf8 -path $settingsPath
     } else {
         $settings
     }

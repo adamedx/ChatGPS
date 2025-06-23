@@ -88,10 +88,17 @@ public class PluginParameterValue
     {
         if ( this.deserializedValue is null && this.serializedValue is not null )
         {
-            SetValueFromSerializedValue(this.serializedValue);
+            SetValueFromSerializedValue();
         }
 
-        var result = this.deserializedValue;
+        return this.deserializedValue;
+    }
+
+    public object? GetDecryptedValue()
+    {
+        var encryptedValue = GetValue();
+
+        var result = encryptedValue;
 
         if ( this.Encrypted )
         {
@@ -100,9 +107,9 @@ public class PluginParameterValue
                 throw new InvalidOperationException($"The value of type {this.typeName} is encrypted but decryption only supported for values of type System.String.");
             }
 
-            if ( this.deserializedValue is not null )
+            if ( encryptedValue is not null )
             {
-                result = PSDecryptor.GetDecryptedStringFromEncryptedUnicodeHexBytes( (string) this.deserializedValue );
+                result = PSDecryptor.GetDecryptedStringFromEncryptedUnicodeHexBytes( (string) encryptedValue );
             }
         }
 
@@ -124,6 +131,7 @@ public class PluginParameterValue
             var jsonOptions = new JsonSerializerOptions();
 
             type = deserializedValue.GetType();
+
             serializedValue = JsonSerializer.Serialize(deserializedValue, type);
         }
 
@@ -133,7 +141,7 @@ public class PluginParameterValue
         this.encrypted = encrypted && this.typeName == typeof(string).FullName;
     }
 
-    private void SetValueFromSerializedValue(string? serializedValue)
+    private void SetValueFromSerializedValue()
     {
         if ( this.typeName is null )
         {
@@ -149,7 +157,6 @@ public class PluginParameterValue
             deserializedValue = JsonSerializer.Deserialize(serializedValue, serializedValue.GetType());
         }
 
-        this.serializedValue = serializedValue;
         this.deserializedValue = deserializedValue;
     }
 

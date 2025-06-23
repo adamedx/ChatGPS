@@ -62,9 +62,9 @@ function CreateSession {
 
         [switch] $Force,
 
-        [string[]] $PluginNames,
+        [string[]] $Plugins,
 
-        [HashTable] $ParameterTables,
+        [HashTable] $PluginParameters,
 
         $BoundParameters
     )
@@ -91,7 +91,7 @@ function CreateSession {
 
     $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $BoundParameters
 
-    ConfigureSessionPlugins $PluginNames $ParameterTables
+    ConfigureSessionPlugins $Plugins $PluginParameters
 
     AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent $sessionSettings
 
@@ -139,10 +139,6 @@ function ConfigureSessionPlugins([string[]] $pluginNames, [HashTable] $parameter
 
     foreach ( $pluginName in $pluginNames ) {
         $parameterTable = $parametersByPlugin[$pluginName]
-
-        if ( $parameterTable -and $parameterTable -isnot [HashTable] ) {
-            throw [ArgumentException]::new("The parameter information for the plugin '$pluginName' was specified as type '$($parameterTable.GetType().FullName)'; it must be of type '$([HashTable].FullName)'")
-        }
 
         $parameterInfo = GetPluginParameterInfo $pluginName $parameterTable
 
