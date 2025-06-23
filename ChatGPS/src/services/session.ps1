@@ -62,9 +62,7 @@ function CreateSession {
 
         [switch] $Force,
 
-        [string[]] $Plugins,
-
-        [HashTable] $PluginParameters,
+        [HashTable] $Plugins,
 
         $BoundParameters
     )
@@ -91,7 +89,7 @@ function CreateSession {
 
     $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $BoundParameters
 
-    ConfigureSessionPlugins $Plugins $PluginParameters
+    ConfigureSessionPlugins $Plugins
 
     AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent $sessionSettings
 
@@ -134,15 +132,15 @@ function TestSession($session, [Modulus.ChatGPS.Models.AiOptions] $originalAiOpt
     }
 }
 
-function ConfigureSessionPlugins([string[]] $pluginNames, [HashTable] $parameterTables) {
-    $parametersByPlugin = $null -ne $parameterTables ? $parameterTables : @{}
+function ConfigureSessionPlugins([HashTable] $parametersByPlugin) {
+    if ( $parametersByPlugin ) {
+        foreach ( $pluginName in $parametersByPlugin.Keys ) {
+            $parameterTable = $parametersByPlugin[$pluginName]
 
-    foreach ( $pluginName in $pluginNames ) {
-        $parameterTable = $parametersByPlugin[$pluginName]
+            $parameterInfo = GetPluginParameterInfo $pluginName $parameterTable
 
-        $parameterInfo = GetPluginParameterInfo $pluginName $parameterTable
-
-        $session.AddPlugin($pluginName, $parameterInfo)
+            $session.AddPlugin($pluginName, $parameterInfo)
+        }
     }
 }
 

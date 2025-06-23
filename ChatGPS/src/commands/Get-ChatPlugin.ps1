@@ -11,8 +11,12 @@ function Get-ChatPlugin {
         [parameter(parametersetname='listavailable', position=0)]
         [string] $PluginName,
 
-        [parameter(parametersetname='bysession', valuefrompipelinebypropertyname=$true, mandatory=$true)]
+        [parameter(parametersetname='bysessionname', mandatory=$true)]
         [string] $SessionName,
+
+        [parameter(parametersetname='bysessionid', valuefrompipelinebypropertyname=$true, mandatory=$true)]
+        [Alias('Id')]
+        [string] $SessionId,
 
         [parameter(parametersetname='listavailable', mandatory=$true)]
         [switch] $ListAvailable
@@ -30,6 +34,8 @@ function Get-ChatPlugin {
         $targetSession = if ( ! $ListAvailable.IsPresent ) {
             if ( $SessionName ) {
                 Get-ChatSession $SessionName
+            } elseif ( $SessionId ) {
+                Get-ChatSession -Id $SessionId
             } else {
                 Get-ChatSession -Current
             }

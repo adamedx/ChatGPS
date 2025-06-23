@@ -504,7 +504,6 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models, $plug
 
                 $pluginTable.Add($pluginName, $parameters)
             }
-            $sessionParameters.Add('Plugins', $sourceSetting.plugins.Keys)
             $sessionParameters.Add('PluginParameters', $pluginTable)
         }
 

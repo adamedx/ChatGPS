@@ -142,7 +142,7 @@ function Save-ChatSessionSetting {
             $sessionIndex = -1
         }
 
-        $sessionPlugins = $session | Get-ChatPlugin
+        $sessionPlugins = Get-ChatPlugin -SessionId $session.id
 
         $sessions += [PSCustomObject] @{
             Location = $sessionIndex

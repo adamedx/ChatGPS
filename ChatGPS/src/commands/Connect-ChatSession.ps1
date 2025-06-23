@@ -508,7 +508,25 @@ function Connect-ChatSession {
         write-debug "Accessing the model using proxy mode using proxy application at '$targetProxyPath'"
     }
 
-    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent) -Plugins $Plugins -PluginParameters $PluginParameters -BoundParameters $PSBoundParameters
+    $consolidatedPlugins = if ( $Plugins -or $PluginParameters ) {
+        $pluginTable = @{}
+
+        if ( $PluginParameters ) {
+            foreach ( $pluginName in $PluginParameters.Keys ) {
+                $pluginTable.Add($pluginName, $PluginParameters[$pluginName])
+            }
+        }
+
+        if ( $plugins ) {
+            $plugins | where { ! $pluginTable.ContainsKey($_) } | foreach {
+                $pluginTable.Add($_, $null)
+            }
+        }
+
+        $pluginTable
+    }
+
+    $session = CreateSession $options -Prompt $systemPrompt -AiProxyHostPath $targetProxyPath -SetCurrent:(!$NoSetCurrent.IsPresent) -NoConnect:($NoConnect.IsPresent) -TokenStrategy $TokenStrategy -LogDirectory $LogDirectory -LogLevel $LogLevel -HistoryContextLimit $HistoryContextLimit -SendBlock $SendBlock -ReceiveBlock $ReceiveBlock -Name $Name -NoSave:($NoSave.IsPresent) -Force:($Force.IsPresent) -Plugins $consolidatedPlugins -BoundParameters $PSBoundParameters
 
     if ( $PassThru.IsPresent -or $NoSave.IsPresent ) {
         $session
@@ -516,3 +534,4 @@ function Connect-ChatSession {
 }
 
 RegisterPluginCompleter Connect-ChatSession Plugins
+
