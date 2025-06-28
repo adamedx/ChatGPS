@@ -308,7 +308,7 @@ All Rights Reserved.
             <Label>Name</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Parameters></Label>
+            <Label>Parameters</Label>
           </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>

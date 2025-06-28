@@ -3,8 +3,13 @@
 #
 # All rights reserved.
 
-$jsonOptions = [System.Text.Json.JsonSerializerOptions]::new()
-$jsonOptions.IncludeFields = $true
+$jsonOptionsRead = [System.Text.Json.JsonSerializerOptions]::new()
+$jsonOptionsRead.IncludeFields = $true
+$jsonOptionsRead.IgnoreNullValues = $true
+
+$jsonOptionsWrite = [System.Text.Json.JsonSerializerOptions]::new()
+$jsonOptionsWrite.IncludeFields = $true
+$jsonOptionsWrite.WriteIndented = $true
 
 $jsonPSSerializerDepth = 10
 
@@ -86,9 +91,9 @@ class ModelChatSession {
     [string] $receiveBlock
     [bool] $noProxy
     [bool] $forceProxy
-    [int] $tokenLimit
+    [int] $tokenLimit = $null
     [string] $tokenStrategy
-    [int] $historyContextLimit
+    [int] $historyContextLimit = $null
     [bool] $signinInteractionAllowed
     [bool] $plainTextApiKey
     [bool] $allowAgentAccess
@@ -200,12 +205,11 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
     if ( $settingsJson ) {
         $typedSettings = SettingsJsonToStrongTypedSettings $settingsJson $targetPath
 
-        # Need untyped settings here because we want unspecified values to
-        # show up as null -- distinction is crucial for integer and boolean
-        # types for instance.
-        $untypedSettings = SettingsJsonToUntypedSettings $settingsJson
-
-        $sessions = CreateSessionFromSettings $untypedSettings
+        # Expect that null settings are skipped here, which avoids issues with
+        # null integer and boolean values showing up as 0 and false respectively --
+        # this is semantically problematic since null is an allowable value
+        # for integers and booleans in serialized JSON.
+        $sessions = CreateSessionFromSettings $typedSettings
 
         $currentProfile = GetConfiguredProfileFromSettings $typedSettings
 
@@ -243,18 +247,9 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
     }
 }
 
-function SettingsJsonToUntypedSettings([string] $settingsJson) {
-    # Use the PowerShell deserializer -- it does not convert to a strong type,
-    # hence unspecified values are not serialized at all, and this avoids
-    # types such as integer or boolean from being set to default values that cannot
-    # be distinguished from not being specified. Could also use System.Text.Json
-    # without a type, but this is native to PowerShell...
-    $settingsJson | ConvertFrom-Json
-}
-
 function SettingsJsonToStrongTypedSettings([string] $settingsJson, [string] $settingsSource) {
     try {
-        [System.Text.Json.JsonSerializer]::Deserialize[RootSettings]($settingsJson, $jsonOptions)
+        [System.Text.Json.JsonSerializer]::Deserialize[RootSettings]($settingsJson, $jsonOptionsRead)
     } catch {
         write-warning "The settings at location '$settingsSource' are incorrectly formatted. The following error was encountered reading the data: $($_.Exception.Message)"
     }
@@ -403,20 +398,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models, $plug
 
     foreach ( $member in $members ) {
         if ( $sessionSetting | get-member $member ) {
-            $deserializedValue = $sessionSetting.$member
-
-            $normalizedValue = if ( $member -eq 'Plugins' -and $null -ne $deserializedValue -and $deserializedValue -is [PSCustomObject] ) {
-                $reserializedValue = $deserializedValue | ConvertTo-json -depth $jsonPSSerializerDepth
-                [System.Text.Json.JsonSerializer]::Deserialize($reserializedValue, [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]])
-            } else {
-                $deserializedValue
-            }
-
-            $sourceSetting.$member = $normalizedValue
-        } elseif ( $defaultValues ) {
-            if ( $defaultValues | get-member $member ) {
-                $sourceSetting.$member = $defaultValues.$member
-            }
+            $sourceSetting.$member = $sessionSetting.$member
         }
     }
 
@@ -638,7 +620,8 @@ function WriteSettings([RootSettings] $settings, [string] $settingsPath, [bool] 
     $settings.lastUpdatedTool = 'ChatGPS Save-ChatSettings'
 
     if ( ! $noWrite ) {
-        $settings | convertto-json -depth $jsonPSSerializerDepth | set-content -encoding utf8 -path $settingsPath
+        $serialized = [System.Text.Json.JsonSerializer]::Serialize($settings, $jsonOptionsWrite)
+        $serialized | set-content -encoding utf8 -path $settingsPath
     } else {
         $settings
     }
