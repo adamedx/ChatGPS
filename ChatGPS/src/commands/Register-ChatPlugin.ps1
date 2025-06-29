@@ -4,7 +4,7 @@
 # All rights reserved.
 #
 
-function New-ChatPlugin {
+function Register-ChatPlugin {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(position=0, mandatory=$true)]

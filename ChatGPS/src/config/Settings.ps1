@@ -442,7 +442,7 @@ function CreateCustomPluginsFromSettings($settings) {
             }
 
             $functions |
-              New-ChatPlugin -Name $pluginSetting.Name -description $pluginSetting.Description | out-null
+              Register-ChatPlugin -Name $pluginSetting.Name -description $pluginSetting.Description | out-null
         } catch {
             write-warning "Failed to add custom plugin '$($pluginSetting.Name)'; the plugin will be skipped. The error was: $($_.exception.message)"
         }
