@@ -99,6 +99,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Set-ChatAgentAccess'
     'Set-ChatCurrentVoice'
     'Start-ChatShell'
+    'Unregister-ChatPlugin'
     'Update-ChatSettings'
 )
 
@@ -166,6 +167,7 @@ FileList = @(
     'src/commands/Set-ChatAgentAccess.ps1'
     'src/commands/Set-ChatCurrentVoice.ps1'
     'src/commands/Start-ChatShell.ps1'
+    'src/commands/Unregister-ChatPlugin.ps1'
     'src/commands/Update-ChatSettings.ps1'
     'src/aliases.ps1'
     'src/config.ps1'

@@ -52,6 +52,23 @@ public abstract class PluginProvider
         return ! PluginProvider.builtinProviders.ContainsKey(this.Name);
     }
 
+    public static void UnregisterProvider(string providerName)
+    {
+        if ( PluginProvider.providers.ContainsKey(providerName) )
+        {
+            if ( PluginProvider.builtinProviders.ContainsKey(providerName) )
+            {
+                throw new InvalidOperationException($"The specified plugin registration '{providerName}' is built-in and may not be unregistered; only custom providers may be unregistered.");
+            }
+
+            PluginProvider.providers.Remove(providerName);
+        }
+        else
+        {
+            throw new ArgumentException($"The specified plugin registration '{providerName}' does not exist.");
+        }
+    }
+
     protected PluginProvider(string name, string? description = null)
     {
         this.parameterSpec = new Dictionary<string, PluginParameter>();

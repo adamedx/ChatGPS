@@ -6,18 +6,22 @@
 
 function RegisterPluginCompleter([string] $command, [string] $parameterName) {
     $pluginNameCompleter = {
-        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
+        param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters, $customProvidersOnly)
 
         $sessionParameterName = 'SessionName'
 
+        $customProvidersOnly = $commandName -eq 'Unregister-ChatPlugin'
+
         # Note that switch parameters show as boolean types here rather than switch parameter types... ?
-        $availablePluginsRequested = $fakeBoundParameters.Contains('ListAvailable') -and $fakeBoundParameters['ListAvailable']
+        $availablePluginsRequested = $customProvidersOnly -or ( $fakeBoundParameters.Contains('ListAvailable') -and $fakeBoundParameters['ListAvailable'] )
 
         $plugins = if ( $commandName -eq 'Add-ChatPlugin' -or $commandName -eq 'Connect-ChatSession' -or $availablePluginsRequested ) {
             # Hard-coding the command name here is not great, but I don't see the obvious way to parameterize
             # this completer other than using [ScriptBlock]::Create(). Confirmed that I used the Create()
             # approach in previous projects. Sigh.
-            [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviders()
+            [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviders() | where {
+                ! $customProvidersOnly -or $_.IsCustom()
+            }
         } else {
             $targetSession = if ( $fakeBoundParameters.Contains($sessionParameterName) ) {
                 Get-ChatSession -SessionName $fakeBoundParameters.Contains($sessionParameterName)

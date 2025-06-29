@@ -365,6 +365,43 @@ All Rights Reserved.
     </View>
 
     <View>
+      <Name>ChatPluginProviderDetils</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Plugins.PluginProvider</TypeName>
+      </ViewSelectedBy>
+
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Name</Label>
+                <PropertyName>Name</PropertyName>
+              </ListItem>
+
+              <ListItem>
+                <Label>Description</Label>
+                <PropertyName>Description</PropertyName>
+              </ListItem>
+
+
+              <ListItem>
+                <Label>Type</Label>
+                <ScriptBlock>$_.IsCustom() ? 'Custom' : 'Builtin'</ScriptBlock>
+              </ListItem>
+
+              <ListItem>
+                <Label>Parameters</Label>
+                <PropertyName>Parameters</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+
+    </View>
+
+    <View>
       <Name>ChatResponse</Name>
       <ViewSelectedBy>
         <TypeName>Modulus.ChatGPS.PowerShell.ChatResponse</TypeName>

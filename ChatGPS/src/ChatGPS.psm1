@@ -35,6 +35,7 @@ $commands = @(
     'Set-ChatAgentAccess'
     'Set-ChatCurrentVoice'
     'Start-ChatShell'
+    'Unregister-ChatPlugin'
     'Update-ChatSettings'
 )
 
