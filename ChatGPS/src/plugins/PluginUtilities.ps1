@@ -71,7 +71,7 @@ function RenderMethod(
         $scriptBlock.name
     }
 
-    $methodParameterList = RenderMethodParameterList $scriptBlock.ParameterTable
+    $methodParameterList = RenderMethodParameterList $scriptBlock.GetParameterTable()
 
     RenderResolvedMethod $scriptBlock.Name $targetPluginMethodName $targetDescription $scriptBlock.OutputType $targetOutputDescription $methodParameterList $methodTable[$methodName].ScriptBlock
 }
@@ -117,6 +117,10 @@ function RenderResolvedMethod(
 function RenderMethodParameterList(
     [System.Collections.Generic.Dictionary[string,string]] $parameterTable
 ) {
+    if ( $null -eq $parameterTable ) {
+        throw [ArgumentException]::new("Script method parameter table may be empty but can never be set to a null reference.");
+    }
+
     $parameterList = foreach ( $parameterName in $parameterTable.Keys ) {
         "[$($parameterTable[$parameterName])] $parameterName"
     }

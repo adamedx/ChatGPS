@@ -418,7 +418,12 @@ function CreateSessionFromSettings($settings, $sessionName = $null) {
 
     $models = GetModelResourcesFromSettings $settings
 
-    CreateCustomPluginsFromSettings $settings
+    # When this is specified, we're simply creating a session and
+    # can assume everything outside of the function such as custom plugins
+    # is already defined.
+    if ( ! $sessionName ) {
+        CreateCustomPluginsFromSettings $settings
+    }
 
     if ( $models ) {
         foreach ( $sessionSetting in $sessionList ) {

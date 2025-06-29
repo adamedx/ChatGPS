@@ -26,6 +26,7 @@ $commands = @(
     'New-ChatSettings'
     'New-ChatVoice'
     'Out-ChatVoice'
+    'Register-ChatPlugin'
     'Remove-ChatFunction'
     'Remove-ChatPlugin'
     'Remove-ChatSession'

@@ -150,9 +150,11 @@ function Save-ChatSessionSetting {
 
         $sessionPlugins = Get-ChatPlugin -SessionId $session.id
 
-        $sessionCustomPluginSettings = if ( $customPluginSettings ) {
-            $customPluginSettings |
-              where-object Name -in $sessionPlugins.Name
+        $sessionCustomPluginSettings = if ( $sessionPlugins ) {
+            if ( $customPluginSettings ) {
+                $customPluginSettings |
+                  where-object Name -in $sessionPlugins.Name
+            }
         }
 
         $sessionCustomPluginSettings | foreach {
