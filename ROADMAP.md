@@ -3,6 +3,8 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Rename new-chatplugin to Register-ChatPlugin
+* Add Unregister-ChatPlugin
 * Make session listing hide id by default
 * Add timeouts to powershell plugin
 * Add progress to powershell plugin

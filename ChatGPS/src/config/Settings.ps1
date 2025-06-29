@@ -19,6 +19,10 @@ $LastSettings = $null
 
 $SettingsInitialized = $false
 
+# Trick to ensure that the attribute 'Microsoft.SemanticKernel.KernelFunctionAttribute' exists during module initialization
+$aiDependencyPath = (get-item (join-path "$psscriptroot/../../lib" 'Microsoft.SemanticKernel.Abstractions.dll')).fullName
+[System.Reflection.Assembly]::LoadFrom($aiDependencyPath) | out-null
+
 
 # These class definitions represent the deserialized structure of the
 # configuration file. Using PowerShell classes here to generate a native
@@ -26,6 +30,12 @@ $SettingsInitialized = $false
 # for reliable and safe consumption of the settings file.
 
 class RootSettings {
+    RootSettings() {
+        $this.sessions = [SessionSettings]::new()
+        $this.models = [ModelResourceSettings]::new()
+        $this.customPlugins = [CustomPluginResourceSettings]::new()
+    }
+
     [string]$generatedDate
     [string]$generatedTool
     [string]$lastUpdatedDate
@@ -34,7 +44,7 @@ class RootSettings {
     [ProfileSettings]$profiles
     [SessionSettings]$sessions
     [ModelResourceSettings]$models
-    [PluginResourceSettings]$customPlugins
+    [CustomPluginResourceSettings]$customPlugins
 }
 
 class Profile {
@@ -152,14 +162,15 @@ class ModelResourceSettings {
     [System.Collections.Generic.List[ModelResource]] $list
 }
 
-class PluginResource {
+class CustomPluginResource {
     [string] $Name
+    [string] $Description
     [string] $PluginType
-    [System.Collections.Generic.Dictionary[string,string]] $Functions
+    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $Functions
 }
 
-class PluginResourceSettings {
-    [System.Collections.Generic.List[PluginResource]] $list
+class CustomPluginResourceSettings {
+    [System.Collections.Generic.List[CustomPluginResource]] $list
 }
 
 function GetDefaultSettingsLocation {
@@ -261,15 +272,15 @@ function GetModelResourcesFromSettings($settings) {
     }
 }
 
-function GetPluginResourcesFromSettings($settings) {
-    if ( ( $settings | get-member plugins ) -and $settings.plugins ) {
-        if ( $settings.plugins | get-member list ) {
-            $settings.plugins.list
+function GetCustomPluginResourcesFromSettings($settings) {
+    if ( ( $settings | get-member customPlugins ) -and $settings.customPlugins ) {
+        if ( $settings.customPlugins | get-member list ) {
+            $settings.customPlugins.list
         }
     }
 }
 
-function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParameters) {
+function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParameters, $pluginProviders) {
     $sessionSettings = [ModelChatSession]::new()
 
     if ( ! $sessionParameters ) {
@@ -364,6 +375,35 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     }
 }
 
+function GetCustomPluginSettings($settings, $pluginProviders) {
+    $customPluginProviders = $pluginProviders | where { $_.IsCustom() }
+
+    $customPluginSettings = if ( $customPluginProviders ) {
+        foreach ( $provider in $customPluginProviders ) {
+            if ( $provider -isnot [Modulus.ChatGPS.Plugins.PowerShellPluginProvider ] ) {
+                write-warning "Skipping custom plugin setting '$($provider.Name)' of type '$($provider.GetType().FullName)' because it is not currently supported as a valid setting."
+                continue
+            }
+
+            $customPluginSetting = [CustomPluginResource]::new()
+            $customPluginSetting.Name = $provider.Name
+            $customPluginSetting.Description = $provider.Description
+            $customPluginSetting.PluginType = $provider.GetType().FullName
+            $customPluginSetting.Functions = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]]::new()
+
+            $functions = $provider.GetScripts()
+
+            if ( $functions ) {
+                $customPluginSetting.Functions = $functions
+            }
+
+            $customPluginSetting
+        }
+    }
+
+    $customPluginSettings
+}
+
 function CreateSessionFromSettings($settings, $sessionName = $null) {
     $defaultSessionValues = $null
 
@@ -378,11 +418,11 @@ function CreateSessionFromSettings($settings, $sessionName = $null) {
 
     $models = GetModelResourcesFromSettings $settings
 
-    $plugins = GetPluginResourcesFromSettings $settings
+    CreateCustomPluginsFromSettings $settings
 
     if ( $models ) {
         foreach ( $sessionSetting in $sessionList ) {
-            SessionSettingToSession $sessionSetting $defaultSessionValues $models $plugins
+            SessionSettingToSession $sessionSetting $defaultSessionValues $models
         }
     } else {
         if ( $sessionList ) {
@@ -391,7 +431,25 @@ function CreateSessionFromSettings($settings, $sessionName = $null) {
     }
 }
 
-function SessionSettingToSession($sessionSetting, $defaultValues, $models, $plugins) {
+function CreateCustomPluginsFromSettings($settings) {
+    $customPluginSettings = GetCustomPluginResourcesFromSettings $settings
+
+    foreach ( $pluginSetting in $customPluginSettings ) {
+        try {
+            $functions = foreach ( $functionName in $pluginSetting.Functions.Keys ) {
+                $function = $pluginSetting.Functions[$functionName]
+                Add-ChatPluginFunction $functionName -ScriptBlock ([ScriptBlock]::Create($function.ScriptBlock)) -Description $function.Description -OutputType $function.OutputType -OutputDescription $function.OutputDescription
+            }
+
+            $functions |
+              New-ChatPlugin -Name $pluginSetting.Name -description $pluginSetting.Description | out-null
+        } catch {
+            write-warning "Failed to add custom plugin '$($pluginSetting.Name)'; the plugin will be skipped. The error was: $($_.exception.message)"
+        }
+    }
+}
+
+function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     $sourceSetting = [ModelChatSession]::new()
 
     $members = ($sourceSetting | Get-Member -MemberType Property).Name
@@ -542,6 +600,22 @@ function GetSessionSettingIndex([RootSettings] $settings, [string] $sessionName)
 
 function GetModelSettingIndex([RootSettings] $settings, [string] $modelName) {
     GetSettingIndex $settings.models $modelName
+}
+
+function GetCustomPluginSettingIndex([RootSettings] $settings, [string] $customPluginName) {
+    GetSettingIndex $settings.customPlugins $customPluginName
+}
+
+function UpdateCustomPluginSetting([RootSettings] $settings, [int] $pluginIndex, [CustomPluginResource] $customPluginSetting) {
+    if ( $null -eq $settings.customPlugins.list ) {
+        $settings.customPlugins.list = [System.Collections.Generic.List[CustomPluginResource]]::new()
+    }
+
+    if ( $pluginIndex -ne -1 ) {
+        $settings.customPlugins.list[$pluginIndex] = $customPluginSetting
+    } else {
+        $settings.customPlugins.list.Add($customPluginSetting)
+    }
 }
 
 function UpdateModelSetting([RootSettings] $settings, [int] $modelIndex, [ModelResource] $modelSetting) {

@@ -50,6 +50,7 @@ function New-ChatSettings {
 
     $settings.sessions = [SessionSettings]::new()
     $settings.models = [ModelResourceSettings]::new()
+    $settings.customPlugins = [CustomPluginResourceSettings]::new()
 
     if ( ! $NoSession.IsPresent ) {
         $settings.models.list = [System.Collections.Generic.List[ModelResource]]::new()

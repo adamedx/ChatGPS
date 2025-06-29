@@ -5,6 +5,7 @@
 //
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text.Json;
@@ -21,14 +22,22 @@ public class PowerShellPluginProvider : PluginProvider
         this.kernelPlugin = kernelPlugin;
     }
 
-    public PowerShellPluginProvider(string name, string description, Dictionary<string,PowerShellScriptBlock>? scripts, string? generationScriptPath) : base(name)
+    public PowerShellPluginProvider(string name, string description, Dictionary<string,PowerShellScriptBlock>? scripts, string? generationScriptPath) : base(name, description)
     {
         this.PluginDescription = description;
         this.Scripts = scripts;
         this.generationScriptPath = generationScriptPath;
     }
 
+    // TODO: This constructor must stay for now -- there is a runtime (not compile time) requirement for its existence at the moment.
     public PowerShellPluginProvider(string name) : base(name) { }
+
+    public PowerShellPluginProvider(string name, string? description) : base(name, description) { }
+
+    public ReadOnlyDictionary<string,PowerShellScriptBlock>? GetScripts()
+    {
+        return this.Scripts is not null ? new ReadOnlyDictionary<string,PowerShellScriptBlock>(this.Scripts) : null;
+    }
 
     internal override void InitializeInstanceFromData(string[] jsonData)
     {
@@ -70,8 +79,9 @@ public class PowerShellPluginProvider : PluginProvider
         return this.kernelPlugin;
     }
 
-    string? PluginDescription { get; set; }
     Dictionary<string,PowerShellScriptBlock>? Scripts { get; set; }
+
+    string? PluginDescription { get; set; }
 
     private object GenerateKernelPluginFromPowerShellScript()
     {

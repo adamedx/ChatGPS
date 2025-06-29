@@ -74,11 +74,17 @@ function Save-ChatSessionSetting {
             $settings = New-ChatSettings -PassThru -NoSession -NoWrite -NoProfile
         }
 
+        $customPluginSettings = GetCustomPluginSettings $settings (Get-ChatPlugin -ListAvailable)
+
         $sessions = @()
 
         $models = @()
 
         $modelsbyName = @{}
+
+        $customPlugins = @()
+
+        $customPluginsByName = @{}
     }
 
     process {
@@ -144,6 +150,26 @@ function Save-ChatSessionSetting {
 
         $sessionPlugins = Get-ChatPlugin -SessionId $session.id
 
+        $sessionCustomPluginSettings = if ( $customPluginSettings ) {
+            $customPluginSettings |
+              where-object Name -in $sessionPlugins.Name
+        }
+
+        $sessionCustomPluginSettings | foreach {
+            $customPluginIndex = GetCustomPluginSettingIndex $settings $_.Name
+
+            if ( ! $customPluginsByName.ContainsKey($_.Name) ) {
+                $customPluginsByName.Add($_.Name, $customPluginIndex)
+            }
+
+            if ( $customPluginIndex -eq -1 ) {
+                $customPlugins += [PSCustomObject] @{
+                    Location = -1
+                    Setting = $_
+                }
+            }
+        }
+
         $sessions += [PSCustomObject] @{
             Location = $sessionIndex
             Setting = $sessionSetting
@@ -152,7 +178,15 @@ function Save-ChatSessionSetting {
     }
 
     end {
+        $hasSettings = $false
+
+        if ( $customPlugins ) {
+            $hasSettings = $true
+        }
+
         if ( $sessions ) {
+            $hasSettings = $true
+
             # Now iterate through the models and settings that were sent to the pipeline,
             # and update their values in their respective settings collection based on the
             # location property. If that propery is -1, this will add the model or session
@@ -162,6 +196,10 @@ function Save-ChatSessionSetting {
                 if ( $model.setting ) {
                     UpdateModelSetting $settings $model.Location $model.setting
                 }
+            }
+
+            foreach ( $customPlugin in $customPlugins ) {
+                UpdateCustomPluginSetting $settings $customPlugin.Location $customPlugin.Setting
             }
 
             foreach ( $session in $sessions ) {
@@ -190,7 +228,9 @@ function Save-ChatSessionSetting {
             if ( $SaveAs ) {
                 CreateSessionFromSettings $settings $SaveAs | out-null
             }
+        }
 
+        if ( $hasSettings ) {
             WriteSettings $settings $targetPath $NoWrite.IsPresent
         }
     }

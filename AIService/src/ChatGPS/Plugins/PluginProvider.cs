@@ -17,6 +17,7 @@ public abstract class PluginProvider
     static PluginProvider()
     {
         PluginProvider.providers = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
+        PluginProvider.builtinProviders = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
 
         #pragma warning disable SKEXP0050
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin),
@@ -46,6 +47,11 @@ public abstract class PluginProvider
         }
     }
 
+    public bool IsCustom()
+    {
+        return ! PluginProvider.builtinProviders.ContainsKey(this.Name);
+    }
+
     protected PluginProvider(string name, string? description = null)
     {
         this.parameterSpec = new Dictionary<string, PluginParameter>();
@@ -58,7 +64,7 @@ public abstract class PluginProvider
 
     internal virtual void InitializeInstanceFromData(string[] jsonData) { }
 
-    internal static object? RegisterProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null, bool getNativeInstance = false)
+    internal static object? RegisterProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null, bool getNativeInstance = false, bool isCustomProvider = false)
     {
         object? result = null;
 
@@ -74,12 +80,17 @@ public abstract class PluginProvider
 
         PluginProvider.providers.Add(provider.Name, provider);
 
+        if ( ! isCustomProvider )
+        {
+            PluginProvider.builtinProviders.Add(provider.Name, provider);
+        }
+
         return result;
     }
 
     public static object? NewProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null)
     {
-        return RegisterProvider(provider, instanceParameters, true);
+        return RegisterProvider(provider, instanceParameters, true, true);
     }
 
     public static IEnumerable<PluginProvider> GetProviders()
@@ -157,6 +168,7 @@ public abstract class PluginProvider
     }
 
     private static Dictionary<string, PluginProvider> providers;
+    private static Dictionary<string, PluginProvider> builtinProviders;
 
     private Dictionary<string, PluginParameter> parameterSpec;
 }
