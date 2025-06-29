@@ -23,6 +23,12 @@ Roadmap for ChatGPS
 * Add .replay command to re-run list n command
 * Add plugins to settings
 * Remove SK types from proxy format
+* Major features:
+  * Custom PowerShell Plugins
+  * Vector search
+  * RAG
+  * Memory
+  * First-class agent abstraction
 * Agent concept
 * Type format for plugins
 * Logging (OpenTelemetry)
