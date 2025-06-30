@@ -24,7 +24,7 @@
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="[7.4,)" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="[7.4.0,)" />
   </ItemGroup>
 
 </Project>

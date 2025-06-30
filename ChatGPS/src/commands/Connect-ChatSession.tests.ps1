@@ -11,10 +11,10 @@ InModuleScope ChatGPS {
             # references to Semantic Kernel types will not work -- this is true
             # even when using Pester's InModuleScope enclosing scriptblock
             try {
-                [Modulus.ChatGPS.Models.ChatSession]::new($null, $null, 'None', $null, $null) | out-null
+#                [Modulus.ChatGPS.Models.ChatSession]::new($null, $null, 'None', $null, $null) | out-null
             } catch {
             }
-
+<#
             # PowerShell will try to resolve type names in the script before execution,
             # so create the type dynamically by defining the string representation of the
             # script block and generating a real script block to subsequently execute.
@@ -39,7 +39,7 @@ class MockChatService : Modulus.ChatGPS.Plugins.PluginTable { # , Modulus.ChatGP
 }
 '@
                ))
-
+#>
 #            Mock CreateSession {param( $Options, $Prompt) [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $Prompt, [MockChatService]::new()) } -Verifiable
         }
 
