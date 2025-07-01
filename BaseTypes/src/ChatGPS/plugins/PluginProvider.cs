@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.SemanticKernel;
-using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Utilities;
 
 namespace Modulus.ChatGPS.Plugins;

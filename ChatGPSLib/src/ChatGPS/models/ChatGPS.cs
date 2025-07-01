@@ -36,9 +36,9 @@ public class ChatGPS
             }
             else
             {
-                ServiceBuilder builder = ServiceBuilder.CreateBuilder();
-
-                targetChatService = builder.WithOptions(options).WithUserAgent(userAgent).Build();
+                throw new NotSupportedException("Non proxy mode is not supported in this release.");
+                // ServiceBuilder builder = ServiceBuilder.CreateBuilder();
+                // targetChatService = builder.WithOptions(options).WithUserAgent(userAgent).Build();
             }
         }
 

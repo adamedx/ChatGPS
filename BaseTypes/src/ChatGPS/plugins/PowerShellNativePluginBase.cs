@@ -5,8 +5,6 @@
 //
 
 using System.Collections.Generic;
-using System.Text.Json;
-using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Plugins;
 

@@ -9,8 +9,6 @@ using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 
-using Microsoft.SemanticKernel;
-
 namespace Modulus.ChatGPS.Plugins;
 
 public class PowerShellScriptBlock

@@ -9,7 +9,6 @@ namespace Modulus.ChatGPS.Models;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 

@@ -5,6 +5,7 @@
 //
 
 using System.Text.Json;
+
 using Modulus.ChatGPS.Utilities;
 
 namespace Modulus.ChatGPS.Plugins;

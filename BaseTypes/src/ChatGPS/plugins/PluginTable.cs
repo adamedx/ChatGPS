@@ -13,7 +13,7 @@ namespace Modulus.ChatGPS.Plugins;
 
 public class PluginTable : IPluginTable
 {
-    internal PluginTable(Kernel kernel, IEnumerable<Plugin>? plugins = null)
+    public PluginTable(Kernel kernel, IEnumerable<Plugin>? plugins = null)
     {
         this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
 

@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AIService\AIService.csproj" />
+    <ProjectReference Include="..\BaseTypes\BaseTypes.csproj" />
   </ItemGroup>
 
   <ItemGroup>

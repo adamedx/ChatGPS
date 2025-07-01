@@ -8,9 +8,9 @@ using System.Security.Cryptography;
 
 namespace Modulus.ChatGPS.Utilities;
 
-internal class PSDecryptor
+public class PSDecryptor
 {
-    internal static string GetDecryptedStringFromEncryptedUnicodeHexBytes(string encryptedString)
+    public static string GetDecryptedStringFromEncryptedUnicodeHexBytes(string encryptedString)
     {
         // Ensure that on non-Windows platforms we do not execute this method by throwing an
         // exception. This also avoids compiler warning CA1416.

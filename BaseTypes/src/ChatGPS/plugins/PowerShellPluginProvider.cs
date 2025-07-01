@@ -10,8 +10,6 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text.Json;
 
-using Microsoft.SemanticKernel;
-
 namespace Modulus.ChatGPS.Plugins;
 
 public class PowerShellPluginProvider : PluginProvider

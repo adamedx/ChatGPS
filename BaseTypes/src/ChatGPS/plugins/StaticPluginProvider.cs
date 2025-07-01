@@ -4,9 +4,6 @@
 // All rights reserved.
 //
 
-using Microsoft.SemanticKernel;
-using Modulus.ChatGPS.Models;
-
 namespace Modulus.ChatGPS.Plugins;
 
 public class StaticPluginProvider : PluginProvider

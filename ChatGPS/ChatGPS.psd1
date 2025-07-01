@@ -54,7 +54,7 @@ Description = 'AI PowerShell user experience enhancements and automation.'
 # RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
-RequiredAssemblies = @('lib/AIService.dll', 'lib/ChatGPSLib.dll')
+RequiredAssemblies = @('lib/BaseTypes.dll', 'lib/ChatGPSLib.dll')
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 ScriptsToProcess = @('src/init/ModuleParentEnvironment.ps1')
