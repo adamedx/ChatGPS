@@ -40,7 +40,7 @@ internal class CreateConnectionCommand : Command
         }
 
         var newConnection = this.processor.Connections.NewConnection(this.connectionArguments.ConnectionOptions);
-        var response = new CreateConnectionResponse(newConnection.Id);
+        var response = new CreateConnectionResponse(newConnection.Id, newConnection.ChatService.ServiceOptions);
 
         var jsonOptions = new JsonSerializerOptions();
         jsonOptions.IncludeFields = true;

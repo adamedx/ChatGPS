@@ -6,6 +6,7 @@
 function Get-ChatHistory {
     [cmdletbinding(positionalbinding=$false)]
     param(
+        [parameter(valuefrompipeline=$true)]
         [Modulus.ChatGPS.Models.ChatSession] $Session,
 
         [Switch] $CurrentContextOnly

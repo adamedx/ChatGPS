@@ -11,7 +11,7 @@ using Microsoft.SemanticKernel.Plugins.Web.Google;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class WebSearchPlugin : Plugin
+public class WebSearchPluginProvider : PluginProvider
 {
     internal enum SearchSource
     {
@@ -19,14 +19,18 @@ public class WebSearchPlugin : Plugin
         Google
     }
 
-    internal WebSearchPlugin(SearchSource source) : base(source.ToString())
+    internal WebSearchPluginProvider(SearchSource source, string sourceDescription) : base(source.ToString())
     {
         this.source = source;
+        this.Description = $"Enables access to search the web using the following search engine source: {sourceDescription}";
+        AddPluginParameter("apiKey", "Key credential for accessing the search engine's API", true, true);
+        AddPluginParameter("apiUri", "URI for the API if there is no default URI or if a specific URI is needed");
+        AddPluginParameter("searchEngineId", "Id for the search engine instance required for search engine scenarios", false, false);
     }
 
-    internal override object GetNativeInstance(string[]? parameters = null)
+    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null)
     {
-        if ( parameters is null || parameters.Length < 1 )
+        if ( parameters is null || parameters.Count < 1 )
         {
             throw new ArgumentException("Invalid parameters specified -- at least one parameter must be specified, the first must be the API key, the second is optional and may be an API URI");
         }
@@ -35,22 +39,31 @@ public class WebSearchPlugin : Plugin
         {
             #pragma warning disable SKEXP0050
 
-            var apiKey = parameters[0];
+            if ( parameters is null )
+            {
+                throw new ArgumentException("Invalid parameters specified -- at least one parameter must be specified, the first must be the API key, the second is optional and may be an API URI");
+            }
+
+            var apiKey = (string?) GetPluginParameter("apiKey", parameters) ?? "";
+
             IWebSearchEngineConnector connector;
 
             switch ( source )
             {
             case SearchSource.Bing:
-                var apiUri = parameters.Length > 1 ? new Uri(parameters[1]) : null;
+                var apiUriData = (string?) GetPluginParameter("apiUri", parameters);
+
+                var apiUri = apiUriData is not null ? new Uri(apiUriData ?? "" ) : null;
+
                 connector = new BingConnector(apiKey, apiUri);
                 break;
             case SearchSource.Google:
-                if (  parameters.Length < 2 )
+                if (  parameters.Count < 2 )
                 {
                     throw new ArgumentException("Invalid parameters specified -- the first must be the API key, the second parameter must be the search engine Id");
                 }
 
-                var searchEngineId = parameters[1];
+                var searchEngineId = (string?) GetPluginParameter("searchEngineId", parameters) ?? "";
                 connector = new GoogleConnector(apiKey, searchEngineId);
                 break;
             default:

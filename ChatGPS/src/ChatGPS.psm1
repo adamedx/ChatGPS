@@ -7,6 +7,8 @@
 
 $commands = @(
     'Add-ChatPlugin'
+    'Add-ChatPluginFunction'
+    'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
     'Get-ChatEncryptedUnicodeKeyCredential'
@@ -19,18 +21,22 @@ $commands = @(
     'Invoke-ChatScriptBlock'
     'Invoke-ChatFunction'
     'New-ChatFunction'
+    'New-ChatPlugin'
     'New-ChatScriptBlock'
     'New-ChatSettings'
     'New-ChatVoice'
     'Out-ChatVoice'
+    'Register-ChatPlugin'
     'Remove-ChatFunction'
     'Remove-ChatPlugin'
     'Remove-ChatSession'
     'Save-ChatSessionSetting'
     'Select-ChatSession'
     'Send-ChatMessage'
+    'Set-ChatAgentAccess'
     'Set-ChatCurrentVoice'
-    'Start-ChatREPL'
+    'Start-ChatShell'
+    'Unregister-ChatPlugin'
     'Update-ChatSettings'
 )
 
@@ -40,7 +46,8 @@ $aliases = @(
     'gss'
     'ncs'
     'sch'
-    'scs'
+    'scs',
+    'Start-ChatRepl'
 )
 
 export-modulemember -function $commands -alias $aliases

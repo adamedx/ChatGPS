@@ -19,8 +19,6 @@ public class ChatSession
 {
     public ChatSession(IChatService chatService, string systemPrompt, TokenReductionStrategy tokenStrategy = TokenReductionStrategy.None, object? tokenReductionParameters = null, int latestContextLimit = -1, object? customContext = null, string? name = null)
     {
-        chatService.ServiceOptions.Validate();
-
         this.Id = Guid.NewGuid();
 
         this.conversationBuilder = new ConversationBuilder(chatService);
@@ -36,6 +34,8 @@ public class ChatSession
         this.chatService = chatService;
 
         this.AiOptions = new AiProviderOptions(chatService.ServiceOptions);
+        this.OriginalAiOptions = new AiProviderOptions(chatService.ServiceOptions);
+
         this.AccessValidated = false;
 
         this.LastResponseError = null;
@@ -47,11 +47,17 @@ public class ChatSession
         this.Name = name;
     }
 
-    public string SendStandaloneMessage(string prompt, bool? allowAgentAccess = null)
+    public string SendStandaloneMessage(string prompt, string? customSystemPrompt, bool? allowAgentAccess = null)
     {
+        LazyInitialize();
+
         ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
 
-        var history = conversationBuilder.CreateConversationHistory(prompt);
+        var temporarySystemPrompt = customSystemPrompt ?? this.chatHistory[0].Content ?? "You are a friendly conversationalist.";
+
+        var history = conversationBuilder.CreateConversationHistory(temporarySystemPrompt);
+
+        temporaryConversation.AddMessageToConversation(history, AuthorRole.User, prompt);
 
         Task<string> messageTask;
 
@@ -71,14 +77,14 @@ public class ChatSession
         return messageTask.Result;
     }
 
-    public string GenerateMessage(string prompt)
+    public string GenerateMessage(string prompt, bool? allowAgentAccess = null)
     {
-        return GenerateMessageInternal(prompt);
+        return GenerateMessageInternal(prompt, allowAgentAccess);
     }
 
-    public string GenerateFunctionResponse(string functionDefinition, string prompt)
+    public string GenerateFunctionResponse(string functionDefinition, string prompt, bool? allowAgentAccess = null)
     {
-        return GenerateMessageInternal(prompt, functionDefinition);
+        return GenerateMessageInternal(prompt, allowAgentAccess, functionDefinition);
     }
 
     public Function CreateFunction(string name, string[] parameters, string definition, bool replace = false)
@@ -92,6 +98,8 @@ public class ChatSession
 
     public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
     {
+        LazyInitialize();
+
         var function = FunctionTable.GlobalFunctions.GetFunctionById(functionId);
 
         return await function.InvokeFunctionAsync(this.chatService, boundParameters);
@@ -109,20 +117,36 @@ public class ChatSession
         this.History.RemoveAt(this.History.Count - 1);
         this.CurrentHistory.RemoveAt(this.CurrentHistory.Count - 1);
 
-        var updatedMessage = new ChatMessage(new ChatMessageContent(lastMessage.SourceChatMessageContent.Role, updatedResponse, lastMessage.SourceChatMessageContent.ModelId, lastMessage.SourceChatMessageContent.InnerContent, lastMessage.SourceChatMessageContent.Encoding, lastMessage.SourceChatMessageContent.Metadata));
+        var sourceChatMessageContent = (ChatMessageContent) lastMessage.GetSourceChatMessageContent();
+
+        var updatedMessage = new ChatMessage(new ChatMessageContent(sourceChatMessageContent.Role, updatedResponse, sourceChatMessageContent.ModelId, sourceChatMessageContent.InnerContent, sourceChatMessageContent.Encoding, sourceChatMessageContent.Metadata));
 
         this.History.Add(updatedMessage);
         this.CurrentHistory.Add(updatedMessage);
     }
 
-    public void AddPlugin(string name, string[]? parameters = null)
+    public IEnumerable<Plugin> Plugins
     {
-        this.chatService.AddPlugin(name, parameters);
+        get
+        {
+            LazyInitialize();
+
+            return this.chatService.Plugins.Plugins;
+        }
+    }
+
+    public void AddPlugin(string name, Dictionary<string,PluginParameterValue>? parameters = null)
+    {
+        LazyInitialize();
+
+        this.chatService.Plugins.AddPlugin(name, parameters);
     }
 
     public void RemovePlugin(string name)
     {
-        this.chatService.RemovePlugin(name);
+        LazyInitialize();
+
+        this.chatService.Plugins.RemovePlugin(name);
     }
 
     public ChatMessageHistory History
@@ -142,7 +166,7 @@ public class ChatSession
     }
 
     public ReadOnlyCollection<double> ExceededTokenLimitSizeList
-     {
+    {
          get
          {
              return new ReadOnlyCollection<double>(this.tokenReducer.PastLimitTokenSize);
@@ -150,16 +174,28 @@ public class ChatSession
      }
 
     public ReadOnlyCollection<double> ReducedTokenSizeList
-     {
+    {
          get
          {
              return new ReadOnlyCollection<double>(this.tokenReducer.ReducedTokenSize);
          }
      }
 
+    public void ResetHistory(bool currentOnly)
+    {
+        this.publicChatHistory.Reset();
+
+        if ( ! currentOnly )
+        {
+            this.publicTotalChatHistory.Reset();
+        }
+    }
+
     public Guid Id { get; private set; }
 
     public AiProviderOptions AiOptions { get; private set; }
+
+    public AiProviderOptions OriginalAiOptions { get; private set; }
 
     public bool AccessValidated { get; private set; }
 
@@ -167,7 +203,18 @@ public class ChatSession
     {
         get
         {
-            return ( this.AiOptions.LocalModelPath?.Length ?? 0 ) == 0;
+            bool isLocalUri = false;
+
+            var realizedOptions = this.chatService.ServiceOptions;
+
+            if ( realizedOptions is not null && realizedOptions.ApiEndpoint is not null )
+            {
+                isLocalUri = realizedOptions.ApiEndpoint.IsLoopback ||
+                    realizedOptions.ApiEndpoint.Scheme == "file";
+            }
+
+            return ( ( realizedOptions?.LocalModelPath?.Length ?? 0 ) == 0 ) &&
+                ! isLocalUri;
         }
     }
 
@@ -193,16 +240,44 @@ public class ChatSession
 
     public string? Name { get; private set; }
 
-    public IEnumerable<PluginInfo> Plugins
+    public string? SessionName
     {
         get
         {
-            return this.chatService.Plugins;
+            return Name;
         }
     }
 
-    private string GenerateMessageInternal(string prompt, string? functionDefinition = null)
+    public bool AllowAgentAccess
     {
+        get
+        {
+            return this.AiOptions?.AllowAgentAccess ?? false;
+        }
+
+        set
+        {
+            this.AiOptions.AllowAgentAccess = value;
+        }
+    }
+
+    private void LazyInitialize()
+    {
+        if ( ! this.initialized )
+        {
+            chatService.Initialize();
+
+            this.initialized = true;
+        }
+    }
+
+    private string GenerateMessageInternal(string prompt, bool? allowAgentAccess, string? functionDefinition = null)
+    {
+        LazyInitialize();
+
+        var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.AiOptions.AllowAgentAccess is not null ? (bool) this.AiOptions.AllowAgentAccess : false );
+
         var newMessageRole = AuthorRole.User;
 
         this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt, new TimeSpan(0));
@@ -231,13 +306,13 @@ public class ChatSession
                 {
                     var chatFunction = new Function(new string[] {"input"}, functionDefinition);
 
-                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, chatFunction, prompt);
+                    messageTask = this.conversationBuilder.InvokeFunctionAsync(this.chatHistory, chatFunction, prompt, allowAgentAccessParameter);
                 }
                 else
                 {
                     UpdateHistoryContextFromLimit();
 
-                    messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory);
+                    messageTask = this.conversationBuilder.SendMessageAsync(this.chatHistory, allowAgentAccessParameter);
                 }
 
                 messageTask.Wait();
@@ -384,5 +459,7 @@ public class ChatSession
     private TokenReducer tokenReducer;
     private IChatService chatService;
     private int latestContextLimit;
+
+    bool initialized = false;
 }
 

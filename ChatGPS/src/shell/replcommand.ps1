@@ -10,6 +10,8 @@ $ReplCommands = @{
     History = {param([HashTable] $ReplState) ReplCommandHistory @args}
     Last = {param([HashTable] $ReplState) ReplCommandHistory 1 1}
     Help = {param([HashTable] $ReplState) ReplCommandHelp}
+    ClearHistory = {param([HashTable] $ReplState) ReplCommandClearHistory}
+    ShowConnection = {param([HashTable] $ReplState) ReplCommandShowConnection}
 }
 
 function InvokeReplCommand {
@@ -20,17 +22,24 @@ function InvokeReplCommand {
         [PSModuleInfo] $targetModule = $null
     )
 
-    $trimmedText = $InputText.Trim()
-
-    $argumentStart = $trimmedText.IndexOf(' ')
+    $trimmedText = $InputText -ne '?' ? $InputText.Trim() : '.help'
 
     $commandName = $null
+
+    $argumentStart = $trimmedText.IndexOf(' ')
 
     $commandBlock = if ( $trimmedText[0] -eq '.' ) {
         $commandLength = $argumentStart -gt 0 ? $argumentStart - 1: $trimmedText.Length - 1
         $commandName = $trimmedText.SubString(1, $commandLength)
 
-        $script:ReplCommands[$commandName]
+        $block = $script:ReplCommands[$commandName]
+
+        if ( ! $block ) {
+            write-error -erroraction continue "The command '$commandName' is not a valid command."
+            $block = $script:ReplCommands['help']
+        }
+
+        $block
     }
 
     if ( $commandBlock ) {
@@ -78,7 +87,12 @@ function ReplCommandHelp {
         "." + $commandName.ToLower()
     }
 
-    ToCommandOutput $result
+    ToCommandOutput (
+        & {
+            "`nShell commands must start with '.'; valid commands are:`n"
+            ( $result | sort-object )
+        }
+    )
 }
 
 
@@ -129,4 +143,13 @@ function ReplCommandHistory( $LatestCount = -1, $Length = -1) {
       }
 
     ToCommandOutput $result
+}
+
+function ReplCommandClearHistory {
+    Clear-ChatHistory -Session $ReplState.Connection
+    ToCommandOutput "Chat history cleared at $([DateTime]::now)."
+}
+
+function ReplCommandShowConnection {
+    ToCommandOutput $ReplState.Connection
 }

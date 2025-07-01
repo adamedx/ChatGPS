@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AIService\AIService.csproj" />
+    <ProjectReference Include="..\BaseTypes\BaseTypes.csproj" />
   </ItemGroup>
 
   <Target Name="CleanBuildProducts" AfterTargets="Clean">

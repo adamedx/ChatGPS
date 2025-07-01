@@ -11,7 +11,7 @@ $colorEndChar = "$($colorEscapeChar)[0m"
 # where this function is defined. As a result, a scriptblock
 # of the module must
 function HighlightText([string]$text, [int] $colorValue) {
-    if ( $global:host.ui.SupportsVirtualTerminal ) {
+    if ( $global:host.ui.SupportsVirtualTerminal -and $text ) {
         $background = 40 + $colorValue
         "$($script:colorEscapeChar)[" + "$($background.ToString())m" + $text + $script:colorEndChar
     } else {

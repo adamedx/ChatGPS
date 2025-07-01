@@ -43,7 +43,6 @@ function Send-ChatMessage {
     )
 
     begin {
-        $currentMessage = $message
         $currentReplies = $MaxReplies
 
         $formatParameters = GetPassthroughChatParams -AllParameters $PSBoundParameters
@@ -76,6 +75,8 @@ function Send-ChatMessage {
     }
 
     process {
+
+        $currentMessage = $message
 
         while ( $currentMessage ) {
 

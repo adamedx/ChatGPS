@@ -2,11 +2,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AIService\AIService.csproj" />
+    <ProjectReference Include="..\BaseTypes\BaseTypes.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Commandline" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 
   <PropertyGroup>

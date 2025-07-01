@@ -10,7 +10,7 @@ ChatGPS
 * Build AI agents to automate tasks using your computer, data, and services on your behalf
 * Automate testing of various AI models
 
-ChatGPS allows you to choose the AI model that powers its experience and supports both remotely hosted models such as those provided by Azure OpenAI, Open AI, etc., as well as locally hosted models like Phi 3.
+ChatGPS allows you to choose the AI model that powers its experience and supports both remotely hosted models such as those provided by Azure OpenAI, Open AI, etc., as well as locally hosted models like Phi 3 / Phi 4, Llama 3, etc.
 
 ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic-kernel), and therefore should work well with any models and AI capabilities supported by SK.
 
@@ -32,7 +32,7 @@ Received                 Response
 * [PowerShell](https://github.com/PowerShell/PowerShell) 7.4 and higher on Windows, Linux, or MacOS
 * Models -- bring your own!
   * Remote: valid account credentials to a service like Azure OpenAI, OpenAI, etc.
-  * Local: for locally hosted models, GPU or NPU capabilities may be needed, see specific model requirements
+  * Local: for locally hosted models including [Onnx](https://onnx.ai) and [Ollama](https://ollama.com), GPU or NPU capabilities may be needed, see specific model requirements
 
 # Development and testing
 
@@ -83,9 +83,7 @@ Received                 Response
 ```
 
 In this example, a session was created using a locally hosted model stored at the file system path specified by the `LocalModelPath`
-parameter. Additional invocations of `Send-ChatMessage` can be used to continue the conversation with further messages.
-
-The `Start-ChatRepl`
+parameter. Subsequent invocations of `Send-ChatMessage` or `Start-ChatShell` (alias `chatgps`) can be used to continue the conversation with further messages.
 
 #### Configuring the language model
 
@@ -172,9 +170,15 @@ $configpath = "$configfolder/openai.config"
 Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
 ```
 
+**Google:**
+
+```powershell
+Connect-ChatSession -Provider Google -ModelIdentifier gemini-2.0-flash-001 -ReadApiKey
+```
+
 #### Local model usage
 
-The `Connect-ChatSession` command also supports models hosted in the local file system. Use the `LocalModelPath` parameter with the appropriate `Provider` parameter that supports local models to specify the path to the model as in the example below:
+The `Connect-ChatSession` command also supports models hosted in the local file system. Use the `LocalModelPath` parameter with the appropriate `Provider` parameter that supports local models to specify the path to the model as in the example below which uses the `LocalOnnx` provider:
 
 ```powershell
 
@@ -188,23 +192,40 @@ Received                 Response
                          interaction meaningful. What's on your mind today?
 ```
 
+And here's an example that uses a local Llama 3 via the Ollama provider; when the `ApiEndpoint` parameter is not specified, a default local URI `http://localhost:11434` is assumed for Ollama:
+
+```powershell
+# You can run the 'ollama serve' command to discover the actual local URI for your Ollama configuration.
+# You can specify the ApiEndpoint parameter if you have Ollama configured to use a URI other than
+# the default http://localhost:11434:
+Connect-ChatSession -Provider Ollama -ModelIdentifier llama3:latest
+Send-ChatMessage 'Hello!'
+
+Received                 Response
+--------                 --------
+4/13/2025 9:43:59 AM     Hello! It's nice to meet you. Is there something I can help
+                         you with or would you like to chat about a particular topic?
+                         I'm here to assist you with any questions or concerns you
+                         may have.
+```
+
 #### Import the module
 
 To experience the actual module, you'll need to import it into your session *after you've built it* as described earlier.
-The example below uses the `Start-ChatRepl` command to create an interactive chat below -- this is useful for extended
+The example below uses the `Start-ChatShell` command to create an interactive chat below -- this is useful for extended
 human or automated engagement with the model, as opposed to one-off interactions:
 
 ```powershell
 cd <your-chatgps-repositoryroot>
 import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS/ChatGPS.psd1
 Get-Content <your-config-path> | ConvertFrom-Json | Connect-ChatSession
-Start-ChatRepl # This starts a "Read-Eval-Print-Loop (REPL)" as your interactive chat session
+Start-ChatShell # This starts a "Read-Eval-Print-Loop (REPL)" as your interactive chat session
 ```
 
 If all commands succeed, you should have an interactive prompt that will allow you to interact with the model, e.g.:
 
 ```powershell
-PS /home/ryu> Start-ChatRepl
+PS /home/ryu> Start-ChatShell
 
 (ryu) ChatGPS>: hello
 
@@ -222,12 +243,12 @@ Received                 Response
 
 To exit the REPL, enter the command `.exit`.
 
-Note that `Send-Chat` and `Start-ChatRepl` contribute to the same session, so you can use one, then switch to the other,
+Note that `Send-Chat` and `Start-ChatShell` contribute to the same session, so you can use one, then switch to the other,
 and of course switch again, and the conversation will simply continue.
 
 Whenever you need a fresh or separate conversation session, use `Connect-ChatSession` to create a new session -- specify
 the `NoSetCurrent` parameter and save the output of the command in a variable to capture this new session connection. Commands
-like `Send-ChatMessage` and `Start-ChatRepl` accept a `Connection` parameter to which this variable can be specified to
+like `Send-ChatMessage` and `Start-ChatShell` accept a `Connection` parameter to which this variable can be specified to
 support multiple parallel conversations.
 
 ## General usage

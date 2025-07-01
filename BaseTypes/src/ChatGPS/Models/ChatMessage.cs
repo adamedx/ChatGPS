@@ -9,13 +9,12 @@ namespace Modulus.ChatGPS.Models;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Modulus.ChatGPS.Services;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 public class ChatMessage
 {
-    internal enum MetadataKeys
+    public enum MetadataKeys
     {
         MessageIndex,
         Timestamp,
@@ -40,6 +39,18 @@ public class ChatMessage
             { AuthorRole.Tool, SenderRole.Tool },
             { AuthorRole.User, SenderRole.User }
         };
+
+        ChatMessage.reverseRoleMap = new Dictionary<SenderRole,AuthorRole>();
+
+        foreach ( var authorRole in ChatMessage.roleMap.Keys )
+        {
+            ChatMessage.reverseRoleMap.Add(ChatMessage.roleMap[authorRole], authorRole);
+        }
+    }
+
+    public ChatMessage(SenderRole role, string content, Dictionary<string,object?>? metadata = null)
+    {
+        this.sourceMessage = new ChatMessageContent(ChatMessage.reverseRoleMap[role], content, null, null, null, metadata);
     }
 
     public ChatMessage(ChatMessageContent sourceMessage)
@@ -132,6 +143,11 @@ public class ChatMessage
         }
     }
 
+    public object GetSourceChatMessageContent()
+    {
+        return this.SourceChatMessageContent;
+    }
+
     internal ChatMessageContent SourceChatMessageContent
     {
         get
@@ -143,4 +159,5 @@ public class ChatMessage
     private ChatMessageContent sourceMessage;
 
     private static IDictionary<AuthorRole, SenderRole> roleMap;
+    private static IDictionary<SenderRole, AuthorRole> reverseRoleMap;
 }

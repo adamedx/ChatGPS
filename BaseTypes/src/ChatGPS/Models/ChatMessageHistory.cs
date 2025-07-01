@@ -68,6 +68,11 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         private ChatMessageHistory history;
     }
 
+    public ChatMessageHistory()
+    {
+        this.sourceHistory = new ChatHistory();
+        this.privateToPublicMap = new System.Collections.Generic.Dictionary<ChatMessageContent, ChatMessage>();
+    }
 
     public ChatMessageHistory( ChatHistory sourceHistory )
     {
@@ -198,8 +203,10 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         return ((IEnumerable<ChatMessage>) this).GetEnumerator();
     }
 
-    internal ChatMessage GetPublicItem(ChatMessageContent privateItem)
+    public ChatMessage GetPublicItem(ChatMessageContent privateObject)
     {
+        var privateItem = (ChatMessageContent) privateObject;
+
         ChatMessage? publicItem;
 
         if ( ! this.privateToPublicMap.TryGetValue(privateItem, out publicItem) )
@@ -214,6 +221,28 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
 
         return publicItem;
+    }
+
+    public void Reset()
+    {
+        var systemMessage = sourceHistory.Count > 0 ?
+            GetPublicItem(sourceHistory[0]) :
+            null;
+
+        Clear();
+
+        if ( systemMessage is not null )
+        {
+            Add(systemMessage);
+        }
+    }
+
+    internal ChatHistory SourceHistory
+    {
+        get
+        {
+            return this.sourceHistory;
+        }
     }
 
     private ChatHistory sourceHistory;

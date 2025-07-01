@@ -19,4 +19,9 @@ Test-ModuleManifest $moduleManifestPath -erroraction stop | out-null
 
 $global:__ChatGPSSkipNative = $true
 
-import-module $moduleManifestPath -force -erroraction stop | out-null
+try {
+    set-item env:CHATGPS_DEFAULT_SETTINGS_PATH_OVERRIDE ([Guid]::NewGuid().ToString())
+    import-module $moduleManifestPath -force -erroraction stop | out-null
+} finally {
+    remove-item env:CHATGPS_DEFAULT_SETTINGS_PATH_OVERRIDE
+}

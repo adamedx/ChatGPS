@@ -21,6 +21,7 @@ function Save-ChatSessionSetting {
 
         [string] $ProfileName = $null,
 
+        [Alias('Path')]
         [string] $SettingsFilePath = $null,
 
         [switch] $NoCreateProfile,
@@ -29,7 +30,7 @@ function Save-ChatSessionSetting {
 
         [switch] $DefaultSession,
 
-        [switch] $NewFile,
+        [switch] $NoNewFile,
 
         [switch] $NoWrite,
 
@@ -60,26 +61,30 @@ function Save-ChatSessionSetting {
 
         $settingsExist = $false
 
-        $settings = if ( ! $NewFile.IsPresent ) {
-            if ( test-path $targetPath ) {
-                $settingsExist = $true
-                $content = Get-Content $targetPath -raw
+        $settings = if ( test-path $targetPath ) {
+            $settingsExist = $true
+            $content = Get-Content $targetPath -raw
 
-                SettingsJsonToStrongTypedSettings $content $targetPath
-            } elseif ( $SettingsFilePath ) {
-                write-error "The specified settings file at '$SettingsFilePath' does not exist. Specify a valid path and then retry the operation."
-            }
+            SettingsJsonToStrongTypedSettings $content $targetPath
+        } elseif ( $NoNewFile.IsPresent -and $SettingsFilePath ) {
+            write-error "The specified settings file at '$SettingsFilePath' does not exist. Specify a valid path and then retry the operation."
         }
 
         if ( ! $settings ) {
             $settings = New-ChatSettings -PassThru -NoSession -NoWrite -NoProfile
         }
 
+        $customPluginSettings = GetCustomPluginSettings $settings (Get-ChatPlugin -ListAvailable)
+
         $sessions = @()
 
         $models = @()
 
         $modelsbyName = @{}
+
+        $customPlugins = @()
+
+        $customPluginsByName = @{}
     }
 
     process {
@@ -101,9 +106,9 @@ function Save-ChatSessionSetting {
 
         $sessionInfo = (GetSessionSettingsInfo $session).SourceSettings
 
-        $sessionSetting = $sessionInfo.SessionSettings
+        $sessionSetting = [ModelChatSession]::new($session, $sessionInfo.SessionSettings)
 
-        # Check to see if the existing sesession by name exists in the settings by
+        # Check to see if the existing session by name exists in the settings by
         # looking up its existing index in the session collection. A value of anything
         # other tham -1 means it does exist indexed at that value, where -1 means
         # it does not exist.
@@ -143,14 +148,47 @@ function Save-ChatSessionSetting {
             $sessionIndex = -1
         }
 
+        $sessionPlugins = Get-ChatPlugin -SessionId $session.id
+
+        $sessionCustomPluginSettings = if ( $sessionPlugins ) {
+            if ( $customPluginSettings ) {
+                $customPluginSettings |
+                  where-object Name -in $sessionPlugins.Name
+            }
+        }
+
+        $sessionCustomPluginSettings | foreach {
+            $customPluginIndex = GetCustomPluginSettingIndex $settings $_.Name
+
+            if ( ! $customPluginsByName.ContainsKey($_.Name) ) {
+                $customPluginsByName.Add($_.Name, $customPluginIndex)
+            }
+
+            if ( $customPluginIndex -eq -1 ) {
+                $customPlugins += [PSCustomObject] @{
+                    Location = -1
+                    Setting = $_
+                }
+            }
+        }
+
         $sessions += [PSCustomObject] @{
             Location = $sessionIndex
             Setting = $sessionSetting
+            Plugins = $sessionPlugins
         }
     }
 
     end {
+        $hasSettings = $false
+
+        if ( $customPlugins ) {
+            $hasSettings = $true
+        }
+
         if ( $sessions ) {
+            $hasSettings = $true
+
             # Now iterate through the models and settings that were sent to the pipeline,
             # and update their values in their respective settings collection based on the
             # location property. If that propery is -1, this will add the model or session
@@ -162,13 +200,39 @@ function Save-ChatSessionSetting {
                 }
             }
 
+            foreach ( $customPlugin in $customPlugins ) {
+                UpdateCustomPluginSetting $settings $customPlugin.Location $customPlugin.Setting
+            }
+
             foreach ( $session in $sessions ) {
                 if ( $SaveAs ) {
                     $session.Setting.Name = $SaveAs
                 }
+
+                $pluginParameterData = @{}
+
+                if ( $session.Plugins ) {
+                    $pluginParameterTables = [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]]::new()
+
+                    foreach ( $sessionPlugin in $session.Plugins ) {
+                        $pluginParameterTables.Add($sessionPlugin.Name, $sessionPlugin.Parameters)
+                    }
+
+                    $session.Setting.Plugins = $pluginParameterTables
+                }
+
                 UpdateSessionSetting $settings $session.Location $session.Setting $ProfileName $NoCreateProfile.IsPresent ( ! $settingsExist -and ! $NoSetDefaultProfile.IsPresent ) $DefaultSession.IsPresent
             }
 
+            # This is a new session setting, so create the session for it before we write it to the file.
+            # This ensures that before we write to the file, we have a valid setting and won't save something
+            # that will generate warnings when the settings are loaded.
+            if ( $SaveAs ) {
+                CreateSessionFromSettings $settings $SaveAs | out-null
+            }
+        }
+
+        if ( $hasSettings ) {
             WriteSettings $settings $targetPath $NoWrite.IsPresent
         }
     }

@@ -6,6 +6,7 @@
 
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
+using Modulus.ChatGPS.Communication;
 
 namespace Modulus.ChatGPS.Proxy;
 
@@ -18,6 +19,11 @@ internal class ProxyConnection
         this.channel = new Channel(proxyHostPath, idleTimeoutMs, logFilePath, logLevel);
         this.options = options;
         this.connectionInProgress = false;
+    }
+
+    internal void Initialize()
+    {
+        ConnectAiService();
     }
 
     internal async Task SendRequestAsync(ProxyRequest request)
@@ -82,7 +88,7 @@ internal class ProxyConnection
         }
     }
 
-    internal AiOptions? ServiceOptions
+    internal AiOptions ServiceOptions
     {
         get
         {
@@ -142,6 +148,14 @@ internal class ProxyConnection
                 }
 
                 BindTargetService(createConnectionResponse.ConnectionId);
+
+                if ( createConnectionResponse.CurrentOptions is not null )
+                {
+                    // This constructor treats this as the base type which has
+                    // no sensitive fields so the resulting object will
+                    // be free of such data.
+                    this.options = new AiOptions(createConnectionResponse.CurrentOptions);
+                }
             }
             finally
             {

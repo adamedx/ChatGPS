@@ -54,7 +54,7 @@ Description = 'AI PowerShell user experience enhancements and automation.'
 # RequiredModules = @()
 
 # Assemblies that must be loaded prior to importing this module
-RequiredAssemblies = @('lib/AIService.dll', 'lib/ChatGPSLib.dll')
+RequiredAssemblies = @('lib/BaseTypes.dll', 'lib/ChatGPSLib.dll')
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
 ScriptsToProcess = @('src/init/ModuleParentEnvironment.ps1')
@@ -71,6 +71,8 @@ FormatsToProcess = @('src/format/format.ps1xml')
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
  FunctionsToExport = @(
     'Add-ChatPlugin'
+    'Add-ChatPluginFunction'
+    'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
     'Get-ChatEncryptedUnicodeKeyCredential'
@@ -87,14 +89,17 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'New-ChatScriptBlock'
     'New-ChatSettings'
     'Out-ChatVoice'
+    'Register-ChatPlugin'
     'Remove-ChatFunction'
     'Remove-ChatPlugin'
     'Remove-ChatSession'
     'Save-ChatSessionSetting'
     'Select-ChatSession'
     'Send-ChatMessage'
+    'Set-ChatAgentAccess'
     'Set-ChatCurrentVoice'
-    'Start-ChatREPL'
+    'Start-ChatShell'
+    'Unregister-ChatPlugin'
     'Update-ChatSettings'
 )
 
@@ -112,6 +117,7 @@ AliasesToExport = @(
     'ncs'
     'sch'
     'scs'
+    'Start-ChatRepl'
 )
 
 # DSC resources to export from this module
@@ -133,6 +139,8 @@ FileList = @(
     'src/services.ps1'
     'src/shell.ps1'
     'src/commands/Add-ChatPlugin.ps1'
+    'src/commands/Add-ChatPluginFunction.ps1'
+    'src/commands/Clear-ChatHistory.ps1'
     'src/commands/Connect-ChatSession.ps1'
     'src/commands/Get-ChatCurrentVoice.ps1'
     'src/commands/Get-ChatEncryptedUnicodeKeyCredential.ps1'
@@ -149,14 +157,17 @@ FileList = @(
     'src/commands/New-ChatSettings.ps1'
     'src/commands/New-ChatVoice.ps1'
     'src/commands/Out-ChatVoice.ps1'
+    'src/commands/Register-ChatPlugin.ps1'
     'src/commands/Remove-ChatFunction.ps1'
     'src/commands/Remove-ChatPlugin.ps1'
     'src/commands/Remove-ChatSession.ps1'
     'src/commands/Save-ChatSessionSetting.ps1'
     'src/commands/Select-ChatSession.ps1'
     'src/commands/Send-ChatMessage.ps1'
+    'src/commands/Set-ChatAgentAccess.ps1'
     'src/commands/Set-ChatCurrentVoice.ps1'
-    'src/commands/Start-ChatREPL.ps1'
+    'src/commands/Start-ChatShell.ps1'
+    'src/commands/Unregister-ChatPlugin.ps1'
     'src/commands/Update-ChatSettings.ps1'
     'src/aliases.ps1'
     'src/config.ps1'
@@ -168,6 +179,12 @@ FileList = @(
     'src/init/ModuleParentEnvironment.ps1'
     'src/intent.ps1'
     'src/intent/PromptBook.ps1'
+    'src/plugins/GeneratePlugin.ps1'
+    'src/plugins/PluginParameter.ps1'
+    'src/plugins/PluginParameterCompleter.ps1'
+    'src/plugins/PluginUtilities.ps1'
+    'src/plugins/PowerShellKernelPluginBuilder.ps1'
+    'src/plugins/PowerShellScriptBlock.ps1'
     'src/presentation.ps1'
     'src/presentation/model.ps1'
     'src/presentation/reply.ps1'
@@ -177,6 +194,7 @@ FileList = @(
     'src/shell.ps1'
     'src/shell/replcommand.ps1'
     'src/shell/ReplState.ps1'
+    'src/shell/shellux.ps1'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
@@ -185,7 +203,7 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi')
+        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi', 'Ollama', 'Gemini')
 
         # A URL to the license for this module.
         # LicenseUri = ''

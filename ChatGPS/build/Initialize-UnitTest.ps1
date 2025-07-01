@@ -30,6 +30,6 @@ set-item env:CHATGPS_SKIP_SETTINGS_ON_LOAD 'true'
 $testToolManifestPath = & "$psscriptroot/Install-TestFx.ps1" -ToolsRootPath $ToolsRootPath -ModuleName $ToolsModuleName -Version $ToolsModuleVersion
 import-module -force $testtoolManifestPath
 
-$targetManifestPath = Find-ModuleManifestPath -ModuleDirectory $TestTargetModuleDirectory -Recurse
+$targetManifestPath = Find-ModuleManifestPath -ModuleDirectory $TestTargetModuleDirectory
 import-module -force $targetManifestPath
 

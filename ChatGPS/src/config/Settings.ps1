@@ -3,14 +3,25 @@
 #
 # All rights reserved.
 
-$jsonOptions = [System.Text.Json.JsonSerializerOptions]::new()
-$jsonOptions.IncludeFields = $true
+$jsonOptionsRead = [System.Text.Json.JsonSerializerOptions]::new()
+$jsonOptionsRead.IncludeFields = $true
+$jsonOptionsRead.IgnoreNullValues = $true
+
+$jsonOptionsWrite = [System.Text.Json.JsonSerializerOptions]::new()
+$jsonOptionsWrite.IncludeFields = $true
+$jsonOptionsWrite.WriteIndented = $true
+
+$jsonPSSerializerDepth = 10
 
 $LastUsedSettingsPath = $null
 $LastSettingsJson = $null
 $LastSettings = $null
 
 $SettingsInitialized = $false
+
+# Trick to ensure that the attribute 'Microsoft.SemanticKernel.KernelFunctionAttribute' exists during module initialization
+$aiDependencyPath = (get-item (join-path "$psscriptroot/../../lib" 'Microsoft.SemanticKernel.Abstractions.dll')).fullName
+[System.Reflection.Assembly]::LoadFrom($aiDependencyPath) | out-null
 
 
 # These class definitions represent the deserialized structure of the
@@ -19,6 +30,12 @@ $SettingsInitialized = $false
 # for reliable and safe consumption of the settings file.
 
 class RootSettings {
+    RootSettings() {
+        $this.sessions = [SessionSettings]::new()
+        $this.models = [ModelResourceSettings]::new()
+        $this.customPlugins = [CustomPluginResourceSettings]::new()
+    }
+
     [string]$generatedDate
     [string]$generatedTool
     [string]$lastUpdatedDate
@@ -27,6 +44,7 @@ class RootSettings {
     [ProfileSettings]$profiles
     [SessionSettings]$sessions
     [ModelResourceSettings]$models
+    [CustomPluginResourceSettings]$customPlugins
 }
 
 class Profile {
@@ -48,15 +66,29 @@ class ModelChatSession {
         $this.forceProxy = $null
         $this.plainTextApiKey = $null
         $this.allowAgentAccess = $null
+        $this.historyContextLimit = -1
     }
 
-    ModelChatSession([ModelChatSession] $source, [string] $nameOverride) {
-        foreach ( $member in ($source | get-member -membertype property).name ) {
-            $this.$_ = $source.$_
+    ModelChatSession([Modulus.ChatGPS.Models.ChatSession] $session, [ModelChatSession] $originalSettings) {
+        foreach ( $member in ($originalSettings | get-member -membertype property).name ) {
+            $this.$member = $originalSettings.$member
         }
 
-        if ( $nameOverride ) {
-            $this.name = $nameOverride
+        # Now initialize any mutable settings
+        $this.allowAgentAccess = $session.AiOptions.AllowAgentAccess
+
+        [ModelChatSession]::SetPlugins($this, $session.Plugins)
+    }
+
+    static [void] SetPlugins([ModelChatSession] $sessionSettings, [System.Collections.Generic.IEnumerable[Modulus.ChatGPS.Plugins.Plugin]] $plugins) {
+        $sessionSettings = if ( $plugins ) {
+            $sessionPlugins = [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]]::new()
+
+            foreach ( $plugin in $plugins ) {
+                $sessionPlugins.Add($plugin.Name, $plugin.Parameters)
+            }
+
+            $sessionSettings
         }
     }
 
@@ -69,12 +101,13 @@ class ModelChatSession {
     [string] $receiveBlock
     [bool] $noProxy
     [bool] $forceProxy
-    [int] $tokenLimit
+    [int] $tokenLimit = $null
     [string] $tokenStrategy
-    [int] $historyContextLimit
+    [int] $historyContextLimit = $null
     [bool] $signinInteractionAllowed
     [bool] $plainTextApiKey
     [bool] $allowAgentAccess
+    [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]] $plugins
     [string] $logDirectory
     [string] $logLevel
 }
@@ -121,11 +154,23 @@ class ModelResource {
     [Uri] $apiEndpoint
     [string] $localModelPath
     [string] $modelIdentifier
+    [string] $serviceIdentifier
     [string] $deploymentName
 }
 
 class ModelResourceSettings {
     [System.Collections.Generic.List[ModelResource]] $list
+}
+
+class CustomPluginResource {
+    [string] $Name
+    [string] $Description
+    [string] $PluginType
+    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $Functions
+}
+
+class CustomPluginResourceSettings {
+    [System.Collections.Generic.List[CustomPluginResource]] $list
 }
 
 function GetDefaultSettingsLocation {
@@ -171,12 +216,11 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
     if ( $settingsJson ) {
         $typedSettings = SettingsJsonToStrongTypedSettings $settingsJson $targetPath
 
-        # Need untyped settings here because we want unspecified values to
-        # show up as null -- distinction is crucial for integer and boolean
-        # types for instance.
-        $untypedSettings = SettingsJsonToUntypedSettings $settingsJson
-
-        $sessions = GetSessionSettingsFromSettings $untypedSettings
+        # Expect that null settings are skipped here, which avoids issues with
+        # null integer and boolean values showing up as 0 and false respectively --
+        # this is semantically problematic since null is an allowable value
+        # for integers and booleans in serialized JSON.
+        $sessions = CreateSessionFromSettings $typedSettings
 
         $currentProfile = GetConfiguredProfileFromSettings $typedSettings
 
@@ -214,18 +258,9 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
     }
 }
 
-function SettingsJsonToUntypedSettings([string] $settingsJson) {
-    # Use the PowerShell deserializer -- it does not convert to a strong type,
-    # hence unspecified values are not serialized at all, and this avoids
-    # types such as integer or boolean from being set to default values that cannot
-    # be distinguished from not being specified. Could also use System.Text.Json
-    # without a type, but this is native to PowerShell...
-    $settingsJson | ConvertFrom-Json
-}
-
 function SettingsJsonToStrongTypedSettings([string] $settingsJson, [string] $settingsSource) {
     try {
-        [System.Text.Json.JsonSerializer]::Deserialize[RootSettings]($settingsJson, $jsonOptions)
+        [System.Text.Json.JsonSerializer]::Deserialize[RootSettings]($settingsJson, $jsonOptionsRead)
     } catch {
         write-warning "The settings at location '$settingsSource' are incorrectly formatted. The following error was encountered reading the data: $($_.Exception.Message)"
     }
@@ -237,9 +272,16 @@ function GetModelResourcesFromSettings($settings) {
     }
 }
 
-function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParameters) {
+function GetCustomPluginResourcesFromSettings($settings) {
+    if ( ( $settings | get-member customPlugins ) -and $settings.customPlugins ) {
+        if ( $settings.customPlugins | get-member list ) {
+            $settings.customPlugins.list
+        }
+    }
+}
+
+function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParameters, $pluginProviders) {
     $sessionSettings = [ModelChatSession]::new()
-    $modelSettings = [ModelResource]::new()
 
     if ( ! $sessionParameters ) {
         throw [ArgumentException]::new('The specified session does not contain configuration information')
@@ -288,8 +330,29 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     'sendblock', 'receiveBlock' |
       where { $sessionParameters.ContainsKey($_) } |
       foreach {
-        $sessionSettings.$_ = $sessionParameters[$_].ToString
+          $sessionSettings.$_ = $sessionParameters[$_].ToString()
       }
+
+    $sessionPlugins = $null
+
+    if ( $sessionParameters.ContainsKey('Plugins') ) {
+        $sessionPlugins = [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]]::new()
+        $pluginNames = $sessionParameters['Plugins']
+        $pluginParameters = if ( $sessionParameters.ContainsKey('PluginParameters') ) {
+            $sessionParameters['pluginParameters']
+        } else {
+            @{}
+        }
+
+        foreach ( $pluginName in $pluginNames ) {
+            if ( $null -ne $pluginParameters -and $pluginParameters.ContainsKey($pluginName) ) {
+                $parameterInfo = GetPluginParameterInfo $pluginName $pluginParameters[$pluginName]
+                $sessionPlugins.Add($pluginName, $parameterInfo)
+            }
+        }
+    }
+
+    $sessionSettings.plugins = $sessionPlugins
 
     if ( ! $sessionSettings.apiKey -and $session.CustomContext['AiOptions'] ) {
         $sessionSettings.apiKey = $session.CustomContext['AiOptions'].ApiKey
@@ -303,6 +366,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
         $modelSettings.localModelPath = $session.AiOptions.LocalModelPath
         $modelSettings.modelIdentifier = $session.AiOptions.ModelIdentifier
         $modelSettings.deploymentName = $session.AiOptions.DeploymentName
+        $modelSettings.serviceIdentifier = $session.AiOptions.serviceIdentifier
     }
 
     [PSCustomObject] @{
@@ -311,15 +375,55 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     }
 }
 
-function GetSessionSettingsFromSettings($settings) {
+function GetCustomPluginSettings($settings, $pluginProviders) {
+    $customPluginProviders = $pluginProviders | where { $_.IsCustom() }
+
+    $customPluginSettings = if ( $customPluginProviders ) {
+        foreach ( $provider in $customPluginProviders ) {
+            if ( $provider -isnot [Modulus.ChatGPS.Plugins.PowerShellPluginProvider ] ) {
+                write-warning "Skipping custom plugin setting '$($provider.Name)' of type '$($provider.GetType().FullName)' because it is not currently supported as a valid setting."
+                continue
+            }
+
+            $customPluginSetting = [CustomPluginResource]::new()
+            $customPluginSetting.Name = $provider.Name
+            $customPluginSetting.Description = $provider.Description
+            $customPluginSetting.PluginType = $provider.GetType().FullName
+            $customPluginSetting.Functions = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]]::new()
+
+            $functions = $provider.GetScripts()
+
+            if ( $functions ) {
+                $customPluginSetting.Functions = $functions
+            }
+
+            $customPluginSetting
+        }
+    }
+
+    $customPluginSettings
+}
+
+function CreateSessionFromSettings($settings, $sessionName = $null) {
     $defaultSessionValues = $null
 
     $sessionList = if ( $settings.sessions ) {
         $defaultSessionValues = $settings.sessions.defaults
-        $settings.sessions.list
+        if ( $sessionName ) {
+            $settings.sessions.list | where Name -eq $sessionName
+        } else {
+            $settings.sessions.list
+        }
     }
 
     $models = GetModelResourcesFromSettings $settings
+
+    # When this is specified, we're simply creating a session and
+    # can assume everything outside of the function such as custom plugins
+    # is already defined.
+    if ( ! $sessionName ) {
+        CreateCustomPluginsFromSettings $settings
+    }
 
     if ( $models ) {
         foreach ( $sessionSetting in $sessionList ) {
@@ -332,6 +436,24 @@ function GetSessionSettingsFromSettings($settings) {
     }
 }
 
+function CreateCustomPluginsFromSettings($settings) {
+    $customPluginSettings = GetCustomPluginResourcesFromSettings $settings
+
+    foreach ( $pluginSetting in $customPluginSettings ) {
+        try {
+            $functions = foreach ( $functionName in $pluginSetting.Functions.Keys ) {
+                $function = $pluginSetting.Functions[$functionName]
+                Add-ChatPluginFunction $functionName -ScriptBlock ([ScriptBlock]::Create($function.ScriptBlock)) -Description $function.Description -OutputType $function.OutputType -OutputDescription $function.OutputDescription
+            }
+
+            $functions |
+              Register-ChatPlugin -Name $pluginSetting.Name -description $pluginSetting.Description | out-null
+        } catch {
+            write-warning "Failed to add custom plugin '$($pluginSetting.Name)'; the plugin will be skipped. The error was: $($_.exception.message)"
+        }
+    }
+}
+
 function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     $sourceSetting = [ModelChatSession]::new()
 
@@ -340,16 +462,13 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     foreach ( $member in $members ) {
         if ( $sessionSetting | get-member $member ) {
             $sourceSetting.$member = $sessionSetting.$member
-        } elseif ( $defaultValues ) {
-            if ( $defaultValues | get-member $member ) {
-                $sourceSetting.$member = $defaultValues.$member
-            }
         }
     }
 
     $sessionParameters = @{
         Name = $sourceSetting.name
         AllowInteractiveSignin = [System.Management.Automation.SwitchParameter]::new($sourceSetting.signinInteractionAllowed)
+        AllowAgentAccess = [System.Management.Automation.SwitchParameter]::new($sourceSetting.allowAgentAccess)
     }
 
     $isValidSetting = if ( $null -eq $sourceSetting.name ) {
@@ -368,13 +487,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
         }
 
         if ( $model ) {
-            'forceProxy', 'noProxy' | foreach {
-                if ( $model | get-member $_ ) {
-                    $sessionParameters.Add($_, [System.Management.Automation.SwitchParameter]::new($model.$_))
-                }
-            }
-
-            'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'deploymentName' | foreach {
+            'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'deploymentName' | foreach {
                 $value = if ( $model | get-member $_ ) {
                     # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
                     '' -ne $model.$_ ? $model.$_ : $null
@@ -382,6 +495,12 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
                 if ( $null -ne $value ) {
                     $sessionParameters.Add($_, $value)
+                }
+            }
+
+            'forceProxy', 'noProxy' | foreach {
+                if ( $sourceSetting | get-member $_ ) {
+                    $sessionParameters.Add($_, [System.Management.Automation.SwitchParameter]::new($sourceSetting.$_))
                 }
             }
 
@@ -416,6 +535,21 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
         if ( $sessionParameters.ContainsKey('apiKey') ) {
             $sessionParameters.Add('plainTextApiKey', [System.Management.Automation.SwitchParameter]::new($sourceSetting.plainTextApiKey))
+        }
+
+        if ( $sourceSetting.plugins ) {
+            $pluginTable = @{}
+
+            foreach ( $pluginName in $sourceSetting.plugins.Keys ) {
+                $parameters = @{}
+
+                foreach ( $parameterName in $sourceSetting.plugins[$pluginName].Keys ) {
+                    $parameters.Add($parameterName, $sourceSetting.plugins[$pluginName][$parameterName].GetValue())
+                }
+
+                $pluginTable.Add($pluginName, $parameters)
+            }
+            $sessionParameters.Add('PluginParameters', $pluginTable)
         }
 
         try {
@@ -471,6 +605,22 @@ function GetSessionSettingIndex([RootSettings] $settings, [string] $sessionName)
 
 function GetModelSettingIndex([RootSettings] $settings, [string] $modelName) {
     GetSettingIndex $settings.models $modelName
+}
+
+function GetCustomPluginSettingIndex([RootSettings] $settings, [string] $customPluginName) {
+    GetSettingIndex $settings.customPlugins $customPluginName
+}
+
+function UpdateCustomPluginSetting([RootSettings] $settings, [int] $pluginIndex, [CustomPluginResource] $customPluginSetting) {
+    if ( $null -eq $settings.customPlugins.list ) {
+        $settings.customPlugins.list = [System.Collections.Generic.List[CustomPluginResource]]::new()
+    }
+
+    if ( $pluginIndex -ne -1 ) {
+        $settings.customPlugins.list[$pluginIndex] = $customPluginSetting
+    } else {
+        $settings.customPlugins.list.Add($customPluginSetting)
+    }
 }
 
 function UpdateModelSetting([RootSettings] $settings, [int] $modelIndex, [ModelResource] $modelSetting) {
@@ -549,7 +699,8 @@ function WriteSettings([RootSettings] $settings, [string] $settingsPath, [bool] 
     $settings.lastUpdatedTool = 'ChatGPS Save-ChatSettings'
 
     if ( ! $noWrite ) {
-        $settings | convertto-json -depth 5 | set-content -encoding utf8 -path $settingsPath
+        $serialized = [System.Text.Json.JsonSerializer]::Serialize($settings, $jsonOptionsWrite)
+        $serialized | set-content -encoding utf8 -path $settingsPath
     } else {
         $settings
     }

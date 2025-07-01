@@ -141,13 +141,14 @@ All Rights Reserved.
           <TableColumnHeader>
             <Label>Info</Label>
           </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>Id</Label>
-          </TableColumnHeader>
 
           <TableColumnHeader>
             <Width>36</Width>
             <Label>Name</Label>
+          </TableColumnHeader>
+
+          <TableColumnHeader>
+            <Label>Model</Label>
           </TableColumnHeader>
 
           <TableColumnHeader>
@@ -158,24 +159,22 @@ All Rights Reserved.
             <Label>Count</Label>
           </TableColumnHeader>
 
-          <TableColumnHeader>
-            <Label>Model</Label>
-          </TableColumnHeader>
-
         </TableHeaders>
         <TableRowEntries>
           <TableRowEntry>
             <Wrap/>
             <TableColumnItems>
+
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $curid = GetCurrentSessionId; ( ( $session.IsRemote ? 'r' : 'l'), ( $session.IsRemote ? ( $session.AccessValidated ? 'c' : 'd') : '-') , ( ( $session.exceededtokenLimitsizelist.count -gt 0 ) ? 'x' : ($session.History.Count -gt 0 ? 's' : '-') ), ( $session.id -eq $curid ? ' >' : '  ') ) -join ''}, @($_))</ScriptBlock>
-              </TableColumnItem>
-              <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($id) $id -eq ( GetCurrentSessionId ) ? (HighlightText $id 4) : $id},@($_.id))</ScriptBlock>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $curid = GetCurrentSessionId; ( ($session.AllowAgentAccess ? '+' : ' ' ), ( $session.IsRemote ? 'r' : 'l'), ( $session.IsRemote ? ( $session.AccessValidated ? 'c' : 'd') : '-') , ( ( $session.exceededtokenLimitsizelist.count -gt 0 ) ? 'x' : ($session.History.Count -gt 0 ? 's' : '-') ), ( $session.id -eq $curid ? ' >' : '  ') ) -join ''}, @($_))</ScriptBlock>
               </TableColumnItem>
 
               <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($id, $name) $id -eq ( GetCurrentSessionId ) ? (HighlightText $name 4) : $name},($_.id, $_.name))</ScriptBlock>
+                <ScriptBlock>$sessionName = (Get-Module ChatGPS).Invoke({param($id, $name) $id -eq ( GetCurrentSessionId ) ? (HighlightText $name 4) : $name},($_.id, $_.name)); if ( $sessionName ) { $sessionName } else { $sessionId = (Get-Module ChatGPS).Invoke({param($id) $id -eq ( GetCurrentSessionId ) ? (HighlightText $id 4) : $id},@($_.id)); '(' + $sessionId + ')' }</ScriptBlock>
+              </TableColumnItem>
+
+              <TableColumnItem>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $modelInfo = ( !! $session.AiOptions.ModelIdentifier ) ? $session.AiOptions.ModelIdentifier : $session.AiOptions.DeploymentName;$session.id -eq ( GetCurrentSessionId ) ? (HighlightText $modelInfo 4) : $modelInfo},@($_))</ScriptBlock>
               </TableColumnItem>
 
               <TableColumnItem>
@@ -184,9 +183,6 @@ All Rights Reserved.
 
               <TableColumnItem>
                 <ScriptBlock>if ( $_.History) { (Get-Module ChatGPS).Invoke({param($session) $session.id -eq ( GetCurrentSessionId ) ? (HighlightText $session.History.Count 4) : $session.History.Count},@($_)) }</ScriptBlock>
-              </TableColumnItem>
-              <TableColumnItem>
-                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) $modelInfo = ( !! $session.AiOptions.ModelIdentifier ) ? $session.AiOptions.ModelIdentifier : $session.AiOptions.DeploymentName;$session.id -eq ( GetCurrentSessionId ) ? (HighlightText $modelInfo 4) : $modelInfo},@($_))</ScriptBlock>
               </TableColumnItem>
 
             </TableColumnItems>
@@ -240,6 +236,10 @@ All Rights Reserved.
                 <PropertyName>AccessValidated</PropertyName>
               </ListItem>
               <ListItem>
+                <Label>AllowAgentAccess</Label>
+                <PropertyName>AllowAgentAccess</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>LocalModelPath</Label>
                 <ItemSelectionCondition>
                   <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
@@ -287,6 +287,118 @@ All Rights Reserved.
           </ListEntry>
         </ListEntries>
       </ListControl>
+    </View>
+
+    <View>
+      <Name>ChatPluginSummary</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Plugins.Plugin</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Id</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Parameters</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                 <PropertyName>Id</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <ScriptBlock>($_.Parameters | measure-object).Count</ScriptBlock>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>ChatPluginProviderSummary</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Plugins.PluginProvider</TypeName>
+      </ViewSelectedBy>
+
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Name</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Desciption</Label>
+            <Width>40</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Parameters</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                 <PropertyName>Name</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <PropertyName>Description</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Parameters</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+
+    <View>
+      <Name>ChatPluginProviderDetils</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Plugins.PluginProvider</TypeName>
+      </ViewSelectedBy>
+
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Name</Label>
+                <PropertyName>Name</PropertyName>
+              </ListItem>
+
+              <ListItem>
+                <Label>Description</Label>
+                <PropertyName>Description</PropertyName>
+              </ListItem>
+
+
+              <ListItem>
+                <Label>Type</Label>
+                <ScriptBlock>$_.IsCustom() ? 'Custom' : 'Builtin'</ScriptBlock>
+              </ListItem>
+
+              <ListItem>
+                <Label>Parameters</Label>
+                <PropertyName>Parameters</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+
     </View>
 
     <View>

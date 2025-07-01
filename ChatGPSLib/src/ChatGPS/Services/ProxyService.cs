@@ -26,19 +26,50 @@ internal class ProxyService : IChatService
         this.proxyTransport = new Transport();
         this.proxyConnection = new ProxyConnection(this.proxyTransport, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
-        this.ServiceOptions = new AiOptions(options);
         this.pluginTable = new PluginTable();
+
+        // Must explicitly init within this constructor itself, a method
+        // invoked from the constructor is not enough to avoid a superfluous CS8618
+        // See https://github.com/dotnet/roslyn/issues/32358
+        this.serviceOptions = new AiOptions(options);
+
+        this.initialized = false;
+    }
+
+    public void Initialize()
+    {
+        this.ServiceOptions.Validate();
+
+        this.proxyConnection.Initialize();
+
+        UpdateServiceOptions(this.proxyConnection.ServiceOptions);
+
+        if ( this.initialized )
+        {
+            throw new InvalidOperationException("The object may not be re-initialized");
+        }
+
+        this.initialized = true;
     }
 
     public ChatHistory CreateChat(string prompt)
     {
+        // No CheckInitialized since this is a purely local operation
         return new ChatHistory(prompt);
     }
 
-    public AiOptions ServiceOptions { get; private set; }
+    public AiOptions ServiceOptions
+    {
+        get
+        {
+            return this.serviceOptions;
+        }
+    }
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
+        CheckInitialized();
+
         var sendChatRequest = new SendChatRequest(history, this.pluginTable.Plugins, allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(sendChatRequest);
@@ -64,6 +95,8 @@ internal class ProxyService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
+        CheckInitialized();
+
         var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, this.pluginTable.Plugins, parameters ?? new Dictionary<string,object?>(), allowAgentAccess);
 
         var request = ProxyRequest.FromRequestCommand(invokeFunctionRequest);
@@ -85,26 +118,27 @@ internal class ProxyService : IChatService
         return invokeFunctionResponse.Output;
     }
 
-    public bool TryGetPluginInfo(string name, out PluginInfo? pluginInfo)
-    {
-        return this.pluginTable.TryGetPluginInfo(name, out pluginInfo);
-    }
-
-    public void AddPlugin(string pluginName, string[]? parameters)
-    {
-        this.pluginTable.AddPlugin(pluginName, parameters);
-    }
-
-    public void RemovePlugin(string pluginName)
-    {
-        this.pluginTable.RemovePlugin(pluginName);
-    }
-
-    public IEnumerable<PluginInfo> Plugins
+    public IPluginTable Plugins
     {
         get
         {
-            return this.pluginTable.Plugins;
+            CheckInitialized();
+
+            return this.pluginTable;
+        }
+    }
+
+    private void UpdateServiceOptions(AiOptions serviceOptions)
+    {
+        // This constructor strips out any sensitive fields
+        this.serviceOptions = new AiOptions(serviceOptions);
+    }
+
+    private void CheckInitialized()
+    {
+        if ( ! this.initialized )
+        {
+            throw new InvalidOperationException("The object has not been initialized");
         }
     }
 
@@ -112,6 +146,10 @@ internal class ProxyService : IChatService
 
     bool whatIfMode;
 
+    AiOptions serviceOptions;
+
     ProxyConnection proxyConnection;
     PluginTable pluginTable;
+
+    bool initialized;
 }

@@ -30,13 +30,13 @@ jobs:
     displayName: 'Show current PowerShell version information'
     inputs:
       targetType: inline
-      script: 'echo $PSVersionTable'
+      script: 'echo $PSVersionTable; [system.text.json.jsonserializer].Assembly | format-list'
       pwsh: $(USE_POWERSHELL_CORE)
 
   - task: UseDotNet@2
     displayName: 'Install and configure build tools'
     inputs:
-      version: 8.x
+      version: 9.0.300
       performMultiLevelLookup: true
 
   - task: DotNetCoreCLI@2

@@ -41,6 +41,26 @@ function ValidateConnection {
     }
 }
 
+function AddMessageToChat{
+    param(
+        $chatHistory,
+
+        [validateset('System', 'User', 'Assistant')]
+        $chatRole,
+
+        [string] $content
+    )
+
+    $role = [Modulus.ChatGPS.Models.ChatMessage+SenderRole] $chatRole
+
+    $message = [Modulus.ChatGPS.Models.ChatMessage]::new(
+        $role,
+        $content
+    )
+
+    $chatHistory.Add($message)
+}
+
 function Start-ProxyRepl {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -66,23 +86,34 @@ function Start-ProxyRepl {
 
         [string] $SystemPrompt = 'You are an assistant who provides support and encouragement for people to understand mathematics, science, and technology topics.',
 
-        [switch] $Reset
+        [switch] $Reset,
+
+        [switch] $NoWelcome
     )
 
     $currentCommand = $null
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
-        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\Microsoft.SemanticKernel.Abstractions.dll") | out-null
-        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\Microsoft.SemanticKernel.dll") | out-null
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
     }
 
     if ( $Reset.IsPresent -or (get-variable __TEST_AIPROXY_SESSION -erroraction ignore ) -eq $null ) {
         $script:__TEST_AIPROXY_SESSION_ID = $null
-        $newChat = [microsoft.semantickernel.chatcompletion.chathistory]::new()
-        $newChat.AddMessage('System', $SystemPrompt)
+
+        $systemMessage = [Modulus.ChatGPS.Models.ChatMessage]::new(
+            [Modulus.ChatGPS.Models.ChatMessage+SenderRole]::System,
+            $SystemPrompt)
+
+        $newChat = [Modulus.ChatGPS.Models.ChatMessageHistory]::new()
+        AddMessageToChat $newChat System $SystemPrompt
 
         $script:__SESSION_HISTORY = $newChat
+    }
+
+    if ( ! $NoWelcome.IsPresent ) {
+        write-host -foreground green "Welcome to AI Proxy REPL."
+        write-host "`nEnter '.help' for a list of commands.`n"
+
     }
 
     function CreateConnectionRequest($connectionOptionsJson) {
@@ -125,7 +156,7 @@ function Start-ProxyRepl {
                         if ( $chatContent ) {
                             $chatResponse = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.SendChatResponse]($chatContent, $jsonOptions)
                             $chatMessage = $chatResponse.ChatResponse.Content
-                            $script:__SESSION_HISTORY.AddMessage('Assistant', $chatMessage)
+                            AddMessageToChat $script:__SESSION_HISTORY Assistant $chatMessage
                             $chatMessage
                         }
                         break
@@ -135,7 +166,7 @@ function Start-ProxyRepl {
                         if ( $functionContent ) {
                             $functionResponse = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.InvokeFunctionResponse]($functionContent, $jsonOptions)
                             $chatMessage = $functionResponse.Output.Result
-                            $script:__SESSION_HISTORY.AddMessage('Assistant', $chatMessage)
+                            AddMessageToChat $script:__SESSION_HISTORY Assistant $chatMessage
                             $chatMessage
                         }
                         break
@@ -149,10 +180,8 @@ function Start-ProxyRepl {
     }
 
     function CreateSendChatRequest($message) {
-        $chatRequest = [Modulus.ChatGPS.Models.Proxy.SendChatRequest]::new()
-        $script:__SESSION_HISTORY.AddMessage('User', $message)
-        $chatRequest.History = $script:__SESSION_HISTORY
-
+        AddMessageToChat $script:__SESSION_HISTORY User $message
+        $chatRequest = [Modulus.ChatGPS.Models.Proxy.SendChatRequest]::new($script:__SESSION_HISTORY, $null, $false)
         [System.Text.Json.JsonSerializer]::Serialize($chatRequest, $chatRequest.GetType(), $jsonOptions)
     }
 
@@ -193,7 +222,7 @@ __Get-Params $functionParameters
         }
 
         $functionRequest = [Modulus.ChatGPS.Models.Proxy.InvokeFunctionRequest]::new($functionDefinition.Definition, $boundParameters)
-        $script:__SESSION_HISTORY.AddMessage('User', $functionParameters)
+        AddMessageToChat $script:__SESSION_HISTORY User $functionParameters
 
         [System.Text.Json.JsonSerializer]::Serialize($functionRequest, $functionRequest.GetType(), $jsonOptions)
     }
@@ -234,6 +263,23 @@ __Get-Function $arguments
                 )
                 $newFunction = Invoke-Command -ScriptBlock $functionScriptBlock
                 AddFunction $newFunction.Name $newFunction.Definition $newFunction.Parameters
+                break
+            }
+            '.help' {
+                write-host -foreground yellow "`n`tBuilt-in commands:`n"
+                write-host -foreground cyan "`t`t.connect"
+                write-host -foreground cyan "`t`t.function <function> <parameters>"
+                write-host -foreground cyan "`t`t.help"
+                write-host -foreground cyan "`t`t.invoke <built-in command> <arguments>"
+                write-host -foreground cyan "`t`t.sendchat <message>"
+                write-host -foreground cyan "`t`t.showconnection"
+                write-host -foreground cyan "`t`t.showfunction"
+
+                write-host "`n`tUse '.help' to see this message."
+                write-host "`tUse '.connect' to start a session with the AI resource."
+                write-host "`tEach line of text you enter will be sent to the AI to"
+                write-host "`tawait a response unless it starts with a '.' command.`n"
+
                 break
             }
             default {
@@ -358,6 +404,10 @@ __Get-Function $arguments
                         break
                     }
                     '.function' {
+                        'localcommand'
+                        break
+                    }
+                    '.help' {
                         'localcommand'
                         break
                     }

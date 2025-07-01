@@ -5,6 +5,8 @@
 //
 
 using System.Collections.Generic;
+
+using Modulus.ChatGPS.Communication;
 using Modulus.ChatGPS.Models.Proxy;
 
 namespace Modulus.ChatGPS.Proxy;
