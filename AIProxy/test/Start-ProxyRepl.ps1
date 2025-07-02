@@ -95,6 +95,7 @@ function Start-ProxyRepl {
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
+        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\BaseTypes.dll") | out-null
     }
 
     if ( $Reset.IsPresent -or (get-variable __TEST_AIPROXY_SESSION -erroraction ignore ) -eq $null ) {
