@@ -94,7 +94,6 @@ function Start-ProxyRepl {
     $currentCommand = $null
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
-        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\AIService.dll") | out-null
         [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\BaseTypes.dll") | out-null
     }
 
