@@ -72,6 +72,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
  FunctionsToExport = @(
     'Add-ChatPlugin'
     'Add-ChatPluginFunction'
+    'Build-ChatCode'
     'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
@@ -140,6 +141,7 @@ FileList = @(
     'src/shell.ps1'
     'src/commands/Add-ChatPlugin.ps1'
     'src/commands/Add-ChatPluginFunction.ps1'
+    'src/commands/Build-ChatCode.ps1'
     'src/commands/Clear-ChatHistory.ps1'
     'src/commands/Connect-ChatSession.ps1'
     'src/commands/Get-ChatCurrentVoice.ps1'

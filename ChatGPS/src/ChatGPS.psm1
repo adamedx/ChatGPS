@@ -8,6 +8,7 @@
 $commands = @(
     'Add-ChatPlugin'
     'Add-ChatPluginFunction'
+    'Build-ChatCode'
     'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
