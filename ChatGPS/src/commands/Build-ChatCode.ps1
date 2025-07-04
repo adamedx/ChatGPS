@@ -176,7 +176,9 @@ function Build-ChatCode {
 
         [switch] $NoCmdletBinding,
 
-        [switch] $AllowAgentAccess,
+        [switch] $SkipModelSelfAssessment,
+
+        [switch] $SkipModelErrorDetection,
 
         [int] $MaxAttempts = 3,
 
@@ -200,7 +202,7 @@ function Build-ChatCode {
 
     process {
 
-        $generationResult = GenerateCodeForLanguage $Language $Definition $targetSession $MaxAttempts $CustomGenerationInstructions $AllowAgentAccess.IsPresent $NoCmdletBinding.IsPresent
+        $generationResult = GenerateCodeForLanguage $Language $Definition $targetSession $MaxAttempts $CustomGenerationInstructions $NoCmdletBinding.IsPresent $SkipModelSelfAssessment.IsPresent $SkipModelErrorDetection.IsPresent
 
         write-verbose "Code generation accessed the AI model $($generationResult.ModelAttempts) times."
 
@@ -221,7 +223,7 @@ function Build-ChatCode {
                 }
             }
         } else {
-            write-error $generationResult.GenerationException.Exception.Message
+            write-error $generationResult.GenerationException
         }
     }
 
