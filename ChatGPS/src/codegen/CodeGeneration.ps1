@@ -111,7 +111,7 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
             if ( $errorSentinel -and $codeText.Contains($errorSentinel) ) {
                 write-debug "Received a response from the model indicating that it is aware of a deficiency in the code that it generated."
 
-                $languageException = [ArgumentException]::new("The language model processed the request generated the specified code but was unable to identify a solution in the target language. Consider refining the wording of the request and confirm that a solution exists. Additional parameters to increase the number of language model attempts may improve the chances of successful generation. Inspect the resulting output from the model for possible details on the reason why the request could not be fulilled:`n`n$($codeText)")
+                $languageException = [ArgumentException]::new("The language model processed the request to generate the specified code but was unable to identify a valid solution in the target language. Consider refining the wording of the request and confirm that a solution exists. Additional parameters to increase the number of language model attempts may improve the chances of successful generation. Inspect the resulting output from the model for possible details on the reason why the request could not be fulilled:`n`n$($codeText)")
             }
 
             if ( $codeGenerationInfo.ValidationBlock ) {
@@ -125,7 +125,7 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
             if ( ! $languageException -and ! $skipModelErrorDetection ) {
                 $generalVerifierDefinition = GetGeneralVerifierFunctionDefinition $language userDefinition modelResponse
 
-                $verifierFunction = new-chatfunction $generalVerifierDefinition
+                $verifierFunction = New-ChatFunction $generalVerifierDefinition
 
                 $targetVerifierSession = if ( $verifierModelSession ) {
                     $verifierModelSession
@@ -147,7 +147,7 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
 
                     if ( $validResponse -ne 'yes' ) {
                         if ($validResponse -ne 'no' ) {
-                            write-warning "Code generation verification by the model returned an ambigous answer of '$validResponse', expecting either 'yes' or 'no'. The generated code may not be valid."
+                            write-warning "Code generation verification by the model returned an ambigous answer of '$validResponse' instead of the expected 'yes' or 'no'. The generated code may not be valid."
                         }
                         $skippedFirst = $false
                         $additionalInformation = $lines | foreach {
@@ -158,7 +158,7 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
                         }
 
                         @"
-The model generated the specified code, but inspection of its result indicates that code indicates that the result does not satisfactorily conform to the specification. The more details, including the generated code, follow:
+The model generated the specified code, but inspection of it indicates that it does not satisfactorily conform to the natural language specification. The more details, including the generated code, follow:
 
 Explanation: $additionalInformation
 
