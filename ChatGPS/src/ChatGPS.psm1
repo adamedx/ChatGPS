@@ -44,6 +44,7 @@ $commands = @(
 $aliases = @(
     'chatgps'
     'frun'
+    'Generate-ChatCode'
     'gss'
     'ncs'
     'sch'
