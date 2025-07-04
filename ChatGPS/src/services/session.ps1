@@ -311,12 +311,29 @@ function GetReceiveBlock($session) {
     }
 }
 
-function RegisterSessionCompleter([string] $command, [string] $parameterName) {
-    $sessionNameCompleter = {
+function RegisterSessionCompleter([string] $command, [string] $parameterName, [string] $propertyNameToComplete) {
+    # This scheme just needs to be changed -- there is confusion between the parameter being completed
+    # and the property on the session object.
+
+    # Because of all this complexity, we have to dynamically generate code to create scriptblock. :(
+
+    $targetProperty = if ( $propertyNameToComplete ) {
+       $propertyNameToComplete
+   } else {
+       $parameterName
+   }
+
+    $completerDefinition = @'
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-        $sessions = GetChatSessions | where $parameterName -ne $null | sort-object $parameterName
-        $sessions.$parameterName | where { $_.ToString().StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }
-    }
+$sessions = GetChatSessions | where {0} -ne $null | sort-object $parameterName
+                             $sessions.{0} | where {{ $_.ToString().StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }}
+'@ -f $targetProperty
+
+    $scriptBlock = [ScriptBlock]::Create($completerDefinition)
+
+    # Have to use this NewBoundScriptBlock trick so that the generated code is actually
+    # part of the same module as this (the calling) function. Wild.
+    $sessionNameCompleter  = {}.Module.NewBoundScriptBlock($scriptBlock)
 
     Register-ArgumentCompleter -commandname $command -ParameterName $parameterName -ScriptBlock $sessionNameCompleter
 }

@@ -184,6 +184,8 @@ function Build-ChatCode {
 
         [string] $SessionName,
 
+        [string] $VerifierSessionName,
+
         [parameter(parametersetname='function')]
         [switch] $Force
     )
@@ -198,11 +200,15 @@ function Build-ChatCode {
         } else {
             Get-ChatSession -Current
         }
+
+        $targetVerifierSession = if ( $VerifierSessionName ) {
+            Get-ChatSession $VerifierSessionName
+        }
     }
 
     process {
 
-        $generationResult = GenerateCodeForLanguage $Language $Definition $targetSession $MaxAttempts $CustomGenerationInstructions $NoCmdletBinding.IsPresent $SkipModelSelfAssessment.IsPresent $SkipModelErrorDetection.IsPresent
+        $generationResult = GenerateCodeForLanguage $Language $Definition $targetSession $MaxAttempts $CustomGenerationInstructions $NoCmdletBinding.IsPresent $SkipModelSelfAssessment.IsPresent $SkipModelErrorDetection.IsPresent $targetVerifierSession
 
         write-verbose "Code generation accessed the AI model $($generationResult.ModelAttempts) times."
 
@@ -230,3 +236,6 @@ function Build-ChatCode {
     end {
     }
 }
+
+RegisterSessionCompleter Build-ChatCode SessionName
+RegisterSessionCompleter Build-ChatCode VerifierSessionName SessionName

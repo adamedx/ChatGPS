@@ -81,7 +81,7 @@ A user has asked for the following natural language text to be translated to the
 "@
 }
 
-function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDefinition, $languageModelSession, [int] $maxAttempts = 1, [string] $customGenerationInstructions, [bool] $noCmdletBinding, [bool] $skipSelfAssessment, [bool] $skipModelErrorDetection) {
+function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDefinition, $languageModelSession, [int] $maxAttempts = 1, [string] $customGenerationInstructions, [bool] $noCmdletBinding, [bool] $skipSelfAssessment, [bool] $skipModelErrorDetection, $verifierModelSession) {
 
     $codeGenerationInfo = GetCodeGenInfo $Language $customGenerationInstructions $skipSelfAssessment
 
@@ -94,6 +94,9 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
     $generationFunction = New-ChatFunction $codeGenerationInfo.GenerationFunctionDefinition
 
     for ( $attempts = 0; $attempts -lt $maxAttempts; $attempts++ ) {
+
+        write-debug "Generating code using language model session $($languageModelSession.Id)"
+
         $responseText = $generationFunction | Invoke-ChatFunction -Session $languageModelSession -Parameters $naturalLanguageDefinition
 
         $codeText = if ( $codeGenerationInfo.ResponseCorrectionBlock ) {
@@ -106,8 +109,9 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
             $errorSentinel = $codeGenerationInfo.ErrorSentinel
 
             if ( $errorSentinel -and $codeText.Contains($errorSentinel) ) {
-                write-debug "Received a response from the model indicating it encountered a known defect in the generated code."
-                $languageException = [ArgumentException]::new("The language model processed the request generated the specified code but was unable to identify a solution in the target language. Consider refining the wording of the request and confirm that a solution exists. Additional parameters to increase the number of language model attempts may improve the chances of successful generation. Inspect the resulting output from the model for possible details on the reason why the request could not be fulilled:`n$($codeText)")
+                write-debug "Received a response from the model indicating that it is aware of a deficiency in the code that it generated."
+
+                $languageException = [ArgumentException]::new("The language model processed the request generated the specified code but was unable to identify a solution in the target language. Consider refining the wording of the request and confirm that a solution exists. Additional parameters to increase the number of language model attempts may improve the chances of successful generation. Inspect the resulting output from the model for possible details on the reason why the request could not be fulilled:`n`n$($codeText)")
             }
 
             if ( $codeGenerationInfo.ValidationBlock ) {
@@ -123,7 +127,15 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
 
                 $verifierFunction = new-chatfunction $generalVerifierDefinition
 
-                $verificationResponse = $verifierFunction | Invoke-ChatFunction -Session $languageModelSession -parameters @{
+                $targetVerifierSession = if ( $verifierModelSession ) {
+                    $verifierModelSession
+                } else {
+                    $languageModelSession
+                }
+
+                write-debug "Verifying the model's response using language model session $($targetVerifierSession.Id)"
+
+                $verificationResponse = $verifierFunction | Invoke-ChatFunction -Session $targetVerifierSession -parameters @{
                     userDefinition=$naturalLanguageDefinition
                     modelResponse = $codeText
                 }
