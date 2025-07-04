@@ -38,7 +38,7 @@ function GetCodeGenInfo( [string] $language, [string] $customGenerationInstructi
         $languageInfo.GenerationInstructions
     }
 
-    $basePrompt = "You are an assistant that translates natural language to $($language) programming language code."
+    $basePrompt = "Translate the natural language text {{`$natural_language_definition}} to $($language) programming language code that accomplishes the goal of {{`$natural_language_definition}}."
 
     $specializedPrompt = if ( $languageInstructions ) {
         $languageInstructions
@@ -64,7 +64,7 @@ Your entire response must be a valid fragment of code in the language $($languag
     }
 }
 
-function GenerateCodeForLanguage([string] $language, [int] $maxAttempts = 1, [string] $customGenerationInstructions, [bool] $allowAgentAccess, [bool] $noCmdletBinding) {
+function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDefinition, $languageModelSession, [int] $maxAttempts = 1, [string] $customGenerationInstructions, [bool] $allowAgentAccess, [bool] $noCmdletBinding) {
     $codeGenerationInfo = GetCodeGenInfo $Language $customGenerationInstructions
 
     $codeText = $null
@@ -73,8 +73,10 @@ function GenerateCodeForLanguage([string] $language, [int] $maxAttempts = 1, [st
 
     $modelAttempts = 0
 
+    $translationFunction = New-ChatFunction $codeGenerationInfo.GenerationInstructions
+
     for ( $attempts = 0; $attempts -lt $maxAttempts; $attempts++ ) {
-        $responseText = $targetSession.SendStandaloneMessage($Definition, $codeGenerationInfo.GenerationInstructions, $allowAgentaccess)
+        $responseText = $translationFunction | Invoke-ChatFunction -Session $languageModelSession -Parameters @{natural_language_definition=$naturalLanguageDefinition}
 
         $codeText = if ( $codeGenerationInfo.ResponseCorrectionBlock ) {
             $codeGenerationInfo.ResponseCorrectionBlock.InvokeReturnAsIs($responseText)

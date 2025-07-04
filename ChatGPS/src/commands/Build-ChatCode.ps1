@@ -200,7 +200,7 @@ function Build-ChatCode {
 
     process {
 
-        $generationResult = GenerateCodeForLanguage $Language $MaxAttempts $CustomGenerationInstructions $AllowAgentAccess.IsPresent $NoCmdletBinding.IsPresent
+        $generationResult = GenerateCodeForLanguage $Language $Definition $targetSession $MaxAttempts $CustomGenerationInstructions $AllowAgentAccess.IsPresent $NoCmdletBinding.IsPresent
 
         write-verbose "Code generation accessed the AI model $($generationResult.ModelAttempts) times."
 
