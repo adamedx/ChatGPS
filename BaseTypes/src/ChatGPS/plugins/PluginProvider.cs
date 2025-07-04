@@ -21,8 +21,6 @@ public abstract class PluginProvider
         #pragma warning disable SKEXP0050
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin),
                                                                  "Enables read and write access to the local file system."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.MathPlugin),
-                                                                 "Uses the local computer to computer the value of mathematical expressions efficiently."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin),
                                                                  "Allows the local computer to perform string manipulations."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin),
