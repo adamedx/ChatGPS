@@ -32,7 +32,7 @@ public class GoogleChatService : ChatService
 
         if ( this.options.ApiKey is null )
         {
-            throw new ArgumentException("A an API key is required for the language model service.");
+            throw new ArgumentException("An API key is required for the language model service.");
         }
 
         var builder = Kernel.CreateBuilder();

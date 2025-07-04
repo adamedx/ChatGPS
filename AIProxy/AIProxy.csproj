@@ -16,6 +16,6 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateRuntimeConfigDevFile>true</GenerateRuntimeConfigDevFile>
+    <RollForward>LatestMajor</RollForward>
   </PropertyGroup>
-
 </Project>

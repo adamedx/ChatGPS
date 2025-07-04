@@ -8,6 +8,7 @@
 $commands = @(
     'Add-ChatPlugin'
     'Add-ChatPluginFunction'
+    'Build-ChatCode'
     'Clear-ChatHistory'
     'Connect-ChatSession'
     'Get-ChatCurrentVoice'
@@ -43,6 +44,7 @@ $commands = @(
 $aliases = @(
     'chatgps'
     'frun'
+    'Generate-ChatCode'
     'gss'
     'ncs'
     'sch'
