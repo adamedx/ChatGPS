@@ -60,9 +60,7 @@ PS > Clear-ChatHistory
 PS > Get-ChatHistory -CurrentContextOnly
 PS >
 
-In this example Get-ChatHistory was first executed with the CurrentContextOnly parameter to show multiple messages
-from active context used in communication with the language model. Then after Clear-ChatHistory is invoked,
-the same Get-ChatHistory command is repeated and this time no results are returned.
+In this example Get-ChatHistory was first executed with the CurrentContextOnly parameter to show multiple messages from active context used in communication with the language model. Then after Clear-ChatHistory is invoked, the same Get-ChatHistory command is repeated and this time no results are returned.
 
 .LINK
 Get-ChatHistory
