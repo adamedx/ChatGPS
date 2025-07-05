@@ -1,5 +1,5 @@
 //
-// Copyright 2023, Adam Edwards
+// Copyright (c), Adam Edwards
 //
 // All rights reserved.
 //

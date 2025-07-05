@@ -1,5 +1,5 @@
 //
-// Copyright 2024, Adam Edwards
+// Copyright (c), Adam Edwards
 //
 // All rights reserved.
 //
