@@ -27,7 +27,7 @@ Author = 'Adam Edwards (adamedx)'
 CompanyName = 'Modulus Group'
 
 # Copyright statement for this module
-Copyright = '(c) Adam Edwards. All rights reserved.'
+Copyright = '(c) Adam Edwards.'
 
 # Description of the functionality provided by this module
 Description = 'AI PowerShell user experience enhancements and automation.'
