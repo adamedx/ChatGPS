@@ -27,7 +27,7 @@ Author = 'Adam Edwards (adamedx)'
 CompanyName = 'Modulus Group'
 
 # Copyright statement for this module
-Copyright = '(c) Adam Edwards. All rights reserved.'
+Copyright = '(c) Adam Edwards.'
 
 # Description of the functionality provided by this module
 Description = 'AI PowerShell user experience enhancements and automation.'
@@ -132,11 +132,13 @@ AliasesToExport = @(
 FileList = @(
     'ChatGPS.psd1'
     'lib/ChatGPSLib.dll'
+    'src/aliases.ps1'
     'src/ChatGPS.psm1'
     'src/ChatGPS.ps1'
     'src/codegen.ps1'
     'src/codegen/CodeGeneration.ps1'
     'src/codegen/PowerShellCodeGen.ps1'
+    'src/commands.ps1'
     'src/commands/Add-ChatPlugin.ps1'
     'src/commands/Add-ChatPluginFunction.ps1'
     'src/commands/Build-ChatCode.ps1'

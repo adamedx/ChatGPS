@@ -1,7 +1,18 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 #
 
 <#
@@ -32,7 +43,7 @@ A function object that describes the defined function and that may be passed as 
 .EXAMPLE
 In this example, the New-ChatFunction command is used to define a function that translates text to a particular language -- both the text to be translated and the target language for translation are specified as parameters to the function:
 
-PS > New-ChatFunction -name Translator 'Translate the text {{$sourcetext}} into the language {{$language}} and respond withoutput only that language.'
+PS > New-ChatFunction -name Translator 'Translate the text {{$sourcetext}} into the language {{$language}} and respond with output only in that language.'
 
 Id                                   Name       Definition             Parameters
 --                                   ----       ----------
