@@ -26,7 +26,7 @@ Note that by default when the Connect-ChatSession command is invoked successfull
 Commands that interact with the language model also have some parameter that allows specification of a session other than the current session, so it is not necesarry to use Select-ChatSession to set the correct session before every command. However, particularly with interactive use of ChatGPS commands that will operate against the same language model and conversation context (the most common case), it is conveninent not to have to repeatedly specify the session
 parameter for every command invocation by relying on the current session managed by the Select-ChatSession command.
 
-In the case of PowerShell functions bound to ChatGPS chat functions through the Invoke-ChatScriptBlock command, Select-ChatSession is essential because such commands do interact with the language model, but they do not usually have a session parameter, so the only way to ensure they are operating against the correct session is to use the Select-ChatSession command before executing them; there is no way to override the session for such commands, they can only use the current session.
+In the case of PowerShell functions bound to ChatGPS chat functions through the New-ChatScriptBlock command, Select-ChatSession is essential because such commands do interact with the language model, but they do not usually have a session parameter, so the only way to ensure they are operating against the correct session is to use the Select-ChatSession command before executing them; there is no way to override the session for such commands, they can only use the current session.
 
 .PARAMETER SessionName
 The name property of an existing session that should be set to the current session. To see the names of existing sessions, use the Get-ChatSession command. The name property is not required for a session, so for such sessions without a name, it cannot be selected with the SessionName parameter of this command. Instead, use the Id parameter to supply the session's Id property, which is always present.
@@ -49,8 +49,7 @@ PS > if ( Validate-BashScriptWithLLM $nlScriptSpec $newCode ) {
     out-file ~/documents/get-network-config.sh
 }
 
-This example shows how two commands created with Invoke-ChatScriptBlock, the *-BashScript* commands that interact with the LLM can use a specific session by setting the current session with Select-ChatSession before the other commands
-are invoked.
+This example shows how two commands created with New-ChatScriptBlock, Build-BashScriptFromLLM and Validate-BashScriptWithlLM that interact with the LLM can use a specific session by setting the current session with Select-ChatSession before the other commands are invoked.
 
 .LINK
 Get-ChatSession
