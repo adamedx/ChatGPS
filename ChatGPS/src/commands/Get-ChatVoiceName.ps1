@@ -13,7 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<#
+.SYNOPSIS
+Experimental command that creates a new text-to-speech voice.
 
+.DESCRIPTION
+This command is experimental.
+
+.OUTPUTS
+None.
+
+.LINK
+New-ChatVoice
+Get-ChatVoiceName
+Out-ChatVoice
+Set-ChatCurrentVoice
+#>
 function Get-ChatVoiceName {
     [cmdletbinding()]
     param (

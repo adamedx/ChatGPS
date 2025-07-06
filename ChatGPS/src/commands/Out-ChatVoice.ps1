@@ -13,7 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<#
+.SYNOPSIS
+Experimental command that sends output to a text-to-speech engine.
 
+.DESCRIPTION
+This command is experimental.
+
+.OUTPUTS
+None.
+
+.LINK
+Get-ChatCurrentVoice
+Get-ChatVoiceName
+Set-ChatCurrentVoice
+New-ChatVoice
+#>
 function Out-ChatVoice {
     [cmdletbinding()]
     param (

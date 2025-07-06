@@ -13,7 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<#
+.SYNOPSIS
+Experimental command that obtains the current voice for the chat session.
 
+.DESCRIPTION
+This command is experimental.
+
+.OUTPUTS
+None.
+
+.LINK
+Get-ChatCurrentVoice
+Get-ChatVoiceName
+Set-ChatCurrentVoice
+Out-ChatVoice
+#>
 function Get-ChatCurrentVoice {
     [cmdletbinding()]
     param()
