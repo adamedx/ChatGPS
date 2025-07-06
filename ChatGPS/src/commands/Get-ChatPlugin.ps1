@@ -31,10 +31,10 @@ Use the ListAvailable parameter to enumerate all registered plugins, i.e. all po
 The name of the chat plugin to retrieve. When ListAvailable is not specified, the command returns a plugin with this name in the current session. If the ListAvailable flag is specified, then registered plugins that contain the specified value of this parameter in the name are returned, allowing the user to find available plugins related to a particular function specified by Name.
 
 .PARAMETER SessionName
-The name property of an existing session for which plugins added to that session should be retrived. If neither this nor the Session parameter are specified then plugins are enumerated from the current session.
+The name property of an existing session for which plugins added to that session should be retrieved. If neither this nor the Session parameter are specified then plugins are enumerated from the current session.
 
 .PARAMETER Session
-The session object (as returned by commands such as Get-ChatSession) for which plugins added to that session should be retrived. If neither this nor the SessionName parameter are specified then plugins are enumerated from the current session.
+The session object (as returned by commands such as Get-ChatSession) for which plugins added to that session should be retrieved. If neither this nor the SessionName parameter are specified then plugins are enumerated from the current session.
 
 
 .OUTPUTS
