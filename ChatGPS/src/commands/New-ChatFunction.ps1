@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 #
 
 <#
@@ -22,7 +21,7 @@ Creates a new "chat" function, a parameterized function defined by natural langu
 .DESCRIPTION
 A chat function is simply a function defined by a natural language prompt. An example of such a prompt could be "Show me the first {{$rows}} levels of Pascal's Triangle." The prompt syntax makes use of Handlebars templating syntax (https://handlebarsjs.com/) to define optional parameters to the function, in this case the parameter "rows" indicates the number of levels (or "rows") of the Pascal's Triangle object to output.
 
-The New-ChatFunction allows such functions to be defined so that they may be subsequently invoked by the Invoke-ChatFunction command. Chat functions can be bound to a user defined name for easy reference by other commands, or can otherwise be referenced by the function's automatically generated identifier.
+The New-ChatFunction command allows such functions to be defined so that they may be subsequently invoked by the Invoke-ChatFunction command. Chat functions can be bound to a user defined name for easy reference by other commands, or can otherwise be referenced by the function's automatically generated identifier.
 
 Note that the related New-ChatScriptBlock function can also be used to bind such chat functions to native PowerShell functions, providing a convenient PowerShell wrapper syntax around the function's capabilities that obviates the need to use the dedicated Invoke-ChatFunction command.
 

@@ -13,7 +13,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
+<#
+.SYNOPSIS
+Removes a chat function created by the New-ChatFunction command.
+
+.DESCRIPTION
+A chat function is created by the New-ChatFunction command. Chat functions can be specified to the Remove-ChatFunction command via the Id property of the function, or if the function has a name, its name can be used to identify the function to be deleted.
+
+.PARAMETER Id
+The Id of the property of the chat function to delete. All chat functions have an Id property, so this parameter can be used to remove any chat function, and is also supported from the pipeline.
+
+.PARAMETER Name
+The name of the chat function to delete. This can only be used of the function was created with a name.
+
+.OUTPUTS
+None.
+
+.EXAMPLE
+PS > Remove-ChatFunction Summarizer
+
+In this example, the chat function named Summarizer is deleted by specifying the Name property of the function to be deleted.
+
+.EXAMPLE
+PS > Get-ChatFunction
+Id                                   Name       Definition             Parameters
+--                                   ----       ----------             ----------
+59880abc-166f-48fd-a96d-220f793c4f57 Translator Translate the text {{$ {[language, language], [sourcetext, sourcetext]}
+59880abc-166f-48fd-a96d-220f793c4f57 Summarizer Summarize the text {{$ {[sourcetext, sourcetext]}
+PS > Get-ChatFunction | Remove-ChatFunction
+PS > Get-ChatFunction | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    0
+ 
+In this example, all existing chat functions are enumerated by the Get-ChatFunction command. After this, Remove-ChatFunction is invoked with the output of Get-ChatFunction as input to its pipeline -- this deletes all of the previously enmerated functions, leaving no chat functions. This can be seen by the last command executed, which now returns a count of 0 for chat functions returned by the Get-ChatFunction command; prior to the use of Remove-ChatFunction, it had returned two such functions.
+
+.LINK
+New-ChatFunction
+Get-ChatFunction
+Invoke-ChatFunction
+New-ChatScriptBlock
+#>
 function Remove-ChatFunction {
     [cmdletbinding(positionalbinding=$false)]
     param(
