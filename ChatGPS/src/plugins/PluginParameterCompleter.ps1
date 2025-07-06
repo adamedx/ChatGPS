@@ -35,7 +35,7 @@ function RegisterPluginCompleter([string] $command, [string] $parameterName) {
             }
         } else {
             $targetSession = if ( $fakeBoundParameters.Contains($sessionParameterName) ) {
-                Get-ChatSession -SessionName $fakeBoundParameters.Contains($sessionParameterName)
+                Get-ChatSession -SessionName $fakeBoundParameters[$sessionParameterName]
             } else {
                 Get-ChatSession -Current
             }

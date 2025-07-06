@@ -159,6 +159,20 @@ public class ChatSession
         this.chatService.Plugins.RemovePlugin(name);
     }
 
+    public Plugin GetPlugin(string name)
+    {
+        LazyInitialize();
+
+        Plugin? result;
+
+        if ( ! this.chatService.Plugins.TryGetPlugin(name, out result) || result is null )
+        {
+            throw new KeyNotFoundException($"The specified plugin {name} does not exist in the session with Id='{this.Id.ToString()}'.");
+        }
+
+        return result;
+    }
+
     public ChatMessageHistory History
     {
         get

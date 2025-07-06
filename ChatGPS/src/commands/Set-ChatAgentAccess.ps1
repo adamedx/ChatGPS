@@ -20,7 +20,6 @@
 Configures a chat session to allow or disallow interactions between language models and chat plugins that enable language model interactions with user accessible resources including the local computer system and applications.
 
 .DESCRIPTION
-
 Set-ChatAgentAccess configures the AllowAgentAccess property of a session that is originally configured at session creation time (e.g. through the Connect-ChatSession command or configuration settings application). The boolean value defaults to false, and it controls whether chat plugins are invoked during interactions by ChatGPS commands such as Send-ChatMessage with the session's language model.
 
 By default, sessions do not invoke plugins at all, even when chat plugins have been configured for the session via configuration, the Connect-ChatSession command, or dynamically through the Add-ChatPlugin command. This means that language model interactions with ChatGPS are simply exchanges of messages; there are no side effects to the message exchange, so a language model response cannot cause local files to be read or written, data to be sent from the computer to some destination, etc.

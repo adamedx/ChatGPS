@@ -298,10 +298,12 @@ All Rights Reserved.
       <TableControl>
         <TableHeaders>
           <TableColumnHeader>
-            <Label>Id</Label>
+            <Width>24</Width>
+            <Label>Name</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Name</Label>
+            <Width>40</Width>
+            <Label>Description</Label>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Parameters</Label>
@@ -312,18 +314,51 @@ All Rights Reserved.
             <Wrap/>
             <TableColumnItems>
               <TableColumnItem>
-                 <PropertyName>Id</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
                  <PropertyName>Name</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                 <ScriptBlock>($_.Parameters | measure-object).Count</ScriptBlock>
+                <ScriptBlock>$provider = [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviderByName($_.Name);$provider.Description</ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                 <ScriptBlock>if ($_.Parameters) { $_.Parameters.Keys }</ScriptBlock>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
         </TableRowEntries>
       </TableControl>
+    </View>
+
+    <View>
+      <Name>ChatPluginDetails</Name>
+      <ViewSelectedBy>
+        <TypeName>Modulus.ChatGPS.Plugins.Plugin</TypeName>
+      </ViewSelectedBy>
+
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <Label>Name</Label>
+                <PropertyName>Name</PropertyName>
+              </ListItem>
+               <ListItem>
+                <Label>Id</Label>
+                <PropertyName>Id</PropertyName>
+               </ListItem>
+              <ListItem>
+                <Label>Description</Label>
+                <ScriptBlock>$provider = [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviderByName($_.Name);$provider.Description</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>Parameters</Label>
+                <ScriptBlock>if ($_.Parameters) { $_.Parameters.Keys }</ScriptBlock>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+
     </View>
 
     <View>
@@ -335,6 +370,7 @@ All Rights Reserved.
       <TableControl>
         <TableHeaders>
           <TableColumnHeader>
+            <Width>24</Width>
             <Label>Name</Label>
           </TableColumnHeader>
           <TableColumnHeader>
@@ -356,7 +392,7 @@ All Rights Reserved.
                  <PropertyName>Description</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <PropertyName>Parameters</PropertyName>
+                <ScriptBlock>if ( $_.Parameters ) { $_.Parameters.Name }</ScriptBlock>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
@@ -365,7 +401,7 @@ All Rights Reserved.
     </View>
 
     <View>
-      <Name>ChatPluginProviderDetils</Name>
+      <Name>ChatPluginProviderDetails</Name>
       <ViewSelectedBy>
         <TypeName>Modulus.ChatGPS.Plugins.PluginProvider</TypeName>
       </ViewSelectedBy>
@@ -384,7 +420,6 @@ All Rights Reserved.
                 <PropertyName>Description</PropertyName>
               </ListItem>
 
-
               <ListItem>
                 <Label>Type</Label>
                 <ScriptBlock>$_.IsCustom() ? 'Custom' : 'Builtin'</ScriptBlock>
@@ -392,7 +427,7 @@ All Rights Reserved.
 
               <ListItem>
                 <Label>Parameters</Label>
-                <PropertyName>Parameters</PropertyName>
+                 <ScriptBlock>if ( $_.Parameters ) { $_.Parameters.Name }</ScriptBlock>
               </ListItem>
             </ListItems>
           </ListEntry>
