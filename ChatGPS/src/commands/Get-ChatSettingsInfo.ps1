@@ -35,8 +35,8 @@ PS > Get-ChatSettingsInfo
 LastSettingsLocation     DefaultSettingsLocation  Settings
 --------------------     -----------------------  --------
 ~/.chatgps/settings.json ~/.chatgps/settings.json @{generatedDate=; generatedTool=; lastUpdatedDate=7/2/2025 6:01:09 PM...
-                                                   }
-Shows information about currently applied settings, as well as the current settings themselves. Note that all fields except for DefaultSettingsLocation will be empty if there is no settings file. If there is no LastSettingsLocation, then a new file may be created at the location given by DefaultSettingsLocation; if the module is loaded into a new PowerShell session, or if the Update-ChatSettings command is invoked, the settings applied in that new file will be applied.
+ 
+This example shows information about currently applied settings, as well as the current settings themselves. Note that all fields except for DefaultSettingsLocation will be empty if there is no settings file. If there is no LastSettingsLocation, then a new file may be created at the location given by DefaultSettingsLocation; if the module is loaded into a new PowerShell session, or if the Update-ChatSettings command is invoked, the settings applied in that new file will be applied.
 
 .EXAMPLE
 PS > edit (Get-ChatSettingsInfo | Select-Object -ExpandProperty DefaultSettingsLocation | Get-Item).FullName
