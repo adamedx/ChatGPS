@@ -20,6 +20,37 @@ namespace Modulus.ChatGPS.Utilities;
 
 public class PSDecryptor
 {
+    // The format of "Unicode Hex Bytes" assumed as input to this function is chosen because it is already
+    // utilized commonly in PowerShell. For example this encrypted format is what you get when you pass a plain text
+    // string as input to the ConvertTo-SecureString PowerShell command with the AsPlainText option, or when
+    // the Read-Host PowerShell command is used with its AsSecureString parameter, or the combination of the Password
+    // property on the output of Get-Credential passed to the ConvertFrom-SecureString command. An example of PowerShell
+    // code that produces such an encrypted string is as follows:
+    //
+    // # EXAMPLE 1
+    // # Interactively enter a password via Read-Host
+    // $encryptedPassword = Read-Host -AsSecureString # This returns a System.Security.SecureString type
+    // $unicodeHexBytesEncryptedString = $encryptedPassword | ConvertFrom-SecureString
+    //
+    // # EXAMPLE 2
+    // $plainTextPassword = Get-PlainTextFromSomewhereMaybeAFile
+    // $encryptedPassword = $plainTextPassword | ConvertTo-SecureString -AsPlainText
+    // $unicodeHexBytesEncryptedString = $encryptedPassword | ConvertFrom-SecureString
+    //
+    // # EXAMPLE 3
+    // # Interactively enter a password via Get-Credential
+    // $credential = Get-Credential -user anytext # -user parameter can be anything
+    // $encryptedPassword = $credential.Password # Returns a System.Security.SecureString type
+    // $unicodeHexBytesEncryptedString = $encryptedPassword | ConvertFrom-SecureString
+    //
+    // Ultimately the Get-Credential, Read-Host -AsSecure, and Convert-ToSecureString PowerShell commands
+    // all encrypt data using the Windows data protection API's CryptProtectData API -- decryption
+    // is then accomplished with the CryptUnprotectData Windows API. .NET's ProtectData
+    // implementation only supports this Windows API implementation and does not provide this functionality for
+    // other operating systems, so this function is limited to Windows only for now unfortunately.
+    //
+    // That said, this format is common within the PowerShell ecosystem which is still heavily Windows-based
+    // at this point anyway, so the idea is that this is a reasonable tradeoff between usability and portability.
     public static string GetDecryptedStringFromEncryptedUnicodeHexBytes(string encryptedString)
     {
         // Ensure that on non-Windows platforms we do not execute this method by throwing an
