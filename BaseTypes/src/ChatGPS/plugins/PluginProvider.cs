@@ -29,6 +29,9 @@ public abstract class PluginProvider
         PluginProvider.builtinProviders = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
 
         #pragma warning disable SKEXP0050
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.ConversationSummaryPlugin),
+                                                                 "Summarizes a conversation."));
+        PluginProvider.RegisterProvider(new DocumentPluginProvider());
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin),
                                                                  "Enables read and write access to the local file system."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin),

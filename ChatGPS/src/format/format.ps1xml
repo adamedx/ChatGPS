@@ -370,7 +370,7 @@ All Rights Reserved.
       <TableControl>
         <TableHeaders>
           <TableColumnHeader>
-            <Width>24</Width>
+            <Width>30</Width>
             <Label>Name</Label>
           </TableColumnHeader>
           <TableColumnHeader>
