@@ -18,9 +18,9 @@ namespace Modulus.ChatGPS.Plugins;
 
 public class StaticPluginProvider : PluginProvider
 {
-    internal StaticPluginProvider(Type kernelPluginType, string? description) : this(kernelPluginType.Name, kernelPluginType, description) {}
+    internal StaticPluginProvider(Type kernelPluginType, string? description, PluginParameter[]? parameters = null) : this(kernelPluginType.Name, kernelPluginType, description, parameters) {}
 
-    internal StaticPluginProvider(string name, Type kernelPluginType, string? description) : base(name, description)
+    internal StaticPluginProvider(string name, Type kernelPluginType, string? description, PluginParameter[]? parameters) : base(name, description, parameters)
     {
         this.NativeType = kernelPluginType;
         this.nativeInstance = null;

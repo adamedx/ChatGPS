@@ -40,8 +40,6 @@ public abstract class PluginProvider
                                                                  "Enables the local computer to access local and remote resources via http protocol requests."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TimePlugin),
                                                                  "Uses the local computer to obtain the current time."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin),
-                                                                 "Enables access to web content by downloading it to the local computer."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin),
                                                                  "Computes the search url for popular websites."));
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Bing, "Bing"));
@@ -79,12 +77,20 @@ public abstract class PluginProvider
         }
     }
 
-    protected PluginProvider(string name, string? description = null)
+    protected PluginProvider(string name, string? description = null, PluginParameter[]? parameters = null)
     {
         this.parameterSpec = new Dictionary<string, PluginParameter>();
 
         this.Name = name;
         this.Description = description ?? "Allows local operations to be invoked by instructions from a language model.";
+
+        if ( parameters is not null )
+        {
+            foreach ( var parameter in parameters )
+            {
+                AddPluginParameter(parameter);
+            }
+        }
     }
 
     internal abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters);
@@ -191,8 +197,14 @@ public abstract class PluginProvider
     {
         var parameter = new PluginParameter(name, description, required, encrypted);
 
-        this.parameterSpec.Add(name, parameter);
+        AddPluginParameter(parameter);
     }
+
+    protected void AddPluginParameter(PluginParameter parameter)
+    {
+        this.parameterSpec.Add(parameter.Name, parameter);
+    }
+
 
     private static Dictionary<string, PluginProvider> providers;
     private static Dictionary<string, PluginProvider> builtinProviders;

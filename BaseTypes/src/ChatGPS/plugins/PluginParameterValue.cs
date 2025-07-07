@@ -159,13 +159,20 @@ public class PluginParameterValue
             throw new InvalidOperationException("The value cannot be updated from serialized data because its intended type is not set.");
         }
 
+        var targetType = Type.GetType(this.typeName);
+
+        if ( targetType is null )
+        {
+            throw new ArgumentException($"The type name '{this.typeName}' specified for the parameter could not be resolved");
+        }
+
         object? deserializedValue = null;
 
         if ( serializedValue is not null )
         {
             var jsonOptions = new JsonSerializerOptions();
 
-            deserializedValue = JsonSerializer.Deserialize(serializedValue, serializedValue.GetType());
+            deserializedValue = JsonSerializer.Deserialize(serializedValue, targetType);
         }
 
         this.deserializedValue = deserializedValue;
