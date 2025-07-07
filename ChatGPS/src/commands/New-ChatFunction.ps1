@@ -1,7 +1,17 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
 <#
@@ -11,7 +21,7 @@ Creates a new "chat" function, a parameterized function defined by natural langu
 .DESCRIPTION
 A chat function is simply a function defined by a natural language prompt. An example of such a prompt could be "Show me the first {{$rows}} levels of Pascal's Triangle." The prompt syntax makes use of Handlebars templating syntax (https://handlebarsjs.com/) to define optional parameters to the function, in this case the parameter "rows" indicates the number of levels (or "rows") of the Pascal's Triangle object to output.
 
-The New-ChatFunction allows such functions to be defined so that they may be subsequently invoked by the Invoke-ChatFunction command. Chat functions can be bound to a user defined name for easy reference by other commands, or can otherwise be referenced by the function's automatically generated identifier.
+The New-ChatFunction command allows such functions to be defined so that they may be subsequently invoked by the Invoke-ChatFunction command. Chat functions can be bound to a user defined name for easy reference by other commands, or can otherwise be referenced by the function's automatically generated identifier.
 
 Note that the related New-ChatScriptBlock function can also be used to bind such chat functions to native PowerShell functions, providing a convenient PowerShell wrapper syntax around the function's capabilities that obviates the need to use the dedicated Invoke-ChatFunction command.
 
@@ -32,7 +42,7 @@ A function object that describes the defined function and that may be passed as 
 .EXAMPLE
 In this example, the New-ChatFunction command is used to define a function that translates text to a particular language -- both the text to be translated and the target language for translation are specified as parameters to the function:
 
-PS > New-ChatFunction -name Translator 'Translate the text {{$sourcetext}} into the language {{$language}} and respond withoutput only that language.'
+PS > New-ChatFunction -name Translator 'Translate the text {{$sourcetext}} into the language {{$language}} and respond with output only in that language.'
 
 Id                                   Name       Definition             Parameters
 --                                   ----       ----------

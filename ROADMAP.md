@@ -3,6 +3,8 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Address terminology disambiguation with plugintype vs plugin if needed
+* Add remaining SK core plugins to built-in list
 * Add timeouts to powershell plugin
 * Add progress to powershell plugin
 * Start-Shell should show last response even on first run
