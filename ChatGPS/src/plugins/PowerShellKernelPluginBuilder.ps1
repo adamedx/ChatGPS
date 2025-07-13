@@ -16,11 +16,6 @@
 #
 
 class PowerShellKernelPluginBuilder  {
-    [string] $PluginName = $null
-    [string] $Description = $null
-    [bool] $BuildComplete = $false
-    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $Scripts = $null
-
     static [string[]] $GenerationFiles = $null
 
     static PowerShellKernelPluginBuilder()
@@ -30,51 +25,12 @@ class PowerShellKernelPluginBuilder  {
         )
     }
 
-    PowerShellKernelPluginBuilder([string] $pluginName, [string] $description, [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $scripts = $null) {
-        $this.PluginName = $pluginName
-        $this.Description = $description
-        $this.scripts = if ( $Scripts ) {
-            $Scripts
-        } else {
-            [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]]::new()
-        }
-    }
-
-    PowerShellKernelPluginBuilder() {
-        $this.scripts = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]]::new()
-    }
-
-    [void] AddMethod([string] $methodName, [ScriptBlock] $scriptBlock, [string] $description, [string] $OutputType = 'System.String', [string] $outputDescription = $null) {
-        $parameterInfo = [PowerShellKernelPluginBuilder]::GetParameterInfo($scriptBlock)
-
-        $newMethod = [Modulus.ChatGPS.Plugins.PowerShellScriptBlock]::new($methodName, $scriptBlock, $parameterInfo, $description, $OutputType, $outputDescription)
-
-        $this.Scripts.Add($methodName, $newMethod)
-    }
-
     static [Modulus.ChatGPS.Plugins.PowerShellScriptBlock] NewPowerShellPluginFunction([string] $methodName, [ScriptBlock] $scriptBlock, [string] $description, [string] $OutputType = 'System.String', [string] $outputDescription = $null) {
         $parameterInfo = [PowerShellKernelPluginBuilder]::GetParameterInfo($scriptBlock)
 
         $newMethod = [Modulus.ChatGPS.Plugins.PowerShellScriptBlock]::new($methodName, $scriptBlock, $parameterInfo, $description, $OutputType, $outputDescription)
 
         return $newMethod
-    }
-
-    [Modulus.ChatGPS.Plugins.PowerShellNativePluginBase] ToKernelPlugin() {
-        if ( $this.Buildcomplete ) {
-            throw [InvalidOperationException]::new("The object has already been built")
-        }
-
-        $definition = GetClassDefinition $this.PluginName $this.Description $this.Scripts
-
-        $creationBlock = [ScriptBlock]::Create(
-            "param(`$scripts) $definition; [$($this.PluginName)]::new(`$scripts)" )
-
-        $kernelPlugin = $creationBlock.InvokeReturnAsIs($this.Scripts)
-
-        $this.BuildComplete = $true
-
-        return $kernelPlugin
     }
 
     static hidden [System.Collections.Generic.Dictionary[string,string]] GetParameterInfo([ScriptBlock] $scriptBlock) {
@@ -88,5 +44,4 @@ class PowerShellKernelPluginBuilder  {
 
         return $result
     }
-
 }
