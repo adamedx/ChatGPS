@@ -12,14 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 #
 
 function Add-ChatPlugin {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='noparameters')]
     param(
         [parameter(position=0, mandatory=$true)]
-        [string] $PluginName,
+        [string] $Name,
 
         [parameter(parametersetname='parameterlist', position=1, mandatory=$true)]
         [string[]] $ParameterNames,
@@ -38,7 +37,7 @@ function Add-ChatPlugin {
         [string] $SessionName
     )
     begin {
-        $parameterInfo = GetPluginParameterInfo $PluginName $ParameterTable $ParameterNames $ParameterValues $UnencryptedParameters
+        $parameterInfo = GetPluginParameterInfo $Name $ParameterTable $ParameterNames $ParameterValues $UnencryptedParameters
     }
 
     process {
@@ -47,14 +46,14 @@ function Add-ChatPlugin {
         } else {
             Get-ChatSession $SessionName
         }
-        $targetSession.AddPlugin($PluginName, $parameterInfo)
+        $targetSession.AddPlugin($Name, $parameterInfo)
     }
 
     end {
     }
 }
 
-RegisterPluginCompleter Add-ChatPlugin PluginName
+RegisterPluginCompleter Add-ChatPlugin Name
 RegisterSessionCompleter Add-ChatPlugin SessionName
 RegisterPluginParameterNameCompleter Add-ChatPlugin ParameterNames
 RegisterPluginParameterNameCompleter Add-ChatPlugin UnencryptedParameters

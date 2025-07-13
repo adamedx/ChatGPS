@@ -97,10 +97,8 @@ public abstract class PluginProvider
 
     internal virtual void InitializeInstanceFromData(string[] jsonData) { }
 
-    internal static object? RegisterProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null, bool getNativeInstance = false, bool isCustomProvider = false)
+    internal static void RegisterProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null, bool getNativeInstance = false, bool isCustomProvider = false)
     {
-        object? result = null;
-
         if ( PluginProvider.providers.ContainsKey(provider.Name) )
         {
             throw new ArgumentException($"The specified plugin provider '{provider.Name}' already exists");
@@ -108,7 +106,8 @@ public abstract class PluginProvider
 
         if ( getNativeInstance )
         {
-            result = provider.GetNativeInstance( instanceParameters );
+            // Force the initialization, though the result is not needed in this situation
+            provider.GetNativeInstance( instanceParameters );
         }
 
         PluginProvider.providers.Add(provider.Name, provider);
@@ -117,13 +116,11 @@ public abstract class PluginProvider
         {
             PluginProvider.builtinProviders.Add(provider.Name, provider);
         }
-
-        return result;
     }
 
-    public static object? NewProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null)
+    public static void NewProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null)
     {
-        return RegisterProvider(provider, instanceParameters, true, true);
+        RegisterProvider(provider, instanceParameters, true, true);
     }
 
     public static IEnumerable<PluginProvider> GetProviders()

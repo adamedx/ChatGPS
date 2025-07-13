@@ -3,7 +3,12 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Create plugins from Build-chatcode
+* Create plugins from natural language
+* Allow a hashtable parameter for powershell plugins
 * Address terminology disambiguation with plugintype vs plugin if needed
+* Add ability to see functions on registered types
+* Possibly change PluginProvider to PluginInfo
 * Add remaining SK core plugins to built-in list
 * Add timeouts to powershell plugin
 * Add progress to powershell plugin
