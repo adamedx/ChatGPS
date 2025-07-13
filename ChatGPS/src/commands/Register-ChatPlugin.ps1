@@ -67,10 +67,10 @@ In this example, Register-ChatPlugin creates a new plugin called system_basic_in
 
 .EXAMPLE
 Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the uptime of the operating system' |
-  Add-ChatPluginFunction system_updates  {
+  Add-ChatPluginFunction get_system_updates  {
       param ([int]$Days = 30) Get-HotFix | Where-Object { $_.InstalledOn -gt (Get-Date).AddDays(-$Days) }
   } -Description 'Returns the list of operating system updates applied to the system in the last N days' |
-    Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
+  Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
 Name                           Desciption                                           Parameters
 ----                           ----------                                           ----------
