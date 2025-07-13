@@ -177,7 +177,7 @@ class CustomPluginResource {
     [string] $Name
     [string] $Description
     [string] $PluginType
-    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $Functions
+    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]] $Functions
 }
 
 class CustomPluginResourceSettings {
@@ -400,7 +400,7 @@ function GetCustomPluginSettings($settings, $pluginProviders) {
             $customPluginSetting.Name = $provider.Name
             $customPluginSetting.Description = $provider.Description
             $customPluginSetting.PluginType = $provider.GetType().FullName
-            $customPluginSetting.Functions = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]]::new()
+            $customPluginSetting.Functions = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]]::new()
 
             $functions = $provider.GetScripts()
 

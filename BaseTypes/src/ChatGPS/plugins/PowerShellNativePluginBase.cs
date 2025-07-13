@@ -20,14 +20,14 @@ namespace Modulus.ChatGPS.Plugins;
 
 public class PowerShellNativePluginBase
 {
-    protected PowerShellNativePluginBase(string pluginName, string pluginDescription, Dictionary<string,PowerShellScriptBlock> scriptBlocks)
+    protected PowerShellNativePluginBase(string pluginName, string pluginDescription, Dictionary<string,PowerShellPluginFunction> scriptBlocks)
     {
         this.ScriptBlocks = scriptBlocks;
         this.PluginName = pluginName;
         this.PluginDescription = pluginDescription;
     }
 
-    public Dictionary<string,PowerShellScriptBlock> ScriptBlocks { get; set; }
+    public Dictionary<string,PowerShellPluginFunction> ScriptBlocks { get; set; }
     public string PluginName { get; set; }
     public string PluginDescription { get; set; }
 }

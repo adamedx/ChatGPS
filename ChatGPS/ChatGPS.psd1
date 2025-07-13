@@ -184,8 +184,6 @@ FileList = @(
     'src/plugins/PluginParameter.ps1'
     'src/plugins/PluginParameterCompleter.ps1'
     'src/plugins/PluginUtilities.ps1'
-    'src/plugins/PowerShellKernelPluginBuilder.ps1'
-    'src/plugins/PowerShellScriptBlock.ps1'
     'src/presentation.ps1'
     'src/presentation/model.ps1'
     'src/presentation/reply.ps1'

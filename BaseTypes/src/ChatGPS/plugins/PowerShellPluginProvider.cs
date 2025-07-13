@@ -30,7 +30,7 @@ public class PowerShellPluginProvider : PluginProvider
         this.kernelPlugin = kernelPlugin;
     }
 
-    public PowerShellPluginProvider(string name, string description, Dictionary<string,PowerShellScriptBlock>? scripts, string? generationScriptPath) : base(name, description)
+    public PowerShellPluginProvider(string name, string description, Dictionary<string,PowerShellPluginFunction>? scripts, string? generationScriptPath) : base(name, description)
     {
         this.PluginDescription = description;
         this.Scripts = scripts;
@@ -42,9 +42,9 @@ public class PowerShellPluginProvider : PluginProvider
 
     public PowerShellPluginProvider(string name, string? description) : base(name, description) { }
 
-    public ReadOnlyDictionary<string,PowerShellScriptBlock>? GetScripts()
+    public ReadOnlyDictionary<string,PowerShellPluginFunction>? GetScripts()
     {
-        return this.Scripts is not null ? new ReadOnlyDictionary<string,PowerShellScriptBlock>(this.Scripts) : null;
+        return this.Scripts is not null ? new ReadOnlyDictionary<string,PowerShellPluginFunction>(this.Scripts) : null;
     }
 
     internal override void InitializeInstanceFromData(string[] jsonData)
@@ -55,7 +55,7 @@ public class PowerShellPluginProvider : PluginProvider
         }
 
         this.PluginDescription = JsonSerializer.Deserialize<string?>(jsonData[1]);
-        this.Scripts = (Dictionary<string,PowerShellScriptBlock>?) JsonSerializer.Deserialize<Dictionary<string,PowerShellScriptBlock>?>(jsonData[2]);
+        this.Scripts = (Dictionary<string,PowerShellPluginFunction>?) JsonSerializer.Deserialize<Dictionary<string,PowerShellPluginFunction>?>(jsonData[2]);
         this.generationScriptPath = (string?) JsonSerializer.Deserialize<string?>(jsonData[3]);
     }
 
@@ -87,7 +87,7 @@ public class PowerShellPluginProvider : PluginProvider
         return this.kernelPlugin;
     }
 
-    Dictionary<string,PowerShellScriptBlock>? Scripts { get; set; }
+    Dictionary<string,PowerShellPluginFunction>? Scripts { get; set; }
 
     string? PluginDescription { get; set; }
 

@@ -21,9 +21,9 @@ using System.Management.Automation.Language;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public class PowerShellScriptBlock
+public class PowerShellPluginFunction
 {
-    public PowerShellScriptBlock(string name, string scriptBlock, Dictionary<string,string> parameterTable, string description, string? outputType, string? outputDescription = null)
+    public PowerShellPluginFunction(string name, string scriptBlock, Dictionary<string,string> parameterTable, string description, string? outputType, string? outputDescription = null)
     {
         this.Name = name;
         this.Description = description;
@@ -32,7 +32,7 @@ public class PowerShellScriptBlock
         this.ScriptBlock = scriptBlock;
     }
 
-    public PowerShellScriptBlock() {}
+    public PowerShellPluginFunction() {}
 
     public ReadOnlyDictionary<string,string> GetParameterTable()
     {

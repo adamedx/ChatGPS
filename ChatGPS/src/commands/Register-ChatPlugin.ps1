@@ -106,11 +106,11 @@ function Register-ChatPlugin {
         [string] $Description,
 
         [parameter(parametersetname='existingplugin', valuefrompipeline=$true, mandatory=$true)]
-        [Modulus.ChatGPS.Plugins.PowerShellScriptBlock] $Function
+        [Modulus.ChatGPS.Plugins.PowerShellPluginFunction] $Function
     )
 
     begin {
-        $pluginTable = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]]::new()
+        $pluginTable = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]]::new()
     }
 
     process {
@@ -118,7 +118,9 @@ function Register-ChatPlugin {
     }
 
     end {
-        $newPlugin = [Modulus.ChatGPS.Plugins.PowerShellPluginProvider]::new($Name, $Description, $pluginTable, [PowerShellKernelPluginBuilder]::GenerationFiles[0])
+        $generationScriptLocation = GetGenerationScriptLocation
+
+        $newPlugin = [Modulus.ChatGPS.Plugins.PowerShellPluginProvider]::new($Name, $Description, $pluginTable, $generationScriptLocation)
 
         [Modulus.ChatGPS.Plugins.PluginProvider]::NewProvider($newplugin)
     }
