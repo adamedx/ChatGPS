@@ -59,10 +59,10 @@ PS > Connect-ChatSession -Apiendpoint 'https://ryu-2025-07.openai.azure.com' -De
 In this example, the plaintext value of a API key is read from its secure storage location in an Azure KeyVault resource using the Get-AzKeyuVaultSecret command. The value is piped to Get-ChatEncryptedUnicodeKeyCredential, which re-encrypts the value which is then assigned to a variable. The variable is then used with the ApiKey parameter of the Connect-ChatSession command to securely connect to the language model.
 
 .EXAMPLE
-PS > $encryptedBingApiKey = Get-AzKeyVaultSecret -VaultName Bing -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
+$encryptedBingApiKey = Get-AzKeyVaultSecret -VaultName Bing -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
 PS > Add-ChatPlugin -PluginName Bing -ParameterNames apiKey -ParameterValues $encryptedBingApiKey
 
-This example shows how to specify encrypted parameters to chat plugins that require encryption for some parameters. In this case, the Bing plugin requires an API key, and as in the previous example, the key is obtained from a secure Azure KeyVault resources, and then encrypted with Get-ChatEncryptedUnicodeKeyCredential such that ChatGPS commands can decrypt it at the time the plugin needs to use the key to access Bing.
+This example shows how to specify encrypted parameters to chat plugins that require encryption for some parameters. In this case, the Bing plugin requires an API key, and as in the previous example, the key is obtained from a secure Azure KeyVault resource, and then encrypted with Get-ChatEncryptedUnicodeKeyCredential such that ChatGPS commands can decrypt it at the time the plugin needs to use the key to access Bing.
 
 .LINK
 Connect-ChatSession

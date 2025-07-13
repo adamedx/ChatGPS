@@ -56,7 +56,7 @@ function RegisterPluginParameterNameCompleter([string] $command, [string] $comma
     $pluginParameterCompleter = {
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
 
-        $pluginCommandParameterName = 'PluginName'
+        $pluginCommandParameterName = 'Name'
 
         $currentPlugin = if ( $fakeBoundParameters.Contains($pluginCommandParameterName) ) {
             [Modulus.ChatGPS.Plugins.PluginProvider]::GetProviders() |
