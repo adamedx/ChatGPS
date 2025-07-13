@@ -55,9 +55,12 @@ public abstract class PluginProvider
         }
     }
 
-    public bool IsCustom()
+    public bool IsCustom
     {
-        return ! PluginProvider.builtinProviders.ContainsKey(this.Name);
+        get
+        {
+            return ! PluginProvider.builtinProviders.ContainsKey(this.Name);
+        }
     }
 
     public static void UnregisterProvider(string providerName)

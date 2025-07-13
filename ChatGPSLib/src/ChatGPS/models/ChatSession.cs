@@ -487,4 +487,3 @@ public class ChatSession
     bool initialized = false;
 }
 
-

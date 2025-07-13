@@ -387,7 +387,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
 }
 
 function GetCustomPluginSettings($settings, $pluginProviders) {
-    $customPluginProviders = $pluginProviders | where { $_.IsCustom() }
+    $customPluginProviders = $pluginProviders | where { $_.IsCustom }
 
     $customPluginSettings = if ( $customPluginProviders ) {
         foreach ( $provider in $customPluginProviders ) {

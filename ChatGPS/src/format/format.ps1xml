@@ -421,8 +421,8 @@ All Rights Reserved.
               </ListItem>
 
               <ListItem>
-                <Label>Type</Label>
-                <ScriptBlock>$_.IsCustom() ? 'Custom' : 'Builtin'</ScriptBlock>
+                <Label>IsCustom</Label>
+                <PropertyName>IsCustom</PropertyName>
               </ListItem>
 
               <ListItem>
