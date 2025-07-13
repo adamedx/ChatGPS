@@ -49,6 +49,8 @@ function Start-ChatShell {
 
         [switch] $NoWelcome,
 
+        [switch] $ShowWelcome,
+
         [ScriptBlock] $ReceiveBlock,
 
         [ScriptBlock] $UserReplyBlock,
@@ -61,6 +63,9 @@ function Start-ChatShell {
 
         [switch] $AllowInitialReceiveBlock,
 
+        [ValidateSet('Normal', 'Large')]
+        [string] $SplashTitle = 'Normal',
+
         [string] $SoundPath,
 
         [Modulus.ChatGPS.Models.ChatSession]
@@ -68,6 +73,7 @@ function Start-ChatShell {
     )
 
     begin {
+
         $currentReplies = $MaxReplies
 
         $targetSession = GetTargetSession $Session
@@ -150,7 +156,7 @@ function Start-ChatShell {
             TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @initialReceiveBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
         }
 
-        ShowWelcome $NoWelcome.IsPresent
+        ShowWelcome $NoWelcome.IsPresent $SplashTitle $ShowWelcome.IsPresent
     }
 
     process {

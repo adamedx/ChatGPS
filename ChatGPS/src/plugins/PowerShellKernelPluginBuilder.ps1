@@ -45,11 +45,19 @@ class PowerShellKernelPluginBuilder  {
     }
 
     [void] AddMethod([string] $methodName, [ScriptBlock] $scriptBlock, [string] $description, [string] $OutputType = 'System.String', [string] $outputDescription = $null) {
-        $parameterInfo = $this.GetParameterInfo($scriptBlock)
+        $parameterInfo = [PowerShellKernelPluginBuilder]::GetParameterInfo($scriptBlock)
 
         $newMethod = [Modulus.ChatGPS.Plugins.PowerShellScriptBlock]::new($methodName, $scriptBlock, $parameterInfo, $description, $OutputType, $outputDescription)
 
         $this.Scripts.Add($methodName, $newMethod)
+    }
+
+    static [Modulus.ChatGPS.Plugins.PowerShellScriptBlock] NewPowerShellPluginFunction([string] $methodName, [ScriptBlock] $scriptBlock, [string] $description, [string] $OutputType = 'System.String', [string] $outputDescription = $null) {
+        $parameterInfo = [PowerShellKernelPluginBuilder]::GetParameterInfo($scriptBlock)
+
+        $newMethod = [Modulus.ChatGPS.Plugins.PowerShellScriptBlock]::new($methodName, $scriptBlock, $parameterInfo, $description, $OutputType, $outputDescription)
+
+        return $newMethod
     }
 
     [Modulus.ChatGPS.Plugins.PowerShellNativePluginBase] ToKernelPlugin() {
@@ -69,7 +77,7 @@ class PowerShellKernelPluginBuilder  {
         return $kernelPlugin
     }
 
-    hidden [System.Collections.Generic.Dictionary[string,string]] GetParameterInfo([ScriptBlock] $scriptBlock) {
+    static hidden [System.Collections.Generic.Dictionary[string,string]] GetParameterInfo([ScriptBlock] $scriptBlock) {
         $result = [System.Collections.Generic.Dictionary[string,string]]::new()
 
         if ( $scriptBlock.ast.ParamBlock -and ( $scriptBlock.ast.ParamBlock | get-member parameters -erroraction ignore ) ) {

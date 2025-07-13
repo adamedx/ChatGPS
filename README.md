@@ -259,6 +259,10 @@ You can use the `Get-Module` command to see a list of all the commands supported
 Get-Module chatgps | Select-Object -ExpandProperty ExportedFunctions
 ```
 
+** Acknowledgments / attribution
+
+* The [text to ASCII art generator](https://www.asciiart.eu/text-to-ascii-art) by [AsciiArtEU](https://www.asciiart.eu/link-to-us) was used to generate some of this project's ASCII art.
+
 License and authors
 -------------------
 Copyright:: Copyright (c) Adam Edwards

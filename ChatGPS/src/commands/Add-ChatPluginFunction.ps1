@@ -18,7 +18,7 @@ function Add-ChatPluginFunction {
     [cmdletbinding(positionalbinding=$false)]
     param(
         [parameter(valuefrompipeline=$true)]
-        [PowerShellKernelPluginBuilder] $Plugin,
+        [System.Collections.Generic.ICollection[Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $Functions,
 
         [parameter(position=0, mandatory=$true)]
         [string] $FunctionName,
@@ -31,9 +31,7 @@ function Add-ChatPluginFunction {
 
         [string] $Description,
 
-        [string] $OutputDescription,
-
-        [switch] $NoOutput
+        [string] $OutputDescription
     )
 
     $targetDescription = if ( $Description ) {
@@ -42,15 +40,13 @@ function Add-ChatPluginFunction {
         "This method invokes PowerShell code to perform its function."
     }
 
-    $targetPlugin = if ( $Plugin ) {
-        $Plugin
-    } else {
-        [PowerShellKernelPluginBuilder]::new()
+    $newPluginFunction = [PowerShellKernelPluginBuilder]::NewPowerShellPluginFunction($FunctionName, $ScriptBlock, $Description, $OutputType, $OutputDescription)
+
+    $plugins = @($newPluginFunction)
+
+    foreach ( $function in $Functions ) {
+        $plugins += $function
     }
 
-    $targetPlugin.AddMethod($FunctionName, $ScriptBlock, $Description, $OutputType, $OutputDescription)
-
-    if ( ! $NoOutput.IsPresent ) {
-        $targetPlugin
-    }
+    $plugins
 }
