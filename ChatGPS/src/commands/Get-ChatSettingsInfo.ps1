@@ -22,7 +22,7 @@ The ChatGPS module provides a configuration settings mechanism, including a file
 
 Note that setting values returned by this command may not all have been applied successfully due to configuration or other runtime errors for an individual setting; the settings returned by the command do represent the intended settings expressed in the latest configuration file that was applied even if some errors occurred during settings application.
 
-To create the settings file, use the New-ChatSettings command. To file is a JSON text file that can be edited manually using a text editor, though the Save-ChatSessionSetting command offers a convenient way to add session configuration settings to the file without the use of a text editor.
+To create the settings file, use the New-ChatSettings command. The file is a JSON text file that can be edited manually using a text editor, though the Save-ChatSessionSetting command offers a convenient way to add session configuration settings to the file without the use of a text editor.
 
 For detailed information about settings, see the New-ChatSettings command documentation.
 
