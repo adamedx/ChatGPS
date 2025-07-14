@@ -3,6 +3,7 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Add prompt for missing API key to Connect-ChatSession
 * Create plugins from Build-chatcode
 * Create plugins from natural language
 * Allow a hashtable parameter for powershell plugins
