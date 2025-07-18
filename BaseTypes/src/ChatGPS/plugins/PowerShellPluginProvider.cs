@@ -1,7 +1,17 @@
 //
 // Copyright (c), Adam Edwards
 //
-// All rights reserved.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 
 using System.Collections.Generic;
@@ -20,7 +30,7 @@ public class PowerShellPluginProvider : PluginProvider
         this.kernelPlugin = kernelPlugin;
     }
 
-    public PowerShellPluginProvider(string name, string description, Dictionary<string,PowerShellScriptBlock>? scripts, string? generationScriptPath) : base(name, description)
+    public PowerShellPluginProvider(string name, string description, Dictionary<string,PowerShellPluginFunction>? scripts, string? generationScriptPath) : base(name, description)
     {
         this.PluginDescription = description;
         this.Scripts = scripts;
@@ -32,9 +42,9 @@ public class PowerShellPluginProvider : PluginProvider
 
     public PowerShellPluginProvider(string name, string? description) : base(name, description) { }
 
-    public ReadOnlyDictionary<string,PowerShellScriptBlock>? GetScripts()
+    public ReadOnlyDictionary<string,PowerShellPluginFunction>? GetScripts()
     {
-        return this.Scripts is not null ? new ReadOnlyDictionary<string,PowerShellScriptBlock>(this.Scripts) : null;
+        return this.Scripts is not null ? new ReadOnlyDictionary<string,PowerShellPluginFunction>(this.Scripts) : null;
     }
 
     internal override void InitializeInstanceFromData(string[] jsonData)
@@ -45,7 +55,7 @@ public class PowerShellPluginProvider : PluginProvider
         }
 
         this.PluginDescription = JsonSerializer.Deserialize<string?>(jsonData[1]);
-        this.Scripts = (Dictionary<string,PowerShellScriptBlock>?) JsonSerializer.Deserialize<Dictionary<string,PowerShellScriptBlock>?>(jsonData[2]);
+        this.Scripts = (Dictionary<string,PowerShellPluginFunction>?) JsonSerializer.Deserialize<Dictionary<string,PowerShellPluginFunction>?>(jsonData[2]);
         this.generationScriptPath = (string?) JsonSerializer.Deserialize<string?>(jsonData[3]);
     }
 
@@ -77,7 +87,7 @@ public class PowerShellPluginProvider : PluginProvider
         return this.kernelPlugin;
     }
 
-    Dictionary<string,PowerShellScriptBlock>? Scripts { get; set; }
+    Dictionary<string,PowerShellPluginFunction>? Scripts { get; set; }
 
     string? PluginDescription { get; set; }
 
@@ -130,3 +140,4 @@ public class PowerShellPluginProvider : PluginProvider
 
     string? generationScriptPath;
 }
+
