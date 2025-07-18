@@ -3,6 +3,9 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Add output types to commands
+* Include processing time in custom ChatResponse type
+* Rename receive / response / replyblock
 * Add prompt for missing API key to Connect-ChatSession
 * Create plugins from Build-chatcode
 * Create plugins from natural language

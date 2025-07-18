@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 #
 
 <#
@@ -42,7 +41,7 @@ The chat session to which the command is targeted.
 The text function result output returned by the language model.
 
 .EXAMPLE
-PS > New-ChatFunction -Name merger 'Provide a single sentence that has the same meaning as the individual sentences {{$sentence1}} and {{$sentence2}}'al sentences {{$sentence1}} and {{$sentence2}}'
+New-ChatFunction -Name merger 'Provide a single sentence that has the same meaning as the individual sentences {{$sentence1}} and {{$sentence2}}'
 PS > Invoke-ChatFunction merger "I use PowerShell.", "I use LLMs."
  
 I use both PowerShell and LLMs.
@@ -101,7 +100,6 @@ Get-ChatFunction
 Remove-ChatFunction
 New-ChatScriptBlock
 #>
-
 function Invoke-ChatFunction {
     [cmdletbinding(positionalbinding=$false)]
     param(

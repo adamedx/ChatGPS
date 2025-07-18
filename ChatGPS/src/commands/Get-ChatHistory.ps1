@@ -62,9 +62,10 @@ Select-ChatSession
 #>
 function Get-ChatHistory {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='byname')]
+    [OutputType([Modulus.ChatGPS.Models.ChatMessage])]
     param(
 
-        [parameter(parametersetname='byname', mandatory=$true, position=0)]
+        [parameter(parametersetname='byname', position=0)]
         $SessionName,
 
         [parameter(parametersetname='byid', mandatory=$true, valuefrompipelinebypropertyname=$true)]
@@ -78,8 +79,10 @@ function Get-ChatHistory {
     process {
         $nameOrId = if ( $SessionName ) {
             @{Name=$SessionName}
-        } else {
+        } elseif ( $Id )  {
             @{Id=$Id}
+        } else {
+            @{Id=(Get-ChatSession -Current).Id}
         }
 
         $targetSession = Get-ChatSession @nameOrId

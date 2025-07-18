@@ -88,6 +88,7 @@ Get-ChatHistory
 #>
 function Get-ChatSession {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='byname')]
+    [OutputType([Modulus.ChatGPS.Models.ChatSession])]
     param(
         [parameter(parametersetname='byname', position=0)]
         [Alias('Name')]
