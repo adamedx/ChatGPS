@@ -207,11 +207,11 @@ public class ChatSession
 
     public void ResetHistory(bool currentOnly)
     {
-        this.publicChatHistory.Reset();
+        this.publicChatHistory.Clear();
 
         if ( ! currentOnly )
         {
-            this.publicTotalChatHistory.Reset();
+            this.publicTotalChatHistory.Clear();
         }
     }
 

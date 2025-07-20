@@ -37,5 +37,12 @@ InModuleScope ChatGPS {
                 }
             }
         }
+
+        Context 'When inspect the help content of the module' {
+            It 'Should not have any commands that do not have help documentation' {
+                ( $module | select-object -ExpandProperty ExportedFunctions).keys | where { $null -eq ( get-help -detailed $_ | select -expandproperty description ) } |
+                  Should -BeNullOrEmpty
+            }
+        }
     }
 }

@@ -22,36 +22,31 @@ function TransformResponseText {
         [parameter(valuefrompipeline=$true, mandatory=$true)]
         [PSCustomObject] $Response,
 
+        [string] $UserPrompt,
+
         [ScriptBlock] $ReceiveBlock,
 
         [string] $OutputFormat
     )
 
-    begin {}
+    $inputString = $Response.Response
 
-    process {
-        $inputString = $Response.Response
-
-        $outputResult = if ( $inputString ) {
-            if ( $OutputFormat -eq 'MarkDown' ) {
-                $InputString | Show-Markdown
-            } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
-                $inputString -replace '`e', "`e"
-            } else {
-                $inputString
-            }
-        }
-
-        if ( $outputResult ) {
-            if ( $ReceiveBlock ) {
-                invoke-command -scriptblock $ReceiveBlock -argumentlist $outputResult, $response
-            } else {
-                $outputResult
-            }
+    $outputResult = if ( $inputString ) {
+        if ( $OutputFormat -eq 'MarkDown' ) {
+            $InputString | Show-Markdown
+        } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
+            $inputString -replace '`e', "`e"
+        } else {
+            $inputString
         }
     }
 
-    end {
+    if ( $outputResult ) {
+        if ( $ReceiveBlock ) {
+            invoke-command -scriptblock $ReceiveBlock -argumentlist $outputResult, $response, $UserPrompt
+        } else {
+            $outputResult
+        }
     }
 }
 

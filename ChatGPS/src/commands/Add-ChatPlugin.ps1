@@ -98,8 +98,39 @@ In this example, the time plugin is added, but the subsequent response from Send
 .EXAMPLE
 $encryptedBingApiKey = Get-AzKeyVaultSecret -VaultName BingVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
 PS > Add-ChatPlugin -PluginName Bing -ParameterNames apiKey -ParameterValues $encryptedBingApiKey
+PS > Add-ChatPlugin -PluginName TimePlugin
+PS > Send-ChatMessage 'Can you give a very brief synopsis of three of the latest new features released for PowerShell? Please describe specific features, not just the releases. Please also indicate the approximate dates they were released.'
 
-This example shows how to specify encrypted parameters to chat plugins. In this case, encryption is required for the 'apiKey' parameter. The value of the parameter is obtained from a secure Azure KeyVault resource, and then encrypted with Get-ChatEncryptedUnicodeKeyCredential such that ChatGPS commands can decrypt it at the time the plugin needs to use the key to access Bing.
+Received                 Response
+--------                 --------
+7/19/2025 11:15:53 PM    Here are three of the latest new features released for PowerShell in
+                         the last three months:
+
+                         1. PSDirectToVariable (experimental feature) - This new feature allows
+                         direct assignment of output to variables, which can enhance
+                         scripting convenience and efficiency. [Release date: recent within last 3
+                         months, exact date not specified]
+
+                         2. PSNativeWindowsTildeExpansion (experimental feature) - A feature
+                         that improves path handling by expanding tilde (~) paths natively on
+                         Windows environments. This helps in better path resolution in scripts.
+                         [Release date: recent within last 3 months, exact date not specified]
+
+                         3. PSSerializeJSONLongEnumAsNumber (experimental feature) - This feature
+                         provides better serialization options for JSON, specifically handling long
+                         enums as numbers during serialization, improving compatibility and performance in data
+                         interchange. [Release date: recent within last 3 months, exact date not specified]
+
+                         These come with bug fixes and various improvements to the PowerShell
+                         environment as part of the update released recently. The specific
+                         release date for these features is around July 2025.
+
+                         If you want details on specific release notes or dates for minor updates,
+                         I can assist further.
+
+This example shows how to specify encrypted parameters to chat plugins using the Bing web search plugin to demonstrate. In the case of Bing, encryption is required for the 'apiKey' parameter. The value of the parameter is obtained from a secure Azure KeyVault resource, and then encrypted with Get-ChatEncryptedUnicodeKeyCredential such that ChatGPS commands can decrypt it at the time the plugin needs to use the key to access Bing.
+
+The Bing plugin, along with the Time plugin are used when Send-ChatMessage is invoked to find information about the latest releases of PowerShell.
 
 .EXAMPLE
 $encryptedGoogleApiKey = Get-AzKeyVaultSecret -VaultName GoogleApiVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential

@@ -17,8 +17,14 @@
 function GetChatReply {
     [cmdletbinding(positionalbinding=$false)]
     param(
-        [string] $SourceMessage,
+        [parameter(mandatory=$true)]
+        [string] $ResponseMessage,
+
+        [parameter(mandatory=$true)]
+        [string] $UserPrompt,
+
         [ScriptBlock] $ReplyBlock,
+
         [int32] $MaxReplies
     )
 
@@ -26,7 +32,7 @@ function GetChatReply {
     $replyParams = @{}
 
     if ( $ReplyBlock -and $MaxReplies -ne 0 ) {
-        $reply = Invoke-Command -ScriptBlock $ReplyBlock -ArgumentList $SourceMessage
+        $reply = Invoke-Command -ScriptBlock $ReplyBlock -ArgumentList $ResponseMessage, $UserPrompt
         if ( $reply ) {
 
             if ( $nextMax -ne -1 ) {

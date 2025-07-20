@@ -55,6 +55,42 @@ Received                 Role       Elapsed (ms) Response
 
 In this example the sequence of messages sent by the User role via a command like Sent-ChatMessage with the response received from the Assitant role are displayed in the order in which they occured.
 
+.EXAMPLE
+Get-ChatHistory
+ 
+PS > Get-ChatHistory | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    6
+PS > Get-ChatHistory -CurrentContextOnly | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    6
+ 
+PS > Clear-ChatHistory
+ 
+PS > Get-ChatHistory | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    6
+PS > Get-ChatHistory -CurrentContextOnly
+ 
+Count
+-----
+    0
+ 
+PS > Clear-ChatHistory -FullHistory
+PS > Get-ChatHistory -CurrentContextOnly | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    0
+
+This example shows that by default Get-ChatHistory returns a record of all messages exchanged, but that Clear-ChatHistory does not clear that history by default. Instead, it clears only the context exhcnaged with language models, and the effect of clearing that context is reflected by Get-ChatHistory only when the CurrentContextOnly parameter is specified. The full history of messages though can be cleared by specifying the FullHistory parameter to Clear-ChatHistory.
+
 .LINK
 Clear-ChatSession
 Connect-ChatSession

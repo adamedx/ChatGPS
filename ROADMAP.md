@@ -3,6 +3,8 @@ Roadmap for ChatGPS
 
 ## To-do items
 
+* Separate Get-ChatHistory and Clear-ChatHistory into Get-ChatLog and Clear-ChatLog?
+* Make receiveblock take two parameters, the second is the request
 * Add output types to commands
 * Include processing time in custom ChatResponse type
 * Rename receive / response / replyblock

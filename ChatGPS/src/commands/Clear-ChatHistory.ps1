@@ -37,7 +37,7 @@ By default, only the current context of the conversation is cleared; the full hi
 None.
 
 .EXAMPLE
-PS > Clear-ChatHistory
+Clear-ChatHistory
 
 This clears the current history context used when interacting with the language model.
 
@@ -58,9 +58,42 @@ Received                 Role       Elapsed (ms) Response
                                                  was released on July 1, 2025.
 PS > Clear-ChatHistory
 PS > Get-ChatHistory -CurrentContextOnly
-PS >
+ 
+Count
+-----
+    0
+ 
+PS > Get-ChatHistory | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    6
 
-In this example Get-ChatHistory was first executed with the CurrentContextOnly parameter to show multiple messages from active context used in communication with the language model. Then after Clear-ChatHistory is invoked, the same Get-ChatHistory command is repeated and this time no results are returned.
+This example demonstrates the initially surprising behavior that Clear-ChatHistory does not on the surface appear to change the chat history since Get-ChatHistory with no arguments continues to return the same count of results it returned before Clear-ChatHistory was invoked. This is due to the fact that by default Clear-ChatHistory only affects the history shared with language models; the actual record of messages exchanged during the conversation is maintained separately and is not affected by Clear-ChatHistory by default. In this example Get-ChatHistory was first executed with the CurrentContextOnly parameter to show multiple messages from active context used in communication with the language model. Then after Clear-ChatHistory is invoked, the same Get-ChatHistory command with the CurrentContextOnly parameter is repeated and this time no results are returned. However, invoking Get-ChatHistory without the CurrentContextOnly parameter shows that the record of all messages is still maintained.
+
+.EXAMPLE
+Get-ChatHistory
+ 
+PS > Get-ChatHistory | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    6
+ 
+PS > Clear-ChatHistory -FullHistory
+PS > Get-ChatHistory | Measure-Object | Select-Object Count
+ 
+Count
+-----
+0
+ 
+PS > Get-ChatHistory -CurrentContextOnly | Measure-Object | Select-Object Count
+ 
+Count
+-----
+    0
+
+This is similar to the example above, except in this case Get-ChatHistory is invoked without the CurrentContextOnly parameter, so it returns the full log of all messages. When Clear-ChatHistory is invoked with the FullHisory parameter, then that full log is cleared and a repeat of Get-ChatHistory without the CurrentContextOnly parameter shows there are no messages at all, AND the current context is also cleared as well.
 
 .LINK
 Get-ChatHistory
