@@ -93,6 +93,9 @@ function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningAc
     $nativeLibrarySource = GetNativeLibrarySourceDirectory
     $nativeLibraryDestination = join-path (CurrentScriptDirectory) lib
 
+    # TODO: Temporarily skipping because Onnx is enabled only for DEBUG
+    return
+
     if ( ! $nativeLibrarySource ) {
         write-warning "Unable to determine native library source directory -- native operations may not be supported for the current platform" -warningaction $warningActionValue
     } elseif ( ! ( test-path $nativeLibrarySource ) ) {

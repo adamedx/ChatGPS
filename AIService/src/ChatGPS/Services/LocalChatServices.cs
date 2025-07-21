@@ -46,6 +46,7 @@ public class LocalAIChatService : ChatService
             throw new ArgumentException("A file system path must be specified.");
         }
 
+#if DEBUG
 #pragma warning disable SKEXP0070
         builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
 #pragma warning restore SKEXP0070
@@ -73,6 +74,11 @@ public class LocalAIChatService : ChatService
         this.serviceKernel = newKernel;
 
         return newKernel;
+#else
+        throw new NotImplementedException("Support for Onnx is temporarily disabled.");
+#endif
     }
+
+
 }
 
