@@ -16,8 +16,6 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Management.Automation;
-using System.Management.Automation.Language;
 
 namespace Modulus.ChatGPS.Plugins;
 
@@ -30,32 +28,22 @@ public class PowerShellPluginFunction
         this.OutputType = outputType;
         this.OutputDescription = outputDescription ?? "This function returns no output; it only produces side effects";
         this.ScriptBlock = scriptBlock;
+        this.ParameterTable = parameterTable;
     }
 
-    public PowerShellPluginFunction() {}
+    public PowerShellPluginFunction()
+    {
+        this.ParameterTable = new Dictionary<string,string>();
+    }
 
     public ReadOnlyDictionary<string,string> GetParameterTable()
     {
-        var parameterTable = new Dictionary<string,string>();
-
-        var scriptBlock = System.Management.Automation.ScriptBlock.Create(this.ScriptBlock);
-
-        ScriptBlockAst scriptAst = (ScriptBlockAst) scriptBlock.Ast;
-
-        var scriptParameters = scriptAst?.ParamBlock?.Parameters;
-
-        if ( scriptParameters is not null )
+        if ( this.ScriptBlock is null )
         {
-            foreach ( var parameter in scriptParameters )
-            {
-                if ( parameter.StaticType is not null && parameter.StaticType.FullName is not null)
-                {
-                    parameterTable.Add(parameter.Name.ToString(), parameter.StaticType.FullName);
-                }
-            }
+            throw new InvalidOperationException("The object has no scriptblock and is not in a valid state to be accessed.");
         }
 
-        return new ReadOnlyDictionary<string,string>(parameterTable);
+        return new ReadOnlyDictionary<string,string>(this.ParameterTable);
     }
 
     public string? Name { get; set; }
@@ -63,5 +51,6 @@ public class PowerShellPluginFunction
     public string? OutputType { get; set; }
     public string? OutputDescription { get; set; }
     public string? ScriptBlock { get; set; }
+    public Dictionary<string,string> ParameterTable {get; set;}
 }
 
