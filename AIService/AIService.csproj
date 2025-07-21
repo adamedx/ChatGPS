@@ -21,8 +21,6 @@
     <PackageReference Include="Azure.Core" Version="1.46.2" />
     <PackageReference Include="Azure.Identity" Version="1.14.1" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" />
-    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="[7.4.0,)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' =='Debug'">

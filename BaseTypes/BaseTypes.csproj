@@ -8,11 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.59.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.59.0-preview" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Document" Version="1.59.0-alpha" />
     <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.59.0-alpha" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="[7.4.0,)" />
+    <PackageReference Include="System.Management.Automation" Version="[7.4.0,)" />
+    <PackageReference Include="Microsoft.PowerShell.Commands.Diagnostics" Version="[7.4.0,)" />
+    <PackageReference Include="Microsoft.PowerShell.Commands.Utility" Version="[7.4.0,)" />
+    <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="[7.4.0,)" />
+    <PackageReference Include="Microsoft.WSMan.Management" Version="[7.4.0,)" />
+    <PackageReference Include="Microsoft.PowerShell.ConsoleHost" Version="[7.4.0,)" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
   </ItemGroup>
 
 </Project>
