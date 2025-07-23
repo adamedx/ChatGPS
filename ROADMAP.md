@@ -172,6 +172,7 @@
 * Rename new-chatplugin to Register-ChatPlugin
 * Add Unregister-ChatPlugin
 * Make session listing hide id by default
+* Added AsJob to Send-ChatMessage to support async invocations
 
 ### Plugin notes
 

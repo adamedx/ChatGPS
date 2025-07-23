@@ -460,7 +460,13 @@ function CreateCustomPluginsFromSettings($settings) {
             $functions |
               Register-ChatPlugin -Name $pluginSetting.Name -description $pluginSetting.Description | out-null
         } catch {
-            write-warning "Failed to add custom plugin '$($pluginSetting.Name)'; the plugin will be skipped. The error was: $($_.exception.message)"
+            $customPluginFailure = "Failed to add custom plugin '$($pluginSetting.Name)'; the plugin will be skipped. The error was: $($_.exception.message)"
+
+            if ( ! $env:CHATGPS_SETTINGS_IGNORE_DUPLICATE_REGISTER_PLUGIN ) {
+                write-warning $customPluginFailure
+            } else {
+                write-verbose $customPluginFailure
+            }
         }
     }
 }

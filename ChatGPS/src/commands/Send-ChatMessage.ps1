@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+$SendChatMessageJobCount = 0
+
 <#
 .SYNOPSIS
 Sends a message with conversation context to a language model and returns the response from the model.
@@ -51,6 +53,9 @@ MaxReplies is used to control the number of times the script in ReplyBlock will 
 .PARAMETER Session
 Specifies the chat session through which the message will be sent. By default, the current session is used.
 
+.PARAMETER AsJob
+Specifies that the command should be executed asynchronously as a job; this is useful when the interaction is expected to be slow due to significant token processing, inference complexity, or slow inferencing (e.g. inferencing with only CPU and no GPU). Instead of returning the results of the language model interaction, the Send-ChatMessage returns a job that can be managed using standard job commands like Get-Job, Wait-Job, and Receive-Job. Use Receive-Job to obtain the results that would normally be returned without AsJob.
+
 .PARAMETER RawOutput
 Specify RawOutput so that Send-ChatMessage sends only the verbatim output from the language model. By default, the output is in the form of message objects which include the model's response as a field.
 
@@ -67,7 +72,7 @@ Specify this parameter so that a sound is played when a response is received fro
 When MessageSound is true, SoundPath provides a path to the sound, e.g. a wave file or other sound file, to be played audibly when a message is received.
 
 .OUTPUTS
-A message object that contains the response from the language model. The message object contains specific properties for the message text, the time at which the message was received, the sender of the message, etc. If the RawOutput options is specified however then instead of an object, only the message text is emitted.
+When the AsJob parameter is not specivied, the command returns a message object that contains the response from the language model. The message object contains specific properties for the message text, the time at which the message was received, the sender of the message, etc. If the RawOutput options is specified however then instead of an object, only the message text is emitted. If the AsJob parameter is specified, a job object is returned that can be managed with PowerShell's standard Wait-Job, Get-Job, Remove-Job, and Receive-Job commands.
 
 .EXAMPLE
 Send-ChatMessage Hello
@@ -97,6 +102,27 @@ Please generate PowerShell code that outputs the temperature of the CPU. Emit on
 How do I implement splatting in Powershell?
 
 In this example, a text file consistning of prompts delimited by newlines is piped to Send-ChatMessage -- each prompt in the file is processed and its output is emitted. The invocation of Send-ChatMessage is followed by the invocatio of Get-Content against the prompt file so that the prompts it contained can be compared against the output of Send-ChatMessage.
+
+.EXAMPLE
+Get-Content ~/myprompts.txt | Send-ChatMessage -AsJob
+ 
+Id     Name                 PSJobTypeName   State
+--     ----                 -------------   -----
+4      Send-ChatMessageJob2 ThreadJob       Completed
+ 
+Get-Job SendChatMessageJob2 | Receive-Job -Wait
+ 
+Received                 Response
+--------                 --------
+7/11/2025 4:15:41 PM     Get-WmiObject -Class Win32_Processor | Select-Object -ExpandProperty LoadPercentage
+7/11/2025 4:15:42 PM     $params = @{
+                             Parameter1 = 'Value1'
+                             Parameter2 = 'Value2'
+                             Parameter3 = 'Value3'
+                         }
+                         Some-Command @params
+
+This example is the same as the previous case, but the AsJob parameter is used to create a job. Receive-Job is used to wait for the job to finish and return the output, which is identical to the default case where AsJob is not specified.
 
 .EXAMPLE
 Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
@@ -207,6 +233,8 @@ function Send-ChatMessage {
         [Modulus.ChatGPS.Models.ChatSession]
         $Session,
 
+        [switch] $AsJob,
+
         [switch] $RawOutput,
 
         [switch] $NoOutput,
@@ -247,10 +275,26 @@ v        }
 
         $targetSession = GetTargetSession $Session
 
-        SendConnectionTestMessage $targetSession $true
+        $jobBoundParameters = @{}
+        $jobMessages = @()
+
+        if ( ! $AsJob.IsPresent ) {
+            SendConnectionTestMessage $targetSession $true
+        } else {
+            $PSBoundParameters.Keys | foreach {
+                if ( $_ -notin 'AsJob', 'Session', 'Message' ) {
+                    $jobBoundParameters.Add($_, $PSBoundParameters[$_])
+                }
+            }
+        }
     }
 
     process {
+
+        if ( $AsJob.IsPresent ) {
+            $jobMessages += $message
+            return
+        }
 
         $currentMessage = $message
 
@@ -304,5 +348,20 @@ v        }
     }
 
     end {
+        if ( $AsJob.IsPresent ) {
+            $script:SendChatMessageJobCount++
+            Start-ThreadJob -Name "Send-ChatMessageJob$($script:SendChatMessageJobCount)" `
+              -InitializationScript {
+              set-item env:CHATGPS_SETTINGS_IGNORE_DUPLICATE_REGISTER_PLUGIN $true
+                  $erroractionpreference = 'stop'
+              } -ScriptBlock {
+                  param($messages, $session, $parameters, $module)
+                  $module | import-module
+                  $messages | Send-ChatMessage -Session $session @parameters
+              } -ArgumentList $jobMessages,
+                $targetSession,
+                $jobBoundParameters,
+                $myinvocation.mycommand.Module
+        }
     }
 }
