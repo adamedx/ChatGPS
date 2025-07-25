@@ -106,13 +106,16 @@ public class ChatSession
         return function;
     }
 
-    public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
+    public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null, bool? allowAgentAccess = null)
     {
         LazyInitialize();
 
+        var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.AiOptions.AllowAgentAccess is not null ? (bool) this.AiOptions.AllowAgentAccess : false );
+
         var function = FunctionTable.GlobalFunctions.GetFunctionById(functionId);
 
-        return await function.InvokeFunctionAsync(this.chatService, boundParameters);
+        return await function.InvokeFunctionAsync(this.chatService, boundParameters, allowAgentAccessParameter);
     }
 
     public void UpdateLastResponse(string updatedResponse)

@@ -54,7 +54,7 @@ MaxReplies is used to control the number of times the script in ReplyBlock will 
 Specifies the chat session through which the message will be sent. By default, the current session is used.
 
 .PARAMETER AsJob
-Specifies that the command should be executed asynchronously as a job; this is useful when the interaction is expected to be slow due to significant token processing, inference complexity, or slow inferencing (e.g. inferencing with only CPU and no GPU). Instead of returning the results of the language model interaction, the Send-ChatMessage returns a job that can be managed using standard job commands like Get-Job, Wait-Job, and Receive-Job. Use Receive-Job to obtain the results that would normally be returned without AsJob.
+Specifies that the command should be executed asynchronously as a job; this is useful when the interaction is expected to be slow due to significant token processing, inference complexity, or slow inferencing (e.g. inferencing with only CPU and no GPU). Instead of returning the results of the language model interaction, the command returns a job that can be managed using standard job commands like Get-Job, Wait-Job, and Receive-Job. Use Receive-Job to obtain the results that would normally be returned without AsJob.
 
 .PARAMETER RawOutput
 Specify RawOutput so that Send-ChatMessage sends only the verbatim output from the language model. By default, the output is in the form of message objects which include the model's response as a field.
