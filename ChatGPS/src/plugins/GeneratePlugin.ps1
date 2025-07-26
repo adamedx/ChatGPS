@@ -7,7 +7,6 @@ param(
 )
 set-strictmode -version 2
 
-. "$psscriptroot/PowerShellScriptBlock.ps1"
 . "$psscriptroot/PluginUtilities.ps1"
 
 $definition = GetClassDefinition $Name $Description $Scripts

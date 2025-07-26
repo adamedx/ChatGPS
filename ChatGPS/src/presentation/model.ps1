@@ -1,7 +1,18 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 $ChatResponseTypeName = 'Modulus.ChatGPS.PowerShell.ChatResponse'
 
@@ -11,36 +22,31 @@ function TransformResponseText {
         [parameter(valuefrompipeline=$true, mandatory=$true)]
         [PSCustomObject] $Response,
 
+        [string] $UserPrompt,
+
         [ScriptBlock] $ReceiveBlock,
 
         [string] $OutputFormat
     )
 
-    begin {}
+    $inputString = $Response.Response
 
-    process {
-        $inputString = $Response.Response
-
-        $outputResult = if ( $inputString ) {
-            if ( $OutputFormat -eq 'MarkDown' ) {
-                $InputString | Show-Markdown
-            } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
-                $inputString -replace '`e', "`e"
-            } else {
-                $inputString
-            }
-        }
-
-        if ( $outputResult ) {
-            if ( $ReceiveBlock ) {
-                invoke-command -scriptblock $ReceiveBlock -argumentlist $outputResult, $response
-            } else {
-                $outputResult
-            }
+    $outputResult = if ( $inputString ) {
+        if ( $OutputFormat -eq 'MarkDown' ) {
+            $InputString | Show-Markdown
+        } elseif ( $OutputFormat -eq 'PowerShellEscaped' ) {
+            $inputString -replace '`e', "`e"
+        } else {
+            $inputString
         }
     }
 
-    end {
+    if ( $outputResult ) {
+        if ( $ReceiveBlock ) {
+            invoke-command -scriptblock $ReceiveBlock -argumentlist $outputResult, $response, $UserPrompt
+        } else {
+            $outputResult
+        }
     }
 }
 

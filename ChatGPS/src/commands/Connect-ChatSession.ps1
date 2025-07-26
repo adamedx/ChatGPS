@@ -1,7 +1,18 @@
 #
-# Copyright (c) Adam Edwards
+# Copyright (c), Adam Edwards
 #
-# All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 <#
 .SYNOPSIS
@@ -101,12 +112,11 @@ This parameter only takes effect if LogDirectory is also specified as a valid lo
 By default, the command has no output. But if the NoSave or PassThru parameters are specified, the newly connected session is returned as output and can be used as a parameter to other commands.
 
 .EXAMPLE
-In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
-
-PS > Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
-
+Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
 PS > Send-ChatMessage 'how do I find my mac address?'
 
+In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
+ 
 Received                 Response
 --------                 --------
 12/30/2024 9:24:18 PM    ```powershell
@@ -116,21 +126,33 @@ Received                 Response
                          Get-NetAdapter | Select-Object Name, MacAddress # Displays the Name and MAC Address of each
                          adapter
 
-.EXAMPLE
-In this example, a chat session is used to a remote model as in the previous example. In this case, instead of the user's credentials, a symmetric key credential is provided by the ApiKey parameter. The session is also given a name with the Name parameter.
+In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
 
+.EXAMPLE
+Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+PS > Send-ChatMessage 'What attribute do I use to define a specific set of values for the parameter of a Powershell function?'
+ 
+Received                 Response
+--------                 --------
+7/17/2025 10:46:35 PM    Use the `[ValidateSet()]` attribute to define
+                         a specific set of allowed values for a
+                         PowerShell function parameter.
+
+This example creates a new connection using the 'Terse" system prompt Id to get a more concise than is typical for this model, demonstrating that Send-ChatMessage is highly dependent on the chat session's system prompt and other settings. To reduce the need to provide explicit instructions for each message sent with Send-ChatMessage it can be convenient to choose a specific system prompt to impact the session as a whole.
+
+.EXAMPLE
 PS > $secretKey = Get-ChatEncryptedUnicodeKeyCredential
 PS > Connect-ChatSession -Name TestSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
-
+ 
 Id                                   Provider    Name        ModelIdentifier
 --                                   --------    ----        ---------------
 3cb205df-c4e2-4569-a2f3-8a059571ed23 AzureOpenAI TestSession gpt-4o-mini
 
-.EXAMPLE
-This example is similar to those above, but it uses the OpenAI provider instead -- since OpenAI does not currently require an ApiEndpoint parameter but does require an ApiKey parameter, use of the OpenAI provider is the default when only ApiKey is specified. For OpenAI however the ModelIdentifier is required:
+In this example, a chat session is used to a remote model as in the previous example. In this case, instead of the user's credentials, a symmetric key credential is provided by the ApiKey parameter. The session is also given a name with the Name parameter.
 
-PS > $secretKey = Get-ChatEncryptedUnicodeKeyCredential
+.EXAMPLE
+$secretKey = Get-ChatEncryptedUnicodeKeyCredential
 PS > Connect-ChatSession -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
 
@@ -138,12 +160,20 @@ Id                                   Provider    Name ModelIdentifier
 --                                   --------    ---- ---------------
 15934765-10c5-4caf-b477-180abd9d893d OpenAI           gpt-4o-mini
 
+This example is similar to those above, but it uses the OpenAI provider instead -- since OpenAI does not currently require an ApiEndpoint parameter but does require an ApiKey parameter, use of the OpenAI provider is the default when only ApiKey is specified. For OpenAI however the ModelIdentifier is required:
+
 .EXAMPLE
+Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5 -PassThru
+ 
+Id                                   Provider    Name ModelIdentifier
+--                                   --------    ---- ---------------
+5825858e-5fe3-489e-a04f-aa4d494f91b5 LocalOnnx        phi-3.5
+
 This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatShell command is used to start an interactive conversation.
 
-PS > Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5
-PS > Get-ChatSession
-
+.EXAMPLE
+Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5 -PassThrue
+ 
 Id                                   Provider    Name ModelIdentifier
 --                                   --------    ---- ---------------
 5825858e-5fe3-489e-a04f-aa4d494f91b5 LocalOnnx        phi-3.5
@@ -158,7 +188,7 @@ Received                 Response
                          How can I help you today?
 
 .EXAMPLE
-PS > Send-ChatMessage "Hello what is today's date?"
+Send-ChatMessage "Hello what is today's date?"
 
 Received                 Response
 --------                 --------
@@ -207,7 +237,7 @@ The script block is executed every time a message is sent to the model, so this 
 during conversations.
 
 .EXAMPLE
-PS > Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatHistory | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatHistory | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
 
 PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
 
@@ -252,9 +282,7 @@ Timestamp                  Role      Message
 This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatHistory command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatShell command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
 
 .EXAMPLE
-In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatShell command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatShell is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatShell as it still shows the last response from the previous Start-ChatShell usage on that session as the latest response.
-
-PS > Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
+Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $personalKey
 
@@ -305,6 +333,8 @@ Received                 Response
                          ask!
 
 (morpheus) ChatGPS>:
+
+In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatShell command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatShell is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatShell as it still shows the last response from the previous Start-ChatShell usage on that session as the latest response.
 
 .LINK
 Get-ChatSession
@@ -451,6 +481,10 @@ function Connect-ChatSession {
     }
 
     if ( $isLocal ) {
+        if ( $options.provider -eq 'LocalOnnx' ) {
+            write-warning 'The Onnx provider may not be currently supported due to excessive library size issues.'
+        }
+
         if ( ! $NoConnect.IsPresent -and ! ( test-path $options.LocalModelPath ) ) {
             throw [System.IO.FileNotFoundException]::new(
                 "The path $($options.LocalModelPath) specified for a local model could not be found. " +

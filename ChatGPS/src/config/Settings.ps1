@@ -1,7 +1,18 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 $jsonOptionsRead = [System.Text.Json.JsonSerializerOptions]::new()
 $jsonOptionsRead.IncludeFields = $true
@@ -166,7 +177,7 @@ class CustomPluginResource {
     [string] $Name
     [string] $Description
     [string] $PluginType
-    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $Functions
+    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]] $Functions
 }
 
 class CustomPluginResourceSettings {
@@ -376,7 +387,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
 }
 
 function GetCustomPluginSettings($settings, $pluginProviders) {
-    $customPluginProviders = $pluginProviders | where { $_.IsCustom() }
+    $customPluginProviders = $pluginProviders | where { $_.IsCustom }
 
     $customPluginSettings = if ( $customPluginProviders ) {
         foreach ( $provider in $customPluginProviders ) {
@@ -389,7 +400,7 @@ function GetCustomPluginSettings($settings, $pluginProviders) {
             $customPluginSetting.Name = $provider.Name
             $customPluginSetting.Description = $provider.Description
             $customPluginSetting.PluginType = $provider.GetType().FullName
-            $customPluginSetting.Functions = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]]::new()
+            $customPluginSetting.Functions = [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]]::new()
 
             $functions = $provider.GetScripts()
 
@@ -449,7 +460,13 @@ function CreateCustomPluginsFromSettings($settings) {
             $functions |
               Register-ChatPlugin -Name $pluginSetting.Name -description $pluginSetting.Description | out-null
         } catch {
-            write-warning "Failed to add custom plugin '$($pluginSetting.Name)'; the plugin will be skipped. The error was: $($_.exception.message)"
+            $customPluginFailure = "Failed to add custom plugin '$($pluginSetting.Name)'; the plugin will be skipped. The error was: $($_.exception.message)"
+
+            if ( ! $env:CHATGPS_SETTINGS_IGNORE_DUPLICATE_REGISTER_PLUGIN ) {
+                write-warning $customPluginFailure
+            } else {
+                write-verbose $customPluginFailure
+            }
         }
     }
 }

@@ -27,7 +27,7 @@ Author = 'Adam Edwards (adamedx)'
 CompanyName = 'Modulus Group'
 
 # Copyright statement for this module
-Copyright = '(c) Adam Edwards. All rights reserved.'
+Copyright = '(c) Adam Edwards.'
 
 # Description of the functionality provided by this module
 Description = 'AI PowerShell user experience enhancements and automation.'
@@ -84,7 +84,6 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
     'Invoke-ChatFunction'
-    'Invoke-ChatScriptBlock'
     'New-ChatFunction'
     'New-ChatVoice'
     'New-ChatScriptBlock'
@@ -132,11 +131,13 @@ AliasesToExport = @(
 FileList = @(
     'ChatGPS.psd1'
     'lib/ChatGPSLib.dll'
+    'src/aliases.ps1'
     'src/ChatGPS.psm1'
     'src/ChatGPS.ps1'
     'src/codegen.ps1'
     'src/codegen/CodeGeneration.ps1'
     'src/codegen/PowerShellCodeGen.ps1'
+    'src/commands.ps1'
     'src/commands/Add-ChatPlugin.ps1'
     'src/commands/Add-ChatPluginFunction.ps1'
     'src/commands/Build-ChatCode.ps1'
@@ -151,7 +152,6 @@ FileList = @(
     'src/commands/Get-ChatSettingsInfo.ps1'
     'src/commands/Get-ChatVoiceName.ps1'
     'src/commands/Invoke-ChatFunction.ps1'
-    'src/commands/Invoke-ChatScriptBlock.ps1'
     'src/commands/New-ChatFunction.ps1'
     'src/commands/New-ChatScriptBlock.ps1'
     'src/commands/New-ChatSettings.ps1'
@@ -184,8 +184,6 @@ FileList = @(
     'src/plugins/PluginParameter.ps1'
     'src/plugins/PluginParameterCompleter.ps1'
     'src/plugins/PluginUtilities.ps1'
-    'src/plugins/PowerShellKernelPluginBuilder.ps1'
-    'src/plugins/PowerShellScriptBlock.ps1'
     'src/presentation.ps1'
     'src/presentation/model.ps1'
     'src/presentation/reply.ps1'
@@ -219,7 +217,7 @@ PrivateData = @{
         # ReleaseNotes = ''
 
         # Prerelease string of this module
-        # Prerelease = ''
+        Prerelease = 'beta'
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         RequireLicenseAcceptance = $false

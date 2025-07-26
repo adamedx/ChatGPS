@@ -1,8 +1,22 @@
-Roadmap for ChatGPS
+ Roadmap for ChatGPS
 ===================
 
 ## To-do items
 
+* Switch to https://learn.microsoft.com/dotnet/api/system.security.cryptography since it is cross-platform
+* Separate Get-ChatHistory and Clear-ChatHistory into Get-ChatLog and Clear-ChatLog?
+* Make receiveblock take two parameters, the second is the request
+* Add output types to commands
+* Include processing time in custom ChatResponse type
+* Rename receive / response / replyblock
+* Add prompt for missing API key to Connect-ChatSession
+* Create plugins from Build-chatcode
+* Create plugins from natural language
+* Allow a hashtable parameter for powershell plugins
+* Address terminology disambiguation with plugintype vs plugin if needed
+* Add ability to see functions on registered types
+* Possibly change PluginProvider to PluginInfo
+* Add remaining SK core plugins to built-in list
 * Add timeouts to powershell plugin
 * Add progress to powershell plugin
 * Start-Shell should show last response even on first run
@@ -158,6 +172,7 @@ Roadmap for ChatGPS
 * Rename new-chatplugin to Register-ChatPlugin
 * Add Unregister-ChatPlugin
 * Make session listing hide id by default
+* Added AsJob to Send-ChatMessage to support async invocations
 
 ### Plugin notes
 
