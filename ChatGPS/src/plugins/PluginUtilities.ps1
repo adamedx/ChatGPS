@@ -1,13 +1,24 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 #
 
 function GetClassDefinition(
     [string] $pluginName,
     [string] $description,
-    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $scriptTable
+    [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]] $scriptTable
 
 ) {
 
@@ -28,7 +39,7 @@ function RenderClassDefinition(
 [System.ComponentModel.Description("{2}")]
 class {0} : Modulus.ChatGPS.Plugins.PowerShellNativePluginBase {{
 
-    {0}([System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $scriptBlocks) : base("{0}", "{2}", $scriptBlocks) {{ }}
+    {0}([System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]] $scriptBlocks) : base("{0}", "{2}", $scriptBlocks) {{ }}
 
 {1}
 
@@ -40,7 +51,7 @@ class {0} : Modulus.ChatGPS.Plugins.PowerShellNativePluginBase {{
     $pluginTemplate -f $pluginName, $renderedMethods, $description, $invokeScript
 }
 
-function RenderClassMethods( [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellScriptBlock]] $methodTable ) {
+function RenderClassMethods( [System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PowerShellPluginFunction]] $methodTable ) {
     $rendered = foreach ( $methodName in $methodTable.Keys ) {
         RenderMethod $methodName $methodTable[$methodName]
     }
@@ -50,7 +61,7 @@ function RenderClassMethods( [System.Collections.Generic.Dictionary[string,Modul
 
 function RenderMethod(
     [string] $pluginMethodName,
-    [Modulus.ChatGPS.Plugins.PowerShellScriptBlock] $scriptBlock
+    [Modulus.ChatGPS.Plugins.PowerShellPluginFunction] $scriptBlock
 
 ) {
     $targetOutputDescription = if ( $scriptBlock.outputDescription ) {
@@ -164,5 +175,27 @@ function Invoke-PowerShellScript {
 
 function GetInvokeScript {
     (get-command Invoke-PowerShellScript).ScriptBlock.ToString()
+}
+
+function GetGenerationScriptLocation {
+    "$psscriptroot/GeneratePlugin.ps1"
+}
+
+function GetScriptBlockParameterInfo([ScriptBlock] $scriptBlock) {
+    $result = [System.Collections.Generic.Dictionary[string,string]]::new()
+
+    if ( $scriptBlock.ast.ParamBlock -and ( $scriptBlock.ast.ParamBlock | get-member parameters -erroraction ignore ) ) {
+        foreach ( $parameter in $scriptBlock.ast.ParamBlock.parameters ) {
+            $result.Add($parameter.name, $parameter.StaticType)
+        }
+    }
+
+    $result
+}
+
+function NewPowerShellPluginFunction([string] $methodName, [ScriptBlock] $scriptBlock, [string] $description, [string] $OutputType = 'System.String', [string] $outputDescription = $null) {
+    $parameterInfo = GetScriptBlockParameterInfo $scriptBlock
+
+    [Modulus.ChatGPS.Plugins.PowerShellPluginFunction]::new($methodName, $scriptBlock, $parameterInfo, $description, $OutputType, $outputDescription)
 }
 

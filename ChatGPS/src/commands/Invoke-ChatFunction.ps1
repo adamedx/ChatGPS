@@ -1,8 +1,20 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+$InvokeChatFunctionJobCount = 0
 
 <#
 .SYNOPSIS
@@ -27,11 +39,20 @@ The Parameters parameter allows the parameters defined by the chat function to b
 .PARAMETER Session
 The chat session to which the command is targeted.
 
+.PARAMETER AsJob
+Specifies that the command should be executed asynchronously as a job; this is useful when the interaction is expected to be slow due to significant token processing, inference complexity, or slow inferencing (e.g. inferencing with only CPU and no GPU). Instead of returning the results of the language model interaction, the command returns a job that can be managed using standard job commands like Get-Job, Wait-Job, and Receive-Job. Use Receive-Job to obtain the results that would normally be returned without AsJob.
+
+.PARAMETER AllowAgentAccess
+Specify AllowAgentAccess to override the session's AllowAgentAccess value to set it to true such that plugins can be used during command invocation. This parameter only has an impact when the chat session's AllowAgentAccess value is false. For more information about plugins and the AllowAgentAccess setting, see the Set-ChatAgentAccess.
+
+.PARAMETER DisallowAgentAccess
+Specify DisallowAgentAccess to override the session's AllowAgentAccess value to set it to false such that plugins cannot be used during command invocation. This parameter only has an impact when the chat session's AllowAgentAccess value is true. For more information about plugins and the AllowAgentAccess setting, see the Set-ChatAgentAccess.
+
 .OUTPUTS
 The text function result output returned by the language model.
 
 .EXAMPLE
-PS > New-ChatFunction -Name merger 'Provide a single sentence that has the same meaning as the individual sentences {{$sentence1}} and {{$sentence2}}'al sentences {{$sentence1}} and {{$sentence2}}'
+New-ChatFunction -Name merger 'Provide a single sentence that has the same meaning as the individual sentences {{$sentence1}} and {{$sentence2}}'
 PS > Invoke-ChatFunction merger "I use PowerShell.", "I use LLMs."
  
 I use both PowerShell and LLMs.
@@ -39,7 +60,7 @@ I use both PowerShell and LLMs.
 In this example, the New-ChatFunction comamand is first used to create a new function named 'merger' that merges two sentences into a single sentence. When Invoke-ChatFunction is specified, the first parameter is the function name, followed by the parameters as an array using PowerShell's standard comma-separated list format for arrays. Specifying parameters by order is convenient, though if the function definition is changed in a way that the parameters are re-ordered then the order of parameters specified to Invoke-ChatFunction must also be changed to avoid incorrect behavior.
 
 .EXAMPLE
-PS > $pascal = New-ChatFunction 'Generate code that outputs the first {{$rows}} levels of Pascals triangle using the programming language {{$language}}'
+$pascal = New-ChatFunction 'Generate code that outputs the first {{$rows}} levels of Pascals triangle using the programming language {{$language}}'
 PS > $pascal | Invoke-ChatFunction -parameters @{language='powershell';rows=3}
  
 ```powershell
@@ -73,7 +94,7 @@ function Generate-PascalsTriangle {
 This example shows how Invoke-ChatFunction can accept parameters bound by name rather than order by specifying a Hashtable data type for the parameters parameter. This ensures that if the order of the parameters in a function definition changes, the Invoke-ChatFunction usage of that function will not be impacted.
 
 .EXAMPLE
-PS > $scriptWriter = New-ChatFunction 'Generate PowerShell code that accomplishes the following goal {{$goal}}. Output only valid PowerShell that can be directly executed by the PowerShell interpreter. Do not include explanations or any markdown formatting, include only the code.'
+$scriptWriter = New-ChatFunction 'Generate PowerShell code that accomplishes the following goal {{$goal}}. Output only valid PowerShell that can be directly executed by the PowerShell interpreter. Do not include explanations or any markdown formatting, include only the code.'
 PS > $scriptWriter | Invoke-ChatFunction -Parameters 'Show the processes that are top 3 in memory utilization' | Invoke-Expression
  
 Name           Memory (MB)
@@ -84,13 +105,27 @@ msedgewebview2      440.34
 
 Invoke-ChatFunction's output can be used with other PowerShell commands. In this case, invoke a function that translates natural language to PowerShell code, and this code is then executed within PowerShell. Note that executing code returned by a language model is risky since models cannot be relied upon to generate accurate or even safe code; when experimenting with such techniques, do so only in an environment where the code cannot access resources using your identity or otherwise interact with sensitive data.
 
+.EXAMPLE
+Add-ChatPlugin FileIOPlugin
+PS > $scriptAnalyzer = New-ChatFunction 'Summarize in three sentences or less the purpose of the PowerShell code at the local file system location {{$path}}'
+PS > $scriptAnalyzer | Invoke-ChatFunction -Parameters .\commands\Invoke-ChatFunction.ps1 -AllowAgentAccess
+ 
+Id      Name                    PSJobTypeName   State      HasMoreData
+--      ----                    -------------   -----      -----------
+13      Invoke-ChatFunctionJob5 ThreadJob       Running    False
+ 
+PS > Wait-Job Invoke-ChatFunctionJob5 | Receive-Job -Wait
+ 
+The PowerShell code in `Invoke-ChatFunction.ps1` defines a function that executes previously defined "chat" functions using natural language prompts. These functions are created with the `New-ChatFunction` command and can accept parameters specified by the user, allowing interaction with a language model to process the prompts and return the results. Additionally, it supports running the function asynchronously as a background job to handle time-consuming computations.
+
+This example shows how to invoke a chat function asynchronously as a PowerShell job using the AsJob parameter, and also demonstrates the way in which chat plugins can be used with chat functions to allow the function to access local or other user resources. In this case, the FileIOPlugin is added to the session so that when the chat function is invoked, it can read the contents of the file in the given path and then summarize it according to the natural language instructions provided as the function's definition. The AllowAgentAccess parameter ensures that even if Set-ChatAgentAccess has not been used to configure the ability to use plugins like the FileIOPlugin, that configuration will be overridden for this command invocation so that the plugin may be used.
+
 .LINK
 New-ChatFunction
 Get-ChatFunction
 Remove-ChatFunction
 New-ChatScriptBlock
 #>
-
 function Invoke-ChatFunction {
     [cmdletbinding(positionalbinding=$false)]
     param(
@@ -103,15 +138,28 @@ function Invoke-ChatFunction {
         [parameter(parametersetname='definition', mandatory=$true)]
         [string] $Definition,
 
-        [parameter(parametersetname='name', position=1)]
-        [parameter(parametersetname='id', position=0)]
-        [parameter(parametersetname='definition', position=0)]
         [object] $Parameters = $null,
 
-        [Modulus.ChatGPS.Models.ChatSession] $Session
+        [Modulus.ChatGPS.Models.ChatSession] $Session,
+
+        [switch] $AsJob,
+
+        [switch] $AllowAgentAccess,
+
+        [switch] $DisallowAgentAccess
     )
 
     begin {
+        if ( $PSBoundParameters.Keys.Contains('AllowAgentAccess') -and $PSBoundParameters.Keys.Contains('DisallowAgentAccess')) {
+            throw [ArgumentException]::new("AllowAgentAccess and DisallowAgentAccess may not both be set")
+        }
+
+        $agentAccessParameter = if ( $AllowAgentAccess.IsPresent ) {
+            $true
+        } elseif ( $DisallowAgentAccess.IsPresent ) {
+            $false
+        }
+
         $targetSession = GetTargetSession $Session $true
 
         $functions = GetFunctionInfo
@@ -132,15 +180,34 @@ function Invoke-ChatFunction {
             $definitionParameters = [Function]::GetParametersFromDefinition($Definition)
             [Modulus.ChatGPS.Models.Function]::new($null, $definitionParameters, $Definition)
         }
+
+        $jobBoundParameters = @{}
+        $jobFunctions = @()
+
+        if ( ! $AsJob.IsPresent ) {
+            SendConnectionTestMessage $targetSession $true
+        } else {
+            $PSBoundParameters.Keys | foreach {
+                if ( $_ -notin 'AsJob', 'Session', 'Id', 'Name', 'FunctionDefinition' ) {
+                    $jobBoundParameters.Add($_, $PSBoundParameters[$_])
+                }
+            }
+        }
     }
 
     process {
+
         $function = if ( $Id ) {
             $functions.GetFunctionById($Id)
         } elseif ( $Name ) {
             $functions.GetFunctionByName($Name)
         } else {
             $temporaryFunction
+        }
+
+        if ( $AsJob.IsPresent ) {
+            $jobFunctions += $function
+            return
         }
 
         $targetParameters = if ( ! $hasOrderedParameters ) {
@@ -170,7 +237,7 @@ function Invoke-ChatFunction {
                 $functions.AddFunction($function, $false)
             }
 
-            $targetSession.InvokeFunctionAsync($function.Id, $targetParameters)
+            $targetSession.InvokeFunctionAsync($function.Id, $targetParameters, $agentAccessParameter)
         } finally {
             if ( $temporaryFunction ) {
                 $functions.RemoveFunction($function.id)
@@ -186,8 +253,24 @@ function Invoke-ChatFunction {
     }
 
     end {
+        if ( $AsJob.IsPresent ) {
+            $script:InvokeChatFunctionJobCount++
+            Start-ThreadJob -Name "Invoke-ChatFunctionJob$($script:InvokeChatFunctionJobCount)" `
+              -InitializationScript {
+              set-item env:CHATGPS_SETTINGS_IGNORE_DUPLICATE_REGISTER_PLUGIN $true
+                  $erroractionpreference = 'stop'
+              } -ScriptBlock {
+                  param($functions, $session, $parameters, $module)
+                  $module | import-module
+                  $functions | Invoke-ChatFunction -Session $session @parameters
+              } -ArgumentList $jobFunctions,
+                $targetSession,
+                $jobBoundParameters,
+                $myinvocation.mycommand.Module
+        }
     }
 
 }
 
 [Function]::RegisterFunctionNameCompleter('Invoke-ChatFunction', 'Name')
+

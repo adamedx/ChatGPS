@@ -1,7 +1,17 @@
 //
 // Copyright (c), Adam Edwards
 //
-// All rights reserved.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 
 using System.Collections.Generic;
@@ -19,18 +29,17 @@ public abstract class PluginProvider
         PluginProvider.builtinProviders = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
 
         #pragma warning disable SKEXP0050
+        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.ConversationSummaryPlugin),
+                                                                 "Summarizes a conversation."));
+        PluginProvider.RegisterProvider(new DocumentPluginProvider());
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin),
                                                                  "Enables read and write access to the local file system."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.MathPlugin),
-                                                                 "Uses the local computer to computer the value of mathematical expressions efficiently."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin),
                                                                  "Allows the local computer to perform string manipulations."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin),
                                                                  "Enables the local computer to access local and remote resources via http protocol requests."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TimePlugin),
                                                                  "Uses the local computer to obtain the current time."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Web.WebFileDownloadPlugin),
-                                                                 "Enables access to web content by downloading it to the local computer."));
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin),
                                                                  "Computes the search url for popular websites."));
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Bing, "Bing"));
@@ -46,9 +55,12 @@ public abstract class PluginProvider
         }
     }
 
-    public bool IsCustom()
+    public bool IsCustom
     {
-        return ! PluginProvider.builtinProviders.ContainsKey(this.Name);
+        get
+        {
+            return ! PluginProvider.builtinProviders.ContainsKey(this.Name);
+        }
     }
 
     public static void UnregisterProvider(string providerName)
@@ -68,22 +80,28 @@ public abstract class PluginProvider
         }
     }
 
-    protected PluginProvider(string name, string? description = null)
+    protected PluginProvider(string name, string? description = null, PluginParameter[]? parameters = null)
     {
         this.parameterSpec = new Dictionary<string, PluginParameter>();
 
         this.Name = name;
         this.Description = description ?? "Allows local operations to be invoked by instructions from a language model.";
+
+        if ( parameters is not null )
+        {
+            foreach ( var parameter in parameters )
+            {
+                AddPluginParameter(parameter);
+            }
+        }
     }
 
     internal abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters);
 
     internal virtual void InitializeInstanceFromData(string[] jsonData) { }
 
-    internal static object? RegisterProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null, bool getNativeInstance = false, bool isCustomProvider = false)
+    internal static void RegisterProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null, bool getNativeInstance = false, bool isCustomProvider = false)
     {
-        object? result = null;
-
         if ( PluginProvider.providers.ContainsKey(provider.Name) )
         {
             throw new ArgumentException($"The specified plugin provider '{provider.Name}' already exists");
@@ -91,7 +109,8 @@ public abstract class PluginProvider
 
         if ( getNativeInstance )
         {
-            result = provider.GetNativeInstance( instanceParameters );
+            // Force the initialization, though the result is not needed in this situation
+            provider.GetNativeInstance( instanceParameters );
         }
 
         PluginProvider.providers.Add(provider.Name, provider);
@@ -100,13 +119,11 @@ public abstract class PluginProvider
         {
             PluginProvider.builtinProviders.Add(provider.Name, provider);
         }
-
-        return result;
     }
 
-    public static object? NewProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null)
+    public static void NewProvider(PluginProvider provider, Dictionary<string,PluginParameterValue>? instanceParameters = null)
     {
-        return RegisterProvider(provider, instanceParameters, true, true);
+        RegisterProvider(provider, instanceParameters, true, true);
     }
 
     public static IEnumerable<PluginProvider> GetProviders()
@@ -180,11 +197,18 @@ public abstract class PluginProvider
     {
         var parameter = new PluginParameter(name, description, required, encrypted);
 
-        this.parameterSpec.Add(name, parameter);
+        AddPluginParameter(parameter);
     }
+
+    protected void AddPluginParameter(PluginParameter parameter)
+    {
+        this.parameterSpec.Add(parameter.Name, parameter);
+    }
+
 
     private static Dictionary<string, PluginProvider> providers;
     private static Dictionary<string, PluginProvider> builtinProviders;
 
     private Dictionary<string, PluginParameter> parameterSpec;
 }
+

@@ -1,7 +1,17 @@
 //
-// Copyright 2023, Adam Edwards
+// Copyright (c), Adam Edwards
 //
-// All rights reserved.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 
 namespace Modulus.ChatGPS.Models;
@@ -96,13 +106,16 @@ public class ChatSession
         return function;
     }
 
-    public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null)
+    public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null, bool? allowAgentAccess = null)
     {
         LazyInitialize();
 
+        var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
+            ( this.AiOptions.AllowAgentAccess is not null ? (bool) this.AiOptions.AllowAgentAccess : false );
+
         var function = FunctionTable.GlobalFunctions.GetFunctionById(functionId);
 
-        return await function.InvokeFunctionAsync(this.chatService, boundParameters);
+        return await function.InvokeFunctionAsync(this.chatService, boundParameters, allowAgentAccessParameter);
     }
 
     public void UpdateLastResponse(string updatedResponse)
@@ -149,6 +162,20 @@ public class ChatSession
         this.chatService.Plugins.RemovePlugin(name);
     }
 
+    public Plugin GetPlugin(string name)
+    {
+        LazyInitialize();
+
+        Plugin? result;
+
+        if ( ! this.chatService.Plugins.TryGetPlugin(name, out result) || result is null )
+        {
+            throw new KeyNotFoundException($"The specified plugin {name} does not exist in the session with Id='{this.Id.ToString()}'.");
+        }
+
+        return result;
+    }
+
     public ChatMessageHistory History
     {
         get
@@ -183,6 +210,7 @@ public class ChatSession
 
     public void ResetHistory(bool currentOnly)
     {
+        // Reset preserves the system prompt
         this.publicChatHistory.Reset();
 
         if ( ! currentOnly )

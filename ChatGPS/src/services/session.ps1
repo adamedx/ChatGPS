@@ -1,7 +1,18 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 $Sessions = [ordered] @{}
 $CurrentSession = $null
@@ -265,7 +276,7 @@ function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false
     $targetSession
 }
 
-function SendMessage($session, $prompt, $functionDefinition) {
+function SendMessage($session, $prompt, $functionDefinition, $allowAgentAccess = $null) {
     $sendBlock = GetSendBlock $session
 
     $targetPrompt = if ( ! $sendBlock ) {
@@ -275,9 +286,9 @@ function SendMessage($session, $prompt, $functionDefinition) {
     }
 
     $response = if ( $functionDefinition ) {
-        $session.GenerateFunctionResponse($functionDefinition, $targetPrompt)
+        $session.GenerateFunctionResponse($functionDefinition, $targetPrompt, $allowAgentAccess)
     } else {
-        $session.GenerateMessage(@($targetPrompt))
+        $session.GenerateMessage(@($targetPrompt), $allowAgentAccess)
     }
 
     $receiveBlock = GetReceiveBlock $session
@@ -311,12 +322,29 @@ function GetReceiveBlock($session) {
     }
 }
 
-function RegisterSessionCompleter([string] $command, [string] $parameterName) {
-    $sessionNameCompleter = {
+function RegisterSessionCompleter([string] $command, [string] $parameterName, [string] $propertyNameToComplete) {
+    # This scheme just needs to be changed -- there is confusion between the parameter being completed
+    # and the property on the session object.
+
+    # Because of all this complexity, we have to dynamically generate code to create scriptblock. :(
+
+    $targetProperty = if ( $propertyNameToComplete ) {
+       $propertyNameToComplete
+   } else {
+       $parameterName
+   }
+
+    $completerDefinition = @'
         param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameters)
-        $sessions = GetChatSessions | where $parameterName -ne $null | sort-object $parameterName
-        $sessions.$parameterName | where { $_.ToString().StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }
-    }
+$sessions = GetChatSessions | where {0} -ne $null | sort-object $parameterName
+                             $sessions.{0} | where {{ $_.ToString().StartsWith($wordToComplete, [System.StringComparison]::InvariantCultureIgnoreCase) }}
+'@ -f $targetProperty
+
+    $scriptBlock = [ScriptBlock]::Create($completerDefinition)
+
+    # Have to use this NewBoundScriptBlock trick so that the generated code is actually
+    # part of the same module as this (the calling) function. Wild.
+    $sessionNameCompleter  = {}.Module.NewBoundScriptBlock($scriptBlock)
 
     Register-ArgumentCompleter -commandname $command -ParameterName $parameterName -ScriptBlock $sessionNameCompleter
 }

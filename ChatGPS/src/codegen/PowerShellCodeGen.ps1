@@ -1,8 +1,27 @@
+﻿#
+# Copyright (c), Adam Edwards
 #
-# Copyright (c) Adam Edwards
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# All rights reserved.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#
+
+function GenerateScriptBlockFromCodeText([string] $codeText) {
+    try {
+        [ScriptBlock]::Create($codeText)
+    } catch {
+        throw [FormatException]::new("Code generation failed with the error '$_'. The generated code was not valid code in this language. Ensure that the problem specified in the natural language description has any possible solution within this programming language, and if so, consider increasing the number of attempts the language model should use for difficult problems. See the following generated code: `n$($codeText)`n", $_.exception)
+    }
+}
 
 & {
     $PowerShellInstructions = @"
@@ -11,17 +30,21 @@ You will generate the code in the form of a Powershell Script Block, starting wi
 
     $responseCorrectionBlock = {
         param($responseText)
-        $responseText.TrimStart('{').TrimEnd('}')
+        if ( $responseText.Trim().StartsWith('{') ) {
+            $responseText.TrimStart('{').TrimEnd('}')
+        } else {
+            $responseText
+        }
     }
 
     $responseValidationBlock = {
         param($responseText)
-        [ScriptBlock]::Create($responseText) | out-null
+        GenerateScriptBlockFromCodeText $responseText | out-null
     }
 
     $responseExecutableBlock = {
         param($responseText)
-        [ScriptBlock]::Create($responseText)
+        GenerateScriptBlockFromCodeText $responseText
     }
 
     AddLanguageGenerationInfo PowerShell $PowerShellInstructions $responseCorrectionBlock $responseValidationBlock $responseExecutableBlock
