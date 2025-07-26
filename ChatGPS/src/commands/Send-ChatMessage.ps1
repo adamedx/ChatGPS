@@ -56,6 +56,12 @@ Specifies the chat session through which the message will be sent. By default, t
 .PARAMETER AsJob
 Specifies that the command should be executed asynchronously as a job; this is useful when the interaction is expected to be slow due to significant token processing, inference complexity, or slow inferencing (e.g. inferencing with only CPU and no GPU). Instead of returning the results of the language model interaction, the command returns a job that can be managed using standard job commands like Get-Job, Wait-Job, and Receive-Job. Use Receive-Job to obtain the results that would normally be returned without AsJob.
 
+.PARAMETER AllowAgentAccess
+Specify AllowAgentAccess to override the session's AllowAgentAccess value to set it to true such that plugins can be used during command invocation. This parameter only has an impact when the chat session's AllowAgentAccess value is false. For more information about plugins and the AllowAgentAccess setting, see the Set-ChatAgentAccess.
+
+.PARAMETER DisallowAgentAccess
+Specify DisallowAgentAccess to override the session's AllowAgentAccess value to set it to false such that plugins cannot be used during command invocation. This parameter only has an impact when the chat session's AllowAgentAccess value is true. For more information about plugins and the AllowAgentAccess setting, see the Set-ChatAgentAccess.
+
 .PARAMETER RawOutput
 Specify RawOutput so that Send-ChatMessage sends only the verbatim output from the language model. By default, the output is in the form of message objects which include the model's response as a field.
 
@@ -135,7 +141,23 @@ Received                 Response
                          PowerShell function parameter.
 
 This example creates a new connection using the 'Terse" system prompt Id to get a more concise than is typical for this model, demonstrating that Send-ChatMessage is highly dependent on the chat session's system prompt and other settings. To reduce the need to provide explicit instructions for each message sent with Send-ChatMessage it can be convenient to choose a specific system prompt to impact the session as a whole.
+
+.EXAMPLE
+Add-ChatPlugin FileIOPlugin
+PS > Send-ChatMessage -AllowAgentAccess 'Summarize in one sentences the purpose of the following PowerShell code located at the path ./commands/Send-ChatMessage.ps1.'
  
+Received                 Response
+--------                 --------
+7/25/2025 11:15:16 PM    The purpose of the PowerShell code located at
+                         `./commands/Send-ChatMessage.ps1`
+                         is to send a specified message to a language
+                         model within a chat session, receive the model's
+                         response, and return it as output, all while
+                         maintaining conversation context and allowing for
+                         automated scripts to interact with the model.
+
+This example shows how to enable agent access, which in this case allows the FileIOPlugin to be used to access a file as directed by the message sent by Send-ChatMessage. The AllowAgentAccess parameter is specified to ensure that plugins are allowed, even if the session has not been configured to set the AllowAgentAccess property to true using Set-ChatAgentAccess.
+
 .EXAMPLE
 Send-ChatMessage 'Can you generate concise Python code to issue an HTTP GET request?' | Select-Object  Content
  
@@ -235,6 +257,10 @@ function Send-ChatMessage {
 
         [switch] $AsJob,
 
+        [switch] $AllowAgentAccess,
+
+        [switch] $DisallowAgentAccess,
+
         [switch] $RawOutput,
 
         [switch] $NoOutput,
@@ -247,6 +273,16 @@ function Send-ChatMessage {
     )
 
     begin {
+        if ( $PSBoundParameters.Keys.Contains('AllowAgentAccess') -and $PSBoundParameters.Keys.Contains('DisallowAgentAccess')) {
+            throw [ArgumentException]::new("AllowAgentAccess and DisallowAgentAccess may not both be set")
+        }
+
+        $agentAccessParameter = if ( $AllowAgentAccess.IsPresent ) {
+            $true
+        } elseif ( $DisallowAgentAccess.IsPresent ) {
+            $false
+        }
+
         $currentReplies = $MaxReplies
 
         $formatParameters = GetPassthroughChatParams -AllParameters $PSBoundParameters
@@ -302,7 +338,7 @@ v        }
 
             write-progress "Sending message" -percentcomplete 35
 
-            $response = SendMessage $targetSession $currentMessage $messageFunction
+            $response = SendMessage $targetSession $currentMessage $messageFunction $agentAccessParameter
 
             write-progress "Response received, transforming" -percentcomplete 70
 

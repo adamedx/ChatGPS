@@ -42,6 +42,12 @@ The chat session to which the command is targeted.
 .PARAMETER AsJob
 Specifies that the command should be executed asynchronously as a job; this is useful when the interaction is expected to be slow due to significant token processing, inference complexity, or slow inferencing (e.g. inferencing with only CPU and no GPU). Instead of returning the results of the language model interaction, the command returns a job that can be managed using standard job commands like Get-Job, Wait-Job, and Receive-Job. Use Receive-Job to obtain the results that would normally be returned without AsJob.
 
+.PARAMETER AllowAgentAccess
+Specify AllowAgentAccess to override the session's AllowAgentAccess value to set it to true such that plugins can be used during command invocation. This parameter only has an impact when the chat session's AllowAgentAccess value is false. For more information about plugins and the AllowAgentAccess setting, see the Set-ChatAgentAccess.
+
+.PARAMETER DisallowAgentAccess
+Specify DisallowAgentAccess to override the session's AllowAgentAccess value to set it to false such that plugins cannot be used during command invocation. This parameter only has an impact when the chat session's AllowAgentAccess value is true. For more information about plugins and the AllowAgentAccess setting, see the Set-ChatAgentAccess.
+
 .OUTPUTS
 The text function result output returned by the language model.
 
@@ -100,9 +106,9 @@ msedgewebview2      440.34
 Invoke-ChatFunction's output can be used with other PowerShell commands. In this case, invoke a function that translates natural language to PowerShell code, and this code is then executed within PowerShell. Note that executing code returned by a language model is risky since models cannot be relied upon to generate accurate or even safe code; when experimenting with such techniques, do so only in an environment where the code cannot access resources using your identity or otherwise interact with sensitive data.
 
 .EXAMPLE
-Set-ChatAgentAccess -Allowed
-PS > scriptAnalyzer = New-ChatFunction 'Summarize in three sentences or less the purpose of the PowerShell code at the local file system location {{$path}}'
-PS > $scriptAnalyzer | Invoke-ChatFunction -Parameters .\commands\Invoke-ChatFunction.ps1
+Add-ChatPlugin FileIOPlugin
+PS > $scriptAnalyzer = New-ChatFunction 'Summarize in three sentences or less the purpose of the PowerShell code at the local file system location {{$path}}'
+PS > $scriptAnalyzer | Invoke-ChatFunction -Parameters .\commands\Invoke-ChatFunction.ps1 -AllowAgentAccess
  
 Id      Name                    PSJobTypeName   State      HasMoreData
 --      ----                    -------------   -----      -----------
@@ -112,7 +118,7 @@ PS > Wait-Job Invoke-ChatFunctionJob5 | Receive-Job -Wait
  
 The PowerShell code in `Invoke-ChatFunction.ps1` defines a function that executes previously defined "chat" functions using natural language prompts. These functions are created with the `New-ChatFunction` command and can accept parameters specified by the user, allowing interaction with a language model to process the prompts and return the results. Additionally, it supports running the function asynchronously as a background job to handle time-consuming computations.
 
-This example shows how to invoke a chat function asynchronously as a PowerShell job using the AsJob parameter, and also demonstrates the way in which chat plugins can be used with chat functions to allow the function to access local or other user resources. In this case, the FileIOPlugin is added to the session so that when the chat function is invoked, it can read the contents of the file in the given path and then summarize it according to the natural language instructions provided as the function's definition.
+This example shows how to invoke a chat function asynchronously as a PowerShell job using the AsJob parameter, and also demonstrates the way in which chat plugins can be used with chat functions to allow the function to access local or other user resources. In this case, the FileIOPlugin is added to the session so that when the chat function is invoked, it can read the contents of the file in the given path and then summarize it according to the natural language instructions provided as the function's definition. The AllowAgentAccess parameter ensures that even if Set-ChatAgentAccess has not been used to configure the ability to use plugins like the FileIOPlugin, that configuration will be overridden for this command invocation so that the plugin may be used.
 
 .LINK
 New-ChatFunction
@@ -136,10 +142,24 @@ function Invoke-ChatFunction {
 
         [Modulus.ChatGPS.Models.ChatSession] $Session,
 
-        [switch] $AsJob
+        [switch] $AsJob,
+
+        [switch] $AllowAgentAccess,
+
+        [switch] $DisallowAgentAccess
     )
 
     begin {
+        if ( $PSBoundParameters.Keys.Contains('AllowAgentAccess') -and $PSBoundParameters.Keys.Contains('DisallowAgentAccess')) {
+            throw [ArgumentException]::new("AllowAgentAccess and DisallowAgentAccess may not both be set")
+        }
+
+        $agentAccessParameter = if ( $AllowAgentAccess.IsPresent ) {
+            $true
+        } elseif ( $DisallowAgentAccess.IsPresent ) {
+            $false
+        }
+
         $targetSession = GetTargetSession $Session $true
 
         $functions = GetFunctionInfo
@@ -217,7 +237,7 @@ function Invoke-ChatFunction {
                 $functions.AddFunction($function, $false)
             }
 
-            $targetSession.InvokeFunctionAsync($function.Id, $targetParameters)
+            $targetSession.InvokeFunctionAsync($function.Id, $targetParameters, $agentAccessParameter)
         } finally {
             if ( $temporaryFunction ) {
                 $functions.RemoveFunction($function.id)

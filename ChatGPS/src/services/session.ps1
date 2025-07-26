@@ -276,7 +276,7 @@ function GetTargetSession($userSpecifiedSession, [bool] $failIfNotFound = $false
     $targetSession
 }
 
-function SendMessage($session, $prompt, $functionDefinition) {
+function SendMessage($session, $prompt, $functionDefinition, $allowAgentAccess = $null) {
     $sendBlock = GetSendBlock $session
 
     $targetPrompt = if ( ! $sendBlock ) {
@@ -286,9 +286,9 @@ function SendMessage($session, $prompt, $functionDefinition) {
     }
 
     $response = if ( $functionDefinition ) {
-        $session.GenerateFunctionResponse($functionDefinition, $targetPrompt)
+        $session.GenerateFunctionResponse($functionDefinition, $targetPrompt, $allowAgentAccess)
     } else {
-        $session.GenerateMessage(@($targetPrompt))
+        $session.GenerateMessage(@($targetPrompt), $allowAgentAccess)
     }
 
     $receiveBlock = GetReceiveBlock $session

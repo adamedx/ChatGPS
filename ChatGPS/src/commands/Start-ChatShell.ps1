@@ -357,6 +357,10 @@ function Start-ChatShell {
 
         [int32] $MaxReplies = 1,
 
+        [switch] $AllowAgentAccess,
+
+        [switch] $DisallowAgentAccess,
+
         [switch] $NoAutoConnect,
 
         [switch] $MessageSound,
@@ -373,6 +377,20 @@ function Start-ChatShell {
     )
 
     begin {
+
+        if ( $PSBoundParameters.Keys.Contains('AllowAgentAccess') -and $PSBoundParameters.Keys.Contains('DisallowAgentAccess')) {
+            throw [ArgumentException]::new("AllowAgentAccess and DisallowAgentAccess may not both be set")
+        }
+
+        $agentAccessParameter = @{}
+
+        if ( $AllowAgentAccess.IsPresent ) {
+            $agentAccessParameter.Add('AllowAgentAccess', $AllowAgentAccess)
+        }
+
+        if ( $DisallowAgentAccess.IsPresent ) {
+            $agentAccessParameter.Add('DisallowAgentAccess', $DisallowAgentAccess)
+        }
 
         $currentReplies = $MaxReplies
 
@@ -430,7 +448,7 @@ function Start-ChatShell {
                 ( '-' * $conversationTitle.Length ) | write-host -foregroundcolor cyan
             }
         } elseif ( $sessionArgument.Session ) {
-            $lastMessage = $sessionArgument.Session.History | select -last 1
+            $lastMessage = $sessionArgument.Session.CurrentHistory | select -last 1
             $initialResponse = if ( $lastMessage.Role -eq 'assistant' ) {
                 $lastMessage.Content |
                   ToResponse -role $lastMessage.Role -Received ([DateTime]::now)
@@ -538,7 +556,7 @@ function Start-ChatShell {
             $failed = $false
 
             $result = try {
-                Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter
+                Send-ChatMessage $inputText @sessionArgument -OutputFormat $OutputFormat @targetReceiveBlock @soundParameters -RawOutput:$RawOutput.IsPresent @functionDefinitionParameter @agentAccessParameter
                 $lastInputText = $inputText
             } catch {
                 $failed = $true

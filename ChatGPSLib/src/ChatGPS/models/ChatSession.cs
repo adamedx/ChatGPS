@@ -210,11 +210,12 @@ public class ChatSession
 
     public void ResetHistory(bool currentOnly)
     {
-        this.publicChatHistory.Clear();
+        // Reset preserves the system prompt
+        this.publicChatHistory.Reset();
 
         if ( ! currentOnly )
         {
-            this.publicTotalChatHistory.Clear();
+            this.publicTotalChatHistory.Reset();
         }
     }
 
