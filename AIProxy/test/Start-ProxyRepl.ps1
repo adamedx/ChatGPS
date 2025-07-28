@@ -138,6 +138,12 @@ function Start-ProxyRepl {
         $commandArguments
     }
 
+    function CreateExitRequest() {
+        $exitRequest = [Modulus.ChatGPS.Models.Proxy.ExitRequest]::new()
+        $commandArguments = [System.Text.Json.JsonSerializer]::Serialize($exitRequest, $exitRequest.GetType(), $jsonOptions)
+        $commandArguments
+    }
+
     function ProcessOutput($decodedOutput) {
         if ( $decodedOutput ) {
             $response = [System.Text.Json.JsonSerializer]::Deserialize[Modulus.ChatGPS.Models.Proxy.ProxyResponse]($decodedOutput, $jsonOptions)
@@ -277,16 +283,20 @@ __Get-Function $arguments
             }
             '.help' {
                 write-host -foreground yellow "`n`tBuilt-in commands:`n"
+                write-host -foreground cyan "`t`t.close # Send terminate but don't exit REPL"
                 write-host -foreground cyan "`t`t.connect"
+                write-host -foreground cyan "`t`t.exit # Send terminate and exit REPL"
                 write-host -foreground cyan "`t`t.function <function> <parameters>"
                 write-host -foreground cyan "`t`t.help"
                 write-host -foreground cyan "`t`t.invoke <built-in command> <arguments>"
+                write-host -foreground cyan "`t`t.quit # Exit REPL without sending terminate"
                 write-host -foreground cyan "`t`t.sendchat <message>"
                 write-host -foreground cyan "`t`t.showconnection"
                 write-host -foreground cyan "`t`t.showfunction"
 
                 write-host "`n`tUse '.help' to see this message."
                 write-host "`tUse '.connect' to start a session with the AI resource."
+                write-host "`n`tUse '.exit' to exit the REPL."
                 write-host "`tEach line of text you enter will be sent to the AI to"
                 write-host "`tawait a response unless it starts with a '.' command.`n"
 
@@ -311,7 +321,11 @@ __Get-Function $arguments
     }
 
     $logFileArgument = if ( $LogFile ) {
-        "--logfile '$LogFile'"
+        if ( ! ( Test-Path $LogFile ) ) {
+            Set-Content -Path $LogFile -Value ([byte[]]::new(0))
+        }
+        $logFilePath = (Get-Item $LogFile).FullName
+        "--logfile '$logFilePath'"
     } else {
         ""
     }
@@ -335,7 +349,7 @@ __Get-Function $arguments
 
     $process.start() | out-null
 
-    write-verbose "Started process successfully with PID $$(process.Id)"
+    write-verbose "Started process successfully with PID $($process.Id)"
 
     $tries = 0
     $commandName = $null
@@ -364,12 +378,24 @@ __Get-Function $arguments
                 switch ( $commandName ) {
                     '.exit' {
                         $exitRequested = $true
+                        $proxyCommandArguments = CreateExitRequest
                         'exit'
                         break
                     }
 
+                    '.close' {
+                        $proxyCommandArguments = CreateExitRequest
+                        'exit'
+                        break
+                    }
+
+                    '.quit' {
+                        $exitRequested = $true
+                        break
+                    }
+
                     '.command' {
-                        $proxyCommand.Substring($commandName.Length + 1, $proxyCommand.Length - $commandNameEnd).Trim()
+                        $proxyCommand.Substring($commandName.Length + 1, $proxyCommand.Length - $commandNameEnd - 1).Trim()
                         break
                     }
 
@@ -377,7 +403,7 @@ __Get-Function $arguments
                         $configJson = if ( $aiconfig ) {
                             $aiconfig
                         } else {
-                            $proxyCommand.Substring($commandNameEnd + 1, $proxyCommand.Length - $commandNameEnd).Trim()
+                            $proxyCommand.Substring($commandNameEnd + 1, $proxyCommand.Length - $commandNameEnd - 1).Trim()
                         }
 
                         $proxyCommandArguments = CreateConnectionRequest $configJson
@@ -434,10 +460,6 @@ __Get-Function $arguments
             }
         } catch {
             write-error $_ -erroraction continue
-        }
-
-        if ( $exitRequested ) {
-            break
         }
 
         if ( $invalidCommand )  {
@@ -512,6 +534,10 @@ __Get-Function $arguments
                 $failed = $true
                 break
             }
+        }
+
+        if ( $exitRequested ) {
+            break
         }
 
         if ( $failed ) {

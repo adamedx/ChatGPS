@@ -41,6 +41,7 @@ internal class ProxyApp
         {
             listener.Start();
 
+
             finished = listener.Wait(this.timeout);
 
             listener.Stop();
@@ -75,25 +76,40 @@ internal class ProxyApp
     {
         var finished = false;
         var request = (ProxyRequest) ProxyRequest.FromSerializedMessage(encodedRequest, typeof(ProxyRequest));
+        ProxyRequestException? requestException = null;
 
-        if ( request is null || request.Content is null || request.CommandName is null )
+        if ( request is null || request.Content is null || request.CommandName is null || request.Content == String.Empty )
         {
-            throw new ArgumentException("Invalid request: the request was empty, had no content, or had no command name");
+            requestException = new ProxyRequestException(request, "Invalid request: the request was empty, had no content, or had no command name");
         }
 
-        var commandContentType = CommandRequest.GetCommandRequestType(request.CommandName);
+        var commandContentType = requestException is null && request is not null && request.CommandName is not null ? CommandRequest.GetCommandRequestType(request.CommandName) : null;
 
-        if ( commandContentType is null )
+        if ( requestException is null && commandContentType is null )
         {
-            throw new ArgumentException($"The specified command '{request.CommandName}' does not have an associated request type");
+            requestException = new ProxyRequestException(request, $"The specified command '{request?.CommandName}' does not have an associated request type");
         }
 
         var jsonOptions = new JsonSerializerOptions();
         jsonOptions.IncludeFields = true;
 
-        var commandContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
+        CommandRequest? commandContent = null;
 
-        var encodedResponse = this.commandProcessor.InvokeCommand(request.RequestId, request.CommandName, commandContent, request.TargetConnectionId);
+        try
+        {
+            if ( requestException is null && request is not null && commandContentType is not null && request.Content is not null )
+            {
+                commandContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
+            }
+        }
+        catch ( JsonException exception )
+        {
+            requestException = new ProxyRequestException(request, $"The specified command '{request?.CommandName}' is a valid command but its payload was invalid.", exception );
+        }
+
+        var encodedResponse = requestException is null && request is not null && request.CommandName is not null && commandContent is not null ?
+            this.commandProcessor.InvokeCommand(request.RequestId, request.CommandName, commandContent, request.TargetConnectionId) :
+            requestException?.ToEncodedErrorResponse() ?? "";
 
         finished = commandProcessor.Status == CommandProcessor.RuntimeStatus.Exited;
 

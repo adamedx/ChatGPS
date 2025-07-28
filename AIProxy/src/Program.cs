@@ -29,7 +29,7 @@ var timeoutOption = new Option<int>
 var debugOption = new Option<bool>
     (name: "--debug");
 
-var debugLevelOption = new Option<Logger.LogLevel>
+var debugLevelOption = new Option<LogLevel>
     (name: "--debuglevel") { Arity = ArgumentArity.ZeroOrOne };;
 
 var logFileOption = new Option<string>
@@ -52,7 +52,7 @@ thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, debugLevel, logFileP
 
 thisCommand.Invoke(args);
 
-void Start( bool whatIf, int timeout, bool enableDebugOutput, Logger.LogLevel debugLevel = Logger.LogLevel.Debug, string? logFilePath = null )
+void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLevel = LogLevel.Debug, string? logFilePath = null )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
@@ -61,7 +61,7 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, Logger.LogLevel de
         ( logFilePath.Length > 0 ? logFilePath : null );
 
     var logLevel = ( ( targetLogFilePath is not null ) || enableDebugOutput ) ?
-        debugLevel : Logger.LogLevel.Default;
+        debugLevel : LogLevel.Default;
 
     System.Diagnostics.Debugger.Break();
 

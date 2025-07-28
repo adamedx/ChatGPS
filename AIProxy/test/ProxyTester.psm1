@@ -18,5 +18,6 @@ set-strictmode -version 2
 $erroractionpreference = 'stop'
 
 . ("$psscriptroot/Start-ProxyRepl.ps1")
+. ("$psscriptroot/Trace-ProxyLog.ps1")
 
-export-modulemember -function Start-ProxyRepl
+export-modulemember -function Start-ProxyRepl, Trace-ProxyLog

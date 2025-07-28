@@ -14,18 +14,10 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Models;
-
-namespace Modulus.ChatGPS.Models.Proxy;
-
-public class CreateConnectionRequest : CommandRequest
+internal interface IProxyLogger
 {
-    public CreateConnectionRequest() {}
-
-    public CreateConnectionRequest( AiOptions connectionOptions )
-    {
-        this.ConnectionOptions = connectionOptions;
-    }
-
-    public AiOptions? ConnectionOptions { get; set; }
+    void Open();
+    void Write( string outputString, LogLevel logLevel = LogLevel.Debug );
+    void Close();
+    void Flush();
 }
