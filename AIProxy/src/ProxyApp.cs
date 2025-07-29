@@ -75,47 +75,85 @@ internal class ProxyApp
     private (bool finished, string? content) Responder(string encodedRequest)
     {
         var finished = false;
+
         var request = (ProxyRequest) ProxyRequest.FromSerializedMessage(encodedRequest, typeof(ProxyRequest));
-        ProxyRequestException? requestException = null;
 
-        if ( request is null || request.Content is null || request.CommandName is null || request.Content == String.Empty )
-        {
-            requestException = new ProxyRequestException(request, "Invalid request: the request was empty, had no content, or had no command name");
-        }
-
-        var commandContentType = requestException is null && request is not null && request.CommandName is not null ? CommandRequest.GetCommandRequestType(request.CommandName) : null;
-
-        if ( requestException is null && commandContentType is null )
-        {
-            requestException = new ProxyRequestException(request, $"The specified command '{request?.CommandName}' does not have an associated request type");
-        }
-
-        var jsonOptions = new JsonSerializerOptions();
-        jsonOptions.IncludeFields = true;
-
-        CommandRequest? commandContent = null;
+        string? encodedResponse = null;
 
         try
         {
-            if ( requestException is null && request is not null && commandContentType is not null && request.Content is not null )
-            {
-                commandContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
-            }
-        }
-        catch ( JsonException exception )
-        {
-            requestException = new ProxyRequestException(request, $"The specified command '{request?.CommandName}' is a valid command but its payload was invalid.", exception );
-        }
+            var requestParameters = GetRequestParameters(request);
 
-        var encodedResponse = requestException is null && request is not null && request.CommandName is not null && commandContent is not null ?
-            this.commandProcessor.InvokeCommand(request.RequestId, request.CommandName, commandContent, request.TargetConnectionId) :
-            requestException?.ToEncodedErrorResponse() ?? "";
+            encodedResponse = this.commandProcessor.InvokeCommand(
+                requestParameters.requestId,
+                requestParameters.commandName,
+                requestParameters.commandRequest,
+                requestParameters.targetConnectionId);
+        }
+        catch ( ProxyRequestException requestException )
+        {
+            encodedResponse = requestException.ToEncodedErrorResponse();
+        }
 
         finished = commandProcessor.Status == CommandProcessor.RuntimeStatus.Exited;
 
         Console.WriteLine(encodedResponse);
 
         return (finished, encodedResponse);
+    }
+
+    (Guid requestId, string commandName, CommandRequest commandRequest, Guid targetConnectionId) GetRequestParameters(ProxyRequest? request)
+    {
+        ProxyRequest proxyRequest;
+        string requestContent;
+        string commandName;
+
+        if ( request is not null && request.Content is not null && request.CommandName is not null && request.Content != String.Empty )
+        {
+            proxyRequest = request;
+            requestContent = request.Content;
+            commandName = request.CommandName;
+        }
+        else
+        {
+            throw new ProxyRequestException(request, "Invalid request: the request was empty, had no content, or had no command name");
+        }
+
+        var commandContentType = CommandRequest.GetCommandRequestType(commandName);
+
+        if ( commandContentType is null )
+        {
+            throw new ProxyRequestException(proxyRequest, $"The specified command '{request?.CommandName}' does not have an associated request type");
+        }
+
+        var jsonOptions = new JsonSerializerOptions();
+        jsonOptions.IncludeFields = true;
+
+        CommandRequest? commandRequest = null;
+
+        try
+        {
+            if ( request is not null && commandContentType is not null && request.Content is not null )
+            {
+                var deserializedContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
+
+                if ( deserializedContent is not null )
+                {
+                    commandRequest = deserializedContent;
+                }
+            }
+        }
+        catch ( JsonException exception )
+        {
+            throw new ProxyRequestException(request, $"The specified command '{request?.CommandName}' is a valid command but its payload was invalid.", exception );
+        }
+
+        if ( commandRequest is null )
+        {
+            throw new ProxyRequestException(request, $"The specified command '{request?.CommandName}' is a valid command but its payload was deserialized as empty.");
+        }
+
+        return (proxyRequest.RequestId, commandName, commandRequest, proxyRequest.TargetConnectionId);
     }
 
     private int timeout;
