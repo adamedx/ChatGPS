@@ -19,12 +19,14 @@ using System.Text.Json;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 
+namespace Modulus.ChatGPS.Logging;
+
 class FileTraceExporter : BaseExporter<LogRecord>
 {
-    public FileTraceExporter(LogLevel logLevel , string logFilePath, bool allowConsoleOutput = false)
+    public FileTraceExporter(LogLevel logLevel , string logFilePath, bool allowConsoleOutput = false, object fileSyncObject = null)
     {
         this.allowConsoleOutput = allowConsoleOutput;
-        this.logger = new SimpleLogger(logLevel, false, true, logFilePath);
+        this.logger = new SimpleLogger(logLevel, false, true, logFilePath, fileSyncObject);
         this.logger.Open();
     }
 

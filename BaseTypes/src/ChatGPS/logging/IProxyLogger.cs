@@ -1,3 +1,4 @@
+
 //
 // Copyright (c), Adam Edwards
 //
@@ -14,12 +15,12 @@
 // limitations under the License.
 //
 
-public enum LogLevel
+namespace Modulus.ChatGPS.Logging;
+
+public interface IProxyLogger
 {
-    Default,
-    None,
-    Error,
-    Warning,
-    Debug,
-    DebugVerbose
+    void Open();
+    void Write( string outputString, LogLevel logLevel = LogLevel.Debug );
+    void Close();
+    void Flush();
 }

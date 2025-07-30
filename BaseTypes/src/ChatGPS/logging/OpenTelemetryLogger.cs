@@ -14,16 +14,20 @@
 // limitations under the License.
 //
 
+
+
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 
+namespace Modulus.ChatGPS.Logging;
+
 public class OpenTelemetryLogger : IProxyLogger
 {
-    internal OpenTelemetryLogger(LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null)
+    public OpenTelemetryLogger(LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null)
     {
         this.logLevel = logLevel;
-        this.loggerFactory = LoggerFactory.Create(builder =>
+        this.loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
         {
             builder.SetMinimumLevel(OpenTelemetryLogger.ToStandardLogLevel(logLevel));
             builder.AddOpenTelemetry( options =>
@@ -32,7 +36,7 @@ public class OpenTelemetryLogger : IProxyLogger
 
                 if ( logFilePath is not null )
                 {
-                    options.AddProcessor(new SimpleLogRecordExportProcessor( new FileTraceExporter( logLevel, logFilePath, consoleOutput ) ));
+                    options.AddProcessor(new SimpleLogRecordExportProcessor( new FileTraceExporter( logLevel, logFilePath, consoleOutput, this ) ));
                 }
             });
         });
@@ -55,11 +59,6 @@ public class OpenTelemetryLogger : IProxyLogger
             throw new InvalidOperationException("The logger has not been opened.");
         }
 
-        if ( ! this.logger.IsEnabled(Microsoft.Extensions.Logging.LogLevel.Debug) )
-        {
-            throw new InvalidOperationException("no logging");
-        }
-
         var standardLogLevel = OpenTelemetryLogger.ToStandardLogLevel(logLevel);
 
         this.logger.Log(standardLogLevel, outputString);
@@ -72,6 +71,14 @@ public class OpenTelemetryLogger : IProxyLogger
 
     public void Flush()
     {
+    }
+
+    public ILoggerFactory LoggerFactory
+    {
+        get
+        {
+            return this.loggerFactory;
+        }
     }
 
     private static Microsoft.Extensions.Logging.LogLevel ToStandardLogLevel(LogLevel logLevel)

@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using Modulus.ChatGPS.Logging;
+
 internal class Logger
 {
     static internal void InitializeDefaultLogger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null )
@@ -32,7 +34,9 @@ internal class Logger
     {
         // SimpleLogger is actually used within OpenTelemetryLogger
         // this.logger = new SimpleLogger(logLevel, consoleOutput, logFilePath);
-        this.logger = new OpenTelemetryLogger(logLevel, consoleOutput, logFilePath);
+        var openTelemetryLogger = new OpenTelemetryLogger(logLevel, consoleOutput, logFilePath);
+        this.logger = openTelemetryLogger;
+        this.loggerFactory = openTelemetryLogger.LoggerFactory;
     }
 
     internal void Open()
@@ -53,6 +57,22 @@ internal class Logger
     internal void Flush()
     {
         this.logger.Flush();
+    }
+
+    internal Microsoft.Extensions.Logging.ILoggerFactory? LoggerFactory
+    {
+        get
+        {
+            return this.loggerFactory;
+        }
+    }
+
+    internal static Logger DefaultLogger
+    {
+        get
+        {
+            return Logger.defaultLogger;
+        }
     }
 
     internal static void Log( string outputString, LogLevel logLevel = LogLevel.Debug )
@@ -85,5 +105,6 @@ internal class Logger
 
     private static Logger? defaultLogger;
     private IProxyLogger logger;
+    private Microsoft.Extensions.Logging.ILoggerFactory loggerFactory;
 }
 

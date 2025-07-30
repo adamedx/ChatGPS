@@ -15,6 +15,7 @@
 //
 
 using System.Text.Json;
+using Modulus.ChatGPS.Logging;
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
 
@@ -26,10 +27,10 @@ internal class CommandProcessor
         Exited
     }
 
-    internal CommandProcessor(bool whatIfMode = false)
+    internal CommandProcessor(bool whatIfMode = false, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
     {
         this.WhatIfMode = whatIfMode;
-        this.Connections = new ConnectionManager();
+        this.Connections = new ConnectionManager(loggerFactory);
         this.commandTable = new Dictionary<string,Func<Guid, Command>>
         {
             { "createconnection", (connectionId) => { return new CreateConnectionCommand(this); } },

@@ -17,6 +17,9 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Plugins.Core;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -30,9 +33,10 @@ namespace Modulus.ChatGPS.Services;
 
 public abstract class ChatService : IChatService
 {
-    public ChatService(AiOptions options, string? userAgent = null)
+    public ChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null)
     {
         this.options = options;
+        this.loggerFactory = loggerFactory;
         this.userAgent = userAgent;
         this.initialized = false;
     }
@@ -165,6 +169,18 @@ public abstract class ChatService : IChatService
 
     protected abstract Kernel GetKernel();
 
+    protected IKernelBuilder GetKernelBuilder()
+    {
+        var builder = Kernel.CreateBuilder();
+
+        if ( this.loggerFactory is not null )
+        {
+            builder.Services.AddSingleton<ILoggerFactory>(this.loggerFactory);
+        }
+
+        return builder;
+    }
+
     protected Kernel GetKernelWithState()
     {
         CheckInitialized();
@@ -226,5 +242,6 @@ public abstract class ChatService : IChatService
     protected string? userAgent;
     protected PluginTable? pluginTable;
     protected bool initialized;
+    private ILoggerFactory? loggerFactory;
 }
 

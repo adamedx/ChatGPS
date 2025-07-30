@@ -14,10 +14,14 @@
 // limitations under the License.
 //
 
-internal interface IProxyLogger
+namespace Modulus.ChatGPS.Logging;
+
+public enum LogLevel
 {
-    void Open();
-    void Write( string outputString, LogLevel logLevel = LogLevel.Debug );
-    void Close();
-    void Flush();
+    Default,
+    None,
+    Error,
+    Warning,
+    Debug,
+    DebugVerbose
 }

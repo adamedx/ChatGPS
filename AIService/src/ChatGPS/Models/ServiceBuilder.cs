@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+using Microsoft.Extensions.Logging;
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Services;
 
@@ -49,19 +50,19 @@ public class ServiceBuilder
         switch ( provider )
         {
             case ModelProvider.AzureOpenAI:
-                newService = new AzureOpenAIChatService( this.options, this.userAgent );
+                newService = new AzureOpenAIChatService( this.options, this.loggerFactory, this.userAgent );
                 break;
             case ModelProvider.OpenAI:
-                newService = new OpenAIChatService( this.options, this.userAgent );
+                newService = new OpenAIChatService( this.options, this.loggerFactory, this.userAgent );
                 break;
             case ModelProvider.LocalOnnx:
-                newService = new LocalAIChatService( this.options );
+                newService = new LocalAIChatService( this.options, this.loggerFactory );
                 break;
             case ModelProvider.Ollama:
-                newService = new OllamaChatService( this.options );
+                newService = new OllamaChatService( this.options, this.loggerFactory );
                 break;
             case ModelProvider.Google:
-                newService = new GoogleChatService( this.options );
+                newService = new GoogleChatService( this.options, this.loggerFactory );
                 break;
             default:
                 throw new NotImplementedException($"Support for the model provider id '{options.Provider}' is not yet implemented");
@@ -94,9 +95,22 @@ public class ServiceBuilder
         return this;
     }
 
+    public ServiceBuilder WithLoggerFactory( ILoggerFactory loggerFactory )
+    {
+        if ( this.loggerFactory is not null )
+        {
+            throw new ArgumentException("A logger has already been specified for this service");
+        }
+
+        this.loggerFactory = loggerFactory;
+
+        return this;
+    }
+
     private ServiceBuilder() {}
 
     private AiOptions? options;
     private string? userAgent;
+    private ILoggerFactory? loggerFactory;
 }
 

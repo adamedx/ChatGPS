@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -27,7 +28,7 @@ namespace Modulus.ChatGPS.Services;
 
 public class AzureOpenAIChatService : ChatService
 {
-    internal AzureOpenAIChatService(AiOptions options, string? userAgent) : base(options, userAgent) { }
+    internal AzureOpenAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
     protected override Kernel GetKernel()
     {
@@ -41,7 +42,7 @@ public class AzureOpenAIChatService : ChatService
             throw new ArgumentException("A deployment name for the language model must be specified.");
         }
 
-        var builder = Kernel.CreateBuilder();
+        var builder = base.GetKernelBuilder();
 
         if ( this.options.ApiEndpoint == null )
         {

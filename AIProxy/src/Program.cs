@@ -16,6 +16,7 @@
 
 using System.CommandLine;
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Logging;
 
 const string DEBUG_FILE_NAME = "AIProxyLog.txt";
 
@@ -72,7 +73,7 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLeve
         Logger.Log(string.Format("Started AIProxy in process {0} -- debug loglevel: {1}", System.Diagnostics.Process.GetCurrentProcess().Id, logLevel));
         Logger.Log(string.Format("Process arguments: {0}", System.Environment.CommandLine));
 
-        var proxyApp = new ProxyApp(timeout, whatIf);
+        var proxyApp = new ProxyApp(timeout, whatIf, Logger.DefaultLogger.LoggerFactory);
 
         proxyApp.Run();
 

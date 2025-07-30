@@ -14,10 +14,15 @@
 // limitations under the License.
 //
 
+using System.IO;
+
+namespace Modulus.ChatGPS.Logging;
+
 public class SimpleLogger : IProxyLogger
 {
-    internal SimpleLogger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, bool rawOutput = false, string? logFilePath = null )
+    internal SimpleLogger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, bool rawOutput = false, string? logFilePath = null, object? syncObject = null )
     {
+        this.syncObject = syncObject ?? this;
         this.rawOutput = rawOutput;
         this.consoleOutput = consoleOutput;
         this.logFilePath = logFilePath;
@@ -61,7 +66,7 @@ public class SimpleLogger : IProxyLogger
             var entryWithTime = SimpleLogger.GetFriendlyLogLine(outputString);
             var logLine = this.rawOutput ? outputString + "\n" : entryWithTime;
 
-            lock (this )
+            lock ( this.syncObject )
             {
                 if ( this.fileWriter is not null )
                 {
@@ -80,7 +85,7 @@ public class SimpleLogger : IProxyLogger
 
     public void Close()
     {
-        lock ( this )
+        lock ( this.syncObject )
         {
             if ( this.ended )
             {
@@ -98,7 +103,7 @@ public class SimpleLogger : IProxyLogger
 
     public void Flush()
     {
-        lock ( this )
+        lock ( this.syncObject )
         {
             if ( this.fileWriter is not null )
             {
@@ -118,6 +123,7 @@ public class SimpleLogger : IProxyLogger
     private bool consoleOutput;
     private bool rawOutput;
     private string? logFilePath;
+    private object syncObject;
     private StreamWriter? fileWriter;
     private bool started;
     private bool ended;

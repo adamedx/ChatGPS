@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.Ollama;
@@ -28,7 +29,7 @@ public class OllamaChatService : ChatService
 {
     readonly Uri DefaultUri = new Uri("http://localhost:11434");
 
-    internal OllamaChatService(AiOptions options, string? userAgent = null) : base(options, userAgent) { }
+    internal OllamaChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
     protected override Kernel GetKernel()
     {
@@ -47,7 +48,7 @@ public class OllamaChatService : ChatService
             this.options.ApiEndpoint = DefaultUri;
         }
 
-        var builder = Kernel.CreateBuilder();
+        var builder = base.GetKernelBuilder();
 
 #pragma warning disable SKEXP0070
 

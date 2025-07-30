@@ -17,16 +17,18 @@
 
 using System.Text.Json;
 
+using Microsoft.Extensions.Logging;
+
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
 using Modulus.ChatGPS.Services;
 
 internal class ProxyApp
 {
-    internal ProxyApp(int timeout = 60000, bool whatIfMode = true)
+    internal ProxyApp(int timeout = 60000, bool whatIfMode = true, ILoggerFactory loggerFactory = null)
     {
         this.timeout = timeout;
-        this.commandProcessor = new CommandProcessor(whatIfMode);
+        this.commandProcessor = new CommandProcessor(whatIfMode, loggerFactory);
     }
 
     internal bool Run()
@@ -65,7 +67,8 @@ internal class ProxyApp
         return finished;
     }
 
-    internal bool WhatIfMode {
+    internal bool WhatIfMode
+    {
         get
         {
             return this.commandProcessor.WhatIfMode;

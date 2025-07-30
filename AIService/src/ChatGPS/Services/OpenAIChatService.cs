@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -26,7 +27,7 @@ namespace Modulus.ChatGPS.Services;
 
 public class OpenAIChatService : ChatService
 {
-    internal OpenAIChatService(AiOptions options, string? userAgent = null) : base(options, userAgent) { }
+    internal OpenAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
     protected override Kernel GetKernel()
     {
@@ -45,7 +46,7 @@ public class OpenAIChatService : ChatService
             throw new ArgumentException("An API key is required for the language model service.");
         }
 
-        var builder = Kernel.CreateBuilder();
+        var builder = base.GetKernelBuilder();
 
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
