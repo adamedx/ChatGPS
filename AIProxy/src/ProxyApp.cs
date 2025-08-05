@@ -23,17 +23,18 @@ using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
 using Modulus.ChatGPS.Services;
 
-internal class ProxyApp
+internal class ProxyApp : IAIProxyService
 {
-    internal ProxyApp(int timeout = 60000, bool whatIfMode = true, ILoggerFactory loggerFactory = null)
+    public ProxyApp(ILogger<ProxyApp>? logger = null)
     {
-        this.timeout = timeout;
-        this.commandProcessor = new CommandProcessor(whatIfMode, loggerFactory);
+        this.logger = logger;
     }
 
-    internal bool Run()
+    public bool Run(int timeout = 60000, bool whatIfMode = true)
     {
         Logger.Log("Started proxy application");
+
+        this.commandProcessor = new CommandProcessor(whatIfMode);
 
         var listener = new Modulus.ChatGPS.AIProxy.Listener(Responder);
 
@@ -43,8 +44,7 @@ internal class ProxyApp
         {
             listener.Start();
 
-
-            finished = listener.Wait(this.timeout);
+            finished = listener.Wait(timeout);
 
             listener.Stop();
         }
@@ -71,12 +71,17 @@ internal class ProxyApp
     {
         get
         {
-            return this.commandProcessor.WhatIfMode;
+            return this.commandProcessor?.WhatIfMode ?? false;
         }
     }
 
     private (bool finished, string? content) Responder(string encodedRequest)
     {
+        if ( this.commandProcessor is null )
+        {
+            throw new InvalidOperationException("The Proxy service application has not been initialized");
+        }
+
         var finished = false;
 
         var request = (ProxyRequest) ProxyRequest.FromSerializedMessage(encodedRequest, typeof(ProxyRequest));
@@ -159,7 +164,7 @@ internal class ProxyApp
         return (proxyRequest.RequestId, commandName, commandRequest, proxyRequest.TargetConnectionId);
     }
 
-    private int timeout;
-    private CommandProcessor commandProcessor;
+    private CommandProcessor? commandProcessor;
+    private ILogger? logger;
 }
 

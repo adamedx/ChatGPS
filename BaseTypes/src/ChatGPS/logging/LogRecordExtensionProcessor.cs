@@ -21,7 +21,7 @@ using OpenTelemetry.Logs;
 
 namespace Modulus.ChatGPS.Logging;
 
-internal class LogRecordExtensionProcessor : BaseProcessor<LogRecord>
+public class LogRecordExtensionProcessor : BaseProcessor<LogRecord>
 {
     public override void OnEnd(LogRecord logRecord)
     {

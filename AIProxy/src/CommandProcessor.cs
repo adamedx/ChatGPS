@@ -27,10 +27,10 @@ internal class CommandProcessor
         Exited
     }
 
-    internal CommandProcessor(bool whatIfMode = false, Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null)
+    internal CommandProcessor(bool whatIfMode = false)
     {
         this.WhatIfMode = whatIfMode;
-        this.Connections = new ConnectionManager(loggerFactory);
+        this.Connections = new ConnectionManager();
         this.commandTable = new Dictionary<string,Func<Guid, Command>>
         {
             { "createconnection", (connectionId) => { return new CreateConnectionCommand(this); } },

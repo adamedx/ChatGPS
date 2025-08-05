@@ -15,8 +15,13 @@
 //
 
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Logs;
+
 using Modulus.ChatGPS.Models;
-using Modulus.ChatGPS.Logging;
 
 const string DEBUG_FILE_NAME = "AIProxyLog.txt";
 
@@ -30,7 +35,7 @@ var timeoutOption = new Option<int>
 var debugOption = new Option<bool>
     (name: "--debug");
 
-var debugLevelOption = new Option<LogLevel>
+var debugLevelOption = new Option<Modulus.ChatGPS.Logging.LogLevel>
     (name: "--debuglevel") { Arity = ArgumentArity.ZeroOrOne };;
 
 var logFileOption = new Option<string>
@@ -53,7 +58,7 @@ thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, debugLevel, logFileP
 
 thisCommand.Invoke(args);
 
-void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLevel = LogLevel.Debug, string? logFilePath = null )
+void Start( bool whatIf, int timeout, bool enableDebugOutput, Modulus.ChatGPS.Logging.LogLevel debugLevel = Modulus.ChatGPS.Logging.LogLevel.Debug, string? logFilePath = null )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
@@ -62,27 +67,56 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLeve
         ( logFilePath.Length > 0 ? logFilePath : null );
 
     var logLevel = ( ( targetLogFilePath is not null ) || enableDebugOutput ) ?
-        debugLevel : LogLevel.Default;
+        debugLevel : Modulus.ChatGPS.Logging.LogLevel.Default;
 
-    System.Diagnostics.Debugger.Break();
+
+    var builder = Host.CreateApplicationBuilder();
+
+    builder.Logging.ClearProviders();
+    builder.Logging.SetMinimumLevel(Modulus.ChatGPS.Logging.ProxyLogger.ToStandardLogLevel(logLevel));
+    builder.Logging.AddOpenTelemetry( options =>
+        {
+        options.AddProcessor(new Modulus.ChatGPS.Logging.LogRecordExtensionProcessor());
+
+        if ( logFilePath is not null )
+        {
+            options.AddProcessor(new SimpleLogRecordExportProcessor( new Modulus.ChatGPS.Logging.FileTraceExporter( logLevel, logFilePath, enableDebugOutput, builder ) ));
+        }
+        });
+
+    builder.Services.AddSingleton<IAIProxyService, ProxyApp>();
+
+    using var host = builder.Build();
+
+    RunProxy(host, timeout, whatIf, logLevel);
+}
+
+void RunProxy(IHost host, int timeout, bool whatIf, Modulus.ChatGPS.Logging.LogLevel logLevel)
+{
+    var proxyApp = host.Services.GetRequiredService<IAIProxyService>();
+
+    var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+
+    Logger.InitializeDefaultLogger( loggerFactory );
+
+    Logger.Log(string.Format("Started AIProxy in process {0} -- debug loglevel: {1}", System.Diagnostics.Process.GetCurrentProcess().Id, logLevel));
+    Logger.Log(string.Format("Process arguments: {0}", System.Environment.CommandLine));
+
+    var hostExecution = host.RunAsync();
 
     try
     {
-        Logger.InitializeDefaultLogger( logLevel, enableDebugOutput, targetLogFilePath );
+        proxyApp.Run(timeout, whatIf);
 
-        Logger.Log(string.Format("Started AIProxy in process {0} -- debug loglevel: {1}", System.Diagnostics.Process.GetCurrentProcess().Id, logLevel));
-        Logger.Log(string.Format("Process arguments: {0}", System.Environment.CommandLine));
-
-        var proxyApp = new ProxyApp(timeout, whatIf, Logger.DefaultLogger.LoggerFactory);
-
-        proxyApp.Run();
-
-        Logger.Log(string.Format("Exiting AIProxy process {0}", System.Diagnostics.Process.GetCurrentProcess().Id));
+        Logger.Log(string.Format("Exiting AIProxy process {0} normally.", System.Diagnostics.Process.GetCurrentProcess().Id));
+    }
+    catch
+    {
+        Logger.Log(string.Format("*****Abornmal exit for AIProxy process {0}.", System.Diagnostics.Process.GetCurrentProcess().Id));
+        throw;
     }
     finally
     {
         Logger.End();
     }
 }
-
-

@@ -18,25 +18,22 @@ using Modulus.ChatGPS.Logging;
 
 internal class Logger
 {
-    static internal void InitializeDefaultLogger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null )
+    static internal void InitializeDefaultLogger( Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory )
     {
         if ( Logger.defaultLogger is not null )
         {
             throw new InvalidOperationException("The logger has already been initialized.");
         }
 
-        Logger.defaultLogger = new Logger( logLevel, consoleOutput, logFilePath );
+        Logger.defaultLogger = new Logger( loggerFactory );
 
         Logger.defaultLogger.Open();
     }
 
-    internal Logger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, string? logFilePath = null )
+    internal Logger( Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null )
     {
-        // SimpleLogger is actually used within OpenTelemetryLogger
-        // this.logger = new SimpleLogger(logLevel, consoleOutput, logFilePath);
-        var openTelemetryLogger = new OpenTelemetryLogger(logLevel, consoleOutput, logFilePath);
-        this.logger = openTelemetryLogger;
-        this.loggerFactory = openTelemetryLogger.LoggerFactory;
+        this.loggerFactory = loggerFactory;
+        this.logger = new NativeLogger(loggerFactory);
     }
 
     internal void Open()
@@ -59,18 +56,15 @@ internal class Logger
         this.logger.Flush();
     }
 
-    internal Microsoft.Extensions.Logging.ILoggerFactory? LoggerFactory
-    {
-        get
-        {
-            return this.loggerFactory;
-        }
-    }
-
     internal static Logger DefaultLogger
     {
         get
         {
+            if ( Logger.defaultLogger is null )
+            {
+                throw new InvalidOperationException("An attempt was made to access logging before logging was initialized");
+            }
+
             return Logger.defaultLogger;
         }
     }
@@ -103,8 +97,13 @@ internal class Logger
         }
     }
 
+    internal static Microsoft.Extensions.Logging.ILoggerFactory? LoggerFactory
+    {
+        get => Logger.DefaultLogger.loggerFactory;
+    }
+
     private static Logger? defaultLogger;
     private IProxyLogger logger;
-    private Microsoft.Extensions.Logging.ILoggerFactory loggerFactory;
+    private Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory;
 }
 

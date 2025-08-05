@@ -21,9 +21,9 @@ using OpenTelemetry.Logs;
 
 namespace Modulus.ChatGPS.Logging;
 
-class FileTraceExporter : BaseExporter<LogRecord>
+public class FileTraceExporter : BaseExporter<LogRecord>
 {
-    public FileTraceExporter(LogLevel logLevel , string logFilePath, bool allowConsoleOutput = false, object fileSyncObject = null)
+    public FileTraceExporter(LogLevel logLevel, string logFilePath, bool allowConsoleOutput = false, object? fileSyncObject = null)
     {
         this.allowConsoleOutput = allowConsoleOutput;
         this.logger = new SimpleLogger(logLevel, false, true, logFilePath, fileSyncObject);

@@ -45,7 +45,16 @@ function Trace-ProxyLog {
     $targetScript = if ( $ProcessBlock ) {
         $ProcessBlock
     } elseif ( ! $Raw.IsPresent ) {
-        {param($logRecord) $logRecord | ConvertFrom-Json | Select Timestamp, Body}
+        {param($logRecord)
+            try
+            {
+                $logRecord | ConvertFrom-Json | Select Timestamp, Body
+            }
+            catch
+            {
+                $logRecord
+            }
+        }
     } else {
         {param($logRecord) $logRecord }
     }

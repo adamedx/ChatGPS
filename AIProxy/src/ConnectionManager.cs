@@ -24,10 +24,9 @@ using Modulus.ChatGPS.Services;
 
 internal class ConnectionManager
 {
-    internal ConnectionManager(ILoggerFactory? loggerFactory = null)
+    internal ConnectionManager()
     {
         this.connections = new Dictionary<Guid, Connection>();
-        this.loggerFactory = loggerFactory;
     }
 
     internal Connection NewConnection(AiOptions? options)
@@ -41,9 +40,9 @@ internal class ConnectionManager
 
         builder.WithOptions(options);
 
-        if ( this.loggerFactory is not null )
+        if ( Logger.LoggerFactory is not null )
         {
-            builder.WithLoggerFactory(loggerFactory);
+            builder.WithLoggerFactory(Logger.LoggerFactory);
         }
 
         var newService = builder.Build();
@@ -80,6 +79,5 @@ internal class ConnectionManager
     }
 
     private Dictionary<Guid, Connection> connections;
-    private ILoggerFactory? loggerFactory;
 }
 
