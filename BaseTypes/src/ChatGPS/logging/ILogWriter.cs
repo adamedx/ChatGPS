@@ -1,3 +1,4 @@
+
 //
 // Copyright (c), Adam Edwards
 //
@@ -14,18 +15,14 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Models;
+using Microsoft.Extensions.Logging;
 
-namespace Modulus.ChatGPS.Models.Proxy;
+namespace Modulus.ChatGPS.Logging;
 
-public class CreateConnectionRequest : CommandRequest
+public interface ILogWriter
 {
-    public CreateConnectionRequest() {}
-
-    public CreateConnectionRequest( AiOptions connectionOptions )
-    {
-        this.ConnectionOptions = connectionOptions;
-    }
-
-    public AiOptions? ConnectionOptions { get; set; }
+    void Open();
+    void Write( string outputString, LogLevel logLevel = LogLevel.Debug );
+    void Close();
+    void Flush();
 }

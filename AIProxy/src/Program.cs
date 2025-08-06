@@ -15,6 +15,13 @@
 //
 
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
+using OpenTelemetry.Logs;
+
+using Modulus.ChatGPS.Logging;
 using Modulus.ChatGPS.Models;
 
 const string DEBUG_FILE_NAME = "AIProxyLog.txt";
@@ -26,10 +33,10 @@ var timeoutOption = new Option<int>
     (name: "--timeout",
      getDefaultValue: () => 10000);
 
-var debugOption = new Option<bool>
-    (name: "--debug");
+var consoleDebugOutputOption = new Option<bool>
+    (name: "--consoleDebugOutput");
 
-var debugLevelOption = new Option<Logger.LogLevel>
+var debugLevelOption = new Option<LogLevel>
     (name: "--debuglevel") { Arity = ArgumentArity.ZeroOrOne };;
 
 var logFileOption = new Option<string>
@@ -40,19 +47,19 @@ var thisCommand = new RootCommand("AI service proxy application");
 
 thisCommand.Add(whatIfOption);
 thisCommand.Add(timeoutOption);
-thisCommand.Add(debugOption);
+thisCommand.Add(consoleDebugOutputOption);
 thisCommand.Add(debugLevelOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, debugLevel, logFilePath) =>
+thisCommand.SetHandler((whatIf, timeout, consoleDebugOutput, debugLevel, logFilePath) =>
     {
-    Start(whatIf, timeout, enableDebugOutput, debugLevel, logFilePath);
+        Start(whatIf, timeout, consoleDebugOutput, debugLevel, logFilePath);
     },
-    whatIfOption, timeoutOption, debugOption, debugLevelOption, logFileOption);
+    whatIfOption, timeoutOption, consoleDebugOutputOption, debugLevelOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( bool whatIf, int timeout, bool enableDebugOutput, Logger.LogLevel debugLevel = Logger.LogLevel.Debug, string? logFilePath = null )
+void Start( bool whatIf, int timeout, bool consoleDebugOutput, LogLevel debugLevel = LogLevel.None, string? logFilePath = null )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
@@ -60,28 +67,56 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, Logger.LogLevel de
         DEBUG_FILE_NAME :
         ( logFilePath.Length > 0 ? logFilePath : null );
 
-    var logLevel = ( ( targetLogFilePath is not null ) || enableDebugOutput ) ?
-        debugLevel : Logger.LogLevel.Default;
+    var logLevel = ( ( targetLogFilePath is not null ) || consoleDebugOutput ) ?
+        debugLevel : LogLevel.None;
 
-    System.Diagnostics.Debugger.Break();
+    var builder = Host.CreateApplicationBuilder();
+
+    builder.Logging.ClearProviders();
+    builder.Logging.SetMinimumLevel(logLevel);
+    builder.Logging.AddOpenTelemetry( options =>
+    {
+        options.AddProcessor(new LogRecordExtensionProcessor());
+
+        if ( targetLogFilePath is not null )
+        {
+            options.AddProcessor(new SimpleLogRecordExportProcessor( new FileTraceExporter( targetLogFilePath, consoleDebugOutput, builder ) ));
+        }
+    });
+
+    builder.Services.AddSingleton<IAIProxyService, ProxyApp>();
+
+    using var host = builder.Build();
+
+    RunProxy(host, timeout, whatIf, logLevel);
+}
+
+void RunProxy(IHost host, int timeout, bool whatIf, LogLevel logLevel)
+{
+    var proxyApp = host.Services.GetRequiredService<IAIProxyService>();
+
+    var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+
+    Logger.InitializeDefaultLogger( loggerFactory );
+
+    Logger.Log(string.Format("Started AIProxy in process {0} -- debug loglevel: {1}", System.Diagnostics.Process.GetCurrentProcess().Id, logLevel));
+    Logger.Log(string.Format("Process arguments: {0}", System.Environment.CommandLine));
+
+    var hostExecution = host.RunAsync();
 
     try
     {
-        Logger.InitializeDefaultLogger( logLevel, enableDebugOutput, targetLogFilePath );
+        proxyApp.Run(timeout, whatIf);
 
-        Logger.Log(string.Format("Started AIProxy in process {0} -- debug loglevel: {1}", System.Diagnostics.Process.GetCurrentProcess().Id, logLevel));
-        Logger.Log(string.Format("Process arguments: {0}", System.Environment.CommandLine));
-
-        var proxyApp = new ProxyApp(timeout, whatIf);
-
-        proxyApp.Run();
-
-        Logger.Log(string.Format("Exiting AIProxy process {0}", System.Diagnostics.Process.GetCurrentProcess().Id));
+        Logger.Log(string.Format("Exiting AIProxy process {0} normally.", System.Diagnostics.Process.GetCurrentProcess().Id));
+    }
+    catch
+    {
+        Logger.Log(string.Format("*****Abornmal exit for AIProxy process {0}.", System.Diagnostics.Process.GetCurrentProcess().Id));
+        throw;
     }
     finally
     {
         Logger.End();
     }
 }
-
-

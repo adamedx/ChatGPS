@@ -49,8 +49,8 @@ function CreateSession {
 
         [string] $LogDirectory = $null,
 
-        [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
-        [string] $LogLevel = 'Default',
+        [validateset('Trace', 'Debug', 'Information', 'Warning', 'Error', 'Critical', 'None')]
+        [string] $LogLevel = 'None',
 
         [switch] $SetCurrent,
 

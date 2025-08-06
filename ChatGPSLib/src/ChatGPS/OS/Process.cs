@@ -39,6 +39,9 @@ internal class Process
             this.process.StartInfo.RedirectStandardOutput = true;
             this.process.StartInfo.RedirectStandardInput = true;
             this.process.StartInfo.UseShellExecute = false;
+            this.process.StartInfo.WindowStyle = this.hidden ?
+                ProcessWindowStyle.Hidden :
+                ProcessWindowStyle.Normal;
 
             this.process.Start();
 

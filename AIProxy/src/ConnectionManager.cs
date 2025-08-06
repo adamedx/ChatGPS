@@ -14,7 +14,10 @@
 // limitations under the License.
 //
 
+using Microsoft.Extensions.Logging;
+
 using Modulus.ChatGPS;
+using Modulus.ChatGPS.Logging;
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
 using Modulus.ChatGPS.Services;
@@ -36,6 +39,11 @@ internal class ConnectionManager
         ServiceBuilder builder = ServiceBuilder.CreateBuilder();
 
         builder.WithOptions(options);
+
+        if ( Logger.LoggerFactory is not null )
+        {
+            builder.WithLoggerFactory(Logger.LoggerFactory);
+        }
 
         var newService = builder.Build();
         var connection = new Connection( Guid.NewGuid(), newService );

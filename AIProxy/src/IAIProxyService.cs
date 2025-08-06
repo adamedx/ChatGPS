@@ -14,18 +14,7 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Models;
-
-namespace Modulus.ChatGPS.Models.Proxy;
-
-public class CreateConnectionRequest : CommandRequest
+interface IAIProxyService
 {
-    public CreateConnectionRequest() {}
-
-    public CreateConnectionRequest( AiOptions connectionOptions )
-    {
-        this.ConnectionOptions = connectionOptions;
-    }
-
-    public AiOptions? ConnectionOptions { get; set; }
+    bool Run(int timeout, bool whatIfMode);
 }

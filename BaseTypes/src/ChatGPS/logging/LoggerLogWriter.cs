@@ -14,18 +14,36 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Models;
+using Microsoft.Extensions.Logging;
 
-namespace Modulus.ChatGPS.Models.Proxy;
+namespace Modulus.ChatGPS.Logging;
 
-public class CreateConnectionRequest : CommandRequest
+internal class LoggerLogWriter : ILogWriter
 {
-    public CreateConnectionRequest() {}
-
-    public CreateConnectionRequest( AiOptions connectionOptions )
+    internal LoggerLogWriter(ILoggerFactory? loggerFactory)
     {
-        this.ConnectionOptions = connectionOptions;
+        if ( loggerFactory is not null )
+        {
+            this.logger = loggerFactory.CreateLogger("Modulus.ChatGPS.AIProxy");
+        }
     }
 
-    public AiOptions? ConnectionOptions { get; set; }
+    public void Open()
+    {
+    }
+
+    public void Write( string outputString, LogLevel logLevel = LogLevel.Debug )
+    {
+        this.logger?.Log(logLevel, outputString);
+    }
+
+    public void Close()
+    {
+    }
+
+    public void Flush()
+    {
+    }
+
+    ILogger? logger;
 }

@@ -391,7 +391,7 @@ function Connect-ChatSession {
         [string] $ServiceIdentifier,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [int32] $TokenLimit = 4096,
+        [int32] $TokenLimit = 32768,
 
         [validateset('None', 'Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Summarize',
@@ -424,8 +424,8 @@ function Connect-ChatSession {
 
         [string] $LogDirectory = $null,
 
-        [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
-        [string] $LogLevel = 'Default'
+        [validateset('Trace', 'Debug', 'Information', 'Warning', 'Error', 'Critical', 'None')]
+        [string] $LogLevel = 'None'
     )
 
     if ( $HistoryContextLimit -lt -1 ) {

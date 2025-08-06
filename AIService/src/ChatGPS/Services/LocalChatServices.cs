@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -25,7 +26,7 @@ namespace Modulus.ChatGPS.Services;
 
 public class LocalAIChatService : ChatService
 {
-    internal LocalAIChatService(AiOptions options) : base(options) { }
+    internal LocalAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null) : base(options, loggerFactory) { }
 
     protected override Kernel GetKernel()
     {
@@ -39,7 +40,7 @@ public class LocalAIChatService : ChatService
             throw new ArgumentException("An identifier for the language model must be specified.");
         }
 
-        var builder = Kernel.CreateBuilder();
+        var builder = base.GetKernelBuilder();
 
         if ( this.options.LocalModelPath == null )
         {

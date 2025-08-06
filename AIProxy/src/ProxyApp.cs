@@ -17,21 +17,24 @@
 
 using System.Text.Json;
 
+using Microsoft.Extensions.Logging;
+
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
 using Modulus.ChatGPS.Services;
 
-internal class ProxyApp
+internal class ProxyApp : IAIProxyService
 {
-    internal ProxyApp(int timeout = 60000, bool whatIfMode = true)
+    public ProxyApp(ILogger<ProxyApp>? logger = null)
     {
-        this.timeout = timeout;
-        this.commandProcessor = new CommandProcessor(whatIfMode);
+        this.logger = logger;
     }
 
-    internal bool Run()
+    public bool Run(int timeout = 60000, bool whatIfMode = true)
     {
         Logger.Log("Started proxy application");
+
+        this.commandProcessor = new CommandProcessor(whatIfMode);
 
         var listener = new Modulus.ChatGPS.AIProxy.Listener(Responder);
 
@@ -41,7 +44,7 @@ internal class ProxyApp
         {
             listener.Start();
 
-            finished = listener.Wait(this.timeout);
+            finished = listener.Wait(timeout);
 
             listener.Stop();
         }
@@ -64,36 +67,41 @@ internal class ProxyApp
         return finished;
     }
 
-    internal bool WhatIfMode {
+    internal bool WhatIfMode
+    {
         get
         {
-            return this.commandProcessor.WhatIfMode;
+            return this.commandProcessor?.WhatIfMode ?? false;
         }
     }
 
     private (bool finished, string? content) Responder(string encodedRequest)
     {
+        if ( this.commandProcessor is null )
+        {
+            throw new InvalidOperationException("The Proxy service application has not been initialized");
+        }
+
         var finished = false;
+
         var request = (ProxyRequest) ProxyRequest.FromSerializedMessage(encodedRequest, typeof(ProxyRequest));
 
-        if ( request is null || request.Content is null || request.CommandName is null )
+        string? encodedResponse = null;
+
+        try
         {
-            throw new ArgumentException("Invalid request: the request was empty, had no content, or had no command name");
+            var requestParameters = GetRequestParameters(request);
+
+            encodedResponse = this.commandProcessor.InvokeCommand(
+                requestParameters.requestId,
+                requestParameters.commandName,
+                requestParameters.commandRequest,
+                requestParameters.targetConnectionId);
         }
-
-        var commandContentType = CommandRequest.GetCommandRequestType(request.CommandName);
-
-        if ( commandContentType is null )
+        catch ( ProxyRequestException requestException )
         {
-            throw new ArgumentException($"The specified command '{request.CommandName}' does not have an associated request type");
+            encodedResponse = requestException.ToEncodedErrorResponse();
         }
-
-        var jsonOptions = new JsonSerializerOptions();
-        jsonOptions.IncludeFields = true;
-
-        var commandContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
-
-        var encodedResponse = this.commandProcessor.InvokeCommand(request.RequestId, request.CommandName, commandContent, request.TargetConnectionId);
 
         finished = commandProcessor.Status == CommandProcessor.RuntimeStatus.Exited;
 
@@ -102,7 +110,61 @@ internal class ProxyApp
         return (finished, encodedResponse);
     }
 
-    private int timeout;
-    private CommandProcessor commandProcessor;
+    (Guid requestId, string commandName, CommandRequest commandRequest, Guid targetConnectionId) GetRequestParameters(ProxyRequest? request)
+    {
+        ProxyRequest proxyRequest;
+        string requestContent;
+        string commandName;
+
+        if ( request is not null && request.Content is not null && request.CommandName is not null && request.Content != String.Empty )
+        {
+            proxyRequest = request;
+            requestContent = request.Content;
+            commandName = request.CommandName;
+        }
+        else
+        {
+            throw new ProxyRequestException(request, "Invalid request: the request was empty, had no content, or had no command name");
+        }
+
+        var commandContentType = CommandRequest.GetCommandRequestType(commandName);
+
+        if ( commandContentType is null )
+        {
+            throw new ProxyRequestException(proxyRequest, $"The specified command '{request?.CommandName}' does not have an associated request type");
+        }
+
+        var jsonOptions = new JsonSerializerOptions();
+        jsonOptions.IncludeFields = true;
+
+        CommandRequest? commandRequest = null;
+
+        try
+        {
+            if ( request is not null && commandContentType is not null && request.Content is not null )
+            {
+                var deserializedContent = (CommandRequest?) JsonSerializer.Deserialize(request.Content, commandContentType, jsonOptions);
+
+                if ( deserializedContent is not null )
+                {
+                    commandRequest = deserializedContent;
+                }
+            }
+        }
+        catch ( JsonException exception )
+        {
+            throw new ProxyRequestException(request, $"The specified command '{request?.CommandName}' is a valid command but its payload was invalid.", exception );
+        }
+
+        if ( commandRequest is null )
+        {
+            throw new ProxyRequestException(request, $"The specified command '{request?.CommandName}' is a valid command but its payload was deserialized as empty.");
+        }
+
+        return (proxyRequest.RequestId, commandName, commandRequest, proxyRequest.TargetConnectionId);
+    }
+
+    private CommandProcessor? commandProcessor;
+    private ILogger? logger;
 }
 
