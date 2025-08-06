@@ -20,7 +20,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Modulus.ChatGPS.Logging;
 
-public class FileLogWriter : ILogWriter
+internal class FileLogWriter : ILogWriter
 {
     internal FileLogWriter( bool consoleOutput = false, bool rawOutput = false, string? logFilePath = null, object? syncObject = null )
     {

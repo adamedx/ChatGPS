@@ -33,8 +33,8 @@ var timeoutOption = new Option<int>
     (name: "--timeout",
      getDefaultValue: () => 10000);
 
-var debugOption = new Option<bool>
-    (name: "--debug");
+var consoleDebugOutputOption = new Option<bool>
+    (name: "--consoleDebugOutput");
 
 var debugLevelOption = new Option<LogLevel>
     (name: "--debuglevel") { Arity = ArgumentArity.ZeroOrOne };;
@@ -47,19 +47,19 @@ var thisCommand = new RootCommand("AI service proxy application");
 
 thisCommand.Add(whatIfOption);
 thisCommand.Add(timeoutOption);
-thisCommand.Add(debugOption);
+thisCommand.Add(consoleDebugOutputOption);
 thisCommand.Add(debugLevelOption);
 thisCommand.Add(logFileOption);
 
-thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, debugLevel, logFilePath) =>
+thisCommand.SetHandler((whatIf, timeout, consoleDebugOutput, debugLevel, logFilePath) =>
     {
-    Start(whatIf, timeout, enableDebugOutput, debugLevel, logFilePath);
+        Start(whatIf, timeout, consoleDebugOutput, debugLevel, logFilePath);
     },
-    whatIfOption, timeoutOption, debugOption, debugLevelOption, logFileOption);
+    whatIfOption, timeoutOption, consoleDebugOutputOption, debugLevelOption, logFileOption);
 
 thisCommand.Invoke(args);
 
-void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLevel = LogLevel.None, string? logFilePath = null )
+void Start( bool whatIf, int timeout, bool consoleDebugOutput, LogLevel debugLevel = LogLevel.None, string? logFilePath = null )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
@@ -67,7 +67,7 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLeve
         DEBUG_FILE_NAME :
         ( logFilePath.Length > 0 ? logFilePath : null );
 
-    var logLevel = ( ( targetLogFilePath is not null ) || enableDebugOutput ) ?
+    var logLevel = ( ( targetLogFilePath is not null ) || consoleDebugOutput ) ?
         debugLevel : LogLevel.None;
 
     var builder = Host.CreateApplicationBuilder();
@@ -76,11 +76,11 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLeve
     builder.Logging.SetMinimumLevel(logLevel);
     builder.Logging.AddOpenTelemetry( options =>
     {
-        options.AddProcessor(new Modulus.ChatGPS.Logging.LogRecordExtensionProcessor());
+        options.AddProcessor(new LogRecordExtensionProcessor());
 
         if ( targetLogFilePath is not null )
         {
-            options.AddProcessor(new SimpleLogRecordExportProcessor( new Modulus.ChatGPS.Logging.FileTraceExporter( targetLogFilePath, enableDebugOutput, builder ) ));
+            options.AddProcessor(new SimpleLogRecordExportProcessor( new FileTraceExporter( targetLogFilePath, consoleDebugOutput, builder ) ));
         }
     });
 

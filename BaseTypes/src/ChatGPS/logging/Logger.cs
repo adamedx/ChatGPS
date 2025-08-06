@@ -35,7 +35,7 @@ public class Logger
     public Logger( Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null )
     {
         this.loggerFactory = loggerFactory;
-        this.logWriter = new NativeLogger(loggerFactory);
+        this.logWriter = new LoggerLogWriter(loggerFactory);
     }
 
     public void Open()

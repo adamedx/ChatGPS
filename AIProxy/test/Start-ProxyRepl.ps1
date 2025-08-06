@@ -330,7 +330,7 @@ __Get-Function $arguments
         ""
     }
 
-    $dotNetArguments = "run --debug $logLevelArgument $logFileArgument --timeout $IdleTimeout --project $psscriptroot\..\AIProxy.csproj --no-build"
+    $dotNetArguments = "run --consoleDebugOutput $logLevelArgument $logFileArgument --timeout $IdleTimeout --project $psscriptroot\..\AIProxy.csproj --no-build"
 
     $processArguments = "-noprofile -command ""& '$dotnetlocation' $dotNetArguments"""
 

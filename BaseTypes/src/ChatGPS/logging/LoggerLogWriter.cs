@@ -18,9 +18,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Modulus.ChatGPS.Logging;
 
-public class NativeLogger : ILogWriter
+internal class LoggerLogWriter : ILogWriter
 {
-    public NativeLogger(ILoggerFactory? loggerFactory)
+    internal LoggerLogWriter(ILoggerFactory? loggerFactory)
     {
         if ( loggerFactory is not null )
         {
