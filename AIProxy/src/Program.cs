@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 
+using Modulus.ChatGPS.Logging;
 using Modulus.ChatGPS.Models;
 
 const string DEBUG_FILE_NAME = "AIProxyLog.txt";
@@ -35,7 +36,7 @@ var timeoutOption = new Option<int>
 var debugOption = new Option<bool>
     (name: "--debug");
 
-var debugLevelOption = new Option<Modulus.ChatGPS.Logging.LogLevel>
+var debugLevelOption = new Option<LogLevel>
     (name: "--debuglevel") { Arity = ArgumentArity.ZeroOrOne };;
 
 var logFileOption = new Option<string>
@@ -58,7 +59,7 @@ thisCommand.SetHandler((whatIf, timeout, enableDebugOutput, debugLevel, logFileP
 
 thisCommand.Invoke(args);
 
-void Start( bool whatIf, int timeout, bool enableDebugOutput, Modulus.ChatGPS.Logging.LogLevel debugLevel = Modulus.ChatGPS.Logging.LogLevel.Debug, string? logFilePath = null )
+void Start( bool whatIf, int timeout, bool enableDebugOutput, LogLevel debugLevel = LogLevel.None, string? logFilePath = null )
 {
     // Parameter is null if you specify it with no value, but if you don't specify it
     // at all, it gets the default value of "" that we configured above
@@ -67,22 +68,21 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, Modulus.ChatGPS.Lo
         ( logFilePath.Length > 0 ? logFilePath : null );
 
     var logLevel = ( ( targetLogFilePath is not null ) || enableDebugOutput ) ?
-        debugLevel : Modulus.ChatGPS.Logging.LogLevel.Default;
-
+        debugLevel : LogLevel.None;
 
     var builder = Host.CreateApplicationBuilder();
 
     builder.Logging.ClearProviders();
-    builder.Logging.SetMinimumLevel(Modulus.ChatGPS.Logging.ProxyLogger.ToStandardLogLevel(logLevel));
+    builder.Logging.SetMinimumLevel(logLevel);
     builder.Logging.AddOpenTelemetry( options =>
-        {
+    {
         options.AddProcessor(new Modulus.ChatGPS.Logging.LogRecordExtensionProcessor());
 
-        if ( logFilePath is not null )
+        if ( targetLogFilePath is not null )
         {
-            options.AddProcessor(new SimpleLogRecordExportProcessor( new Modulus.ChatGPS.Logging.FileTraceExporter( logLevel, logFilePath, enableDebugOutput, builder ) ));
+            options.AddProcessor(new SimpleLogRecordExportProcessor( new Modulus.ChatGPS.Logging.FileTraceExporter( targetLogFilePath, enableDebugOutput, builder ) ));
         }
-        });
+    });
 
     builder.Services.AddSingleton<IAIProxyService, ProxyApp>();
 
@@ -91,7 +91,7 @@ void Start( bool whatIf, int timeout, bool enableDebugOutput, Modulus.ChatGPS.Lo
     RunProxy(host, timeout, whatIf, logLevel);
 }
 
-void RunProxy(IHost host, int timeout, bool whatIf, Modulus.ChatGPS.Logging.LogLevel logLevel)
+void RunProxy(IHost host, int timeout, bool whatIf, LogLevel logLevel)
 {
     var proxyApp = host.Services.GetRequiredService<IAIProxyService>();
 

@@ -15,6 +15,7 @@
 //
 
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Modulus.ChatGPS.Logging;
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
@@ -94,7 +95,7 @@ internal class CommandProcessor
                     var result = operation.Result ?? "";
                     content.Add(result);
                     Logger.Log($"Successfully executed '{operation.Name}' with response of size {result.Length}");
-                    Logger.Log($"Operation {operation.Name} returned result: {result}", LogLevel.DebugVerbose);
+                    Logger.Log($"Operation {operation.Name} returned result: {result}", LogLevel.Trace);
                 }
                 else
                 {

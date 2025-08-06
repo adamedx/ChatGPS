@@ -23,11 +23,15 @@ namespace Modulus.ChatGPS.Logging;
 
 public class FileTraceExporter : BaseExporter<LogRecord>
 {
-    public FileTraceExporter(LogLevel logLevel, string logFilePath, bool allowConsoleOutput = false, object? fileSyncObject = null)
+    public FileTraceExporter(string logFilePath, bool allowConsoleOutput = false, object? fileSyncObject = null)
     {
         this.allowConsoleOutput = allowConsoleOutput;
-        this.logger = new SimpleLogger(logLevel, false, true, logFilePath, fileSyncObject);
-        this.logger.Open();
+
+        if ( logFilePath is not null )
+        {
+            this.logWriter = new FileLogWriter(false, true, logFilePath, fileSyncObject);
+            this.logWriter.Open();
+        }
     }
 
     public override ExportResult Export(in Batch<LogRecord> batch)
@@ -35,13 +39,13 @@ public class FileTraceExporter : BaseExporter<LogRecord>
         foreach (var record in batch)
         {
             var json = JsonSerializer.Serialize(record);
-            logger.Write(json);
+            logWriter?.Write(json);
 
             if ( this.allowConsoleOutput )
             {
                 if ( record.Body is not null )
                 {
-                    var logLine = SimpleLogger.GetFriendlyLogLine(record.Body);
+                    var logLine = FileLogWriter.GetFriendlyLogLine(record.Body);
                     Console.Write($".{logLine}");
                 }
             }
@@ -52,10 +56,10 @@ public class FileTraceExporter : BaseExporter<LogRecord>
 
     protected override bool OnShutdown(int timeoutMilliseconds)
     {
-        this.logger.Close();
+        this.logWriter?.Close();
         return true;
     }
 
-    SimpleLogger logger;
+    FileLogWriter? logWriter;
     bool allowConsoleOutput;
 }

@@ -1,3 +1,4 @@
+
 //
 // Copyright (c), Adam Edwards
 //
@@ -14,14 +15,14 @@
 // limitations under the License.
 //
 
+using Microsoft.Extensions.Logging;
+
 namespace Modulus.ChatGPS.Logging;
 
-public enum LogLevel
+public interface ILogWriter
 {
-    Default,
-    None,
-    Error,
-    Warning,
-    Debug,
-    DebugVerbose
+    void Open();
+    void Write( string outputString, LogLevel logLevel = LogLevel.Debug );
+    void Close();
+    void Flush();
 }

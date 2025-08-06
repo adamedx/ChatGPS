@@ -14,11 +14,13 @@
 // limitations under the License.
 //
 
+using Microsoft.Extensions.Logging;
+
 using Modulus.ChatGPS.Logging;
 
-internal class Logger
+public class Logger
 {
-    static internal void InitializeDefaultLogger( Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory )
+    static public void InitializeDefaultLogger( Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory )
     {
         if ( Logger.defaultLogger is not null )
         {
@@ -30,33 +32,33 @@ internal class Logger
         Logger.defaultLogger.Open();
     }
 
-    internal Logger( Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null )
+    public Logger( Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory = null )
     {
         this.loggerFactory = loggerFactory;
-        this.logger = new NativeLogger(loggerFactory);
+        this.logWriter = new NativeLogger(loggerFactory);
     }
 
-    internal void Open()
+    public void Open()
     {
-        this.logger.Open();
+        this.logWriter.Open();
     }
 
-    internal void Write( string outputString, LogLevel logLevel = LogLevel.Debug )
+    public void Write( string outputString, LogLevel logLevel = LogLevel.Debug )
     {
-        this.logger.Write( outputString, logLevel);
+        this.logWriter.Write( outputString, logLevel);
     }
 
-    internal void Close()
+    public void Close()
     {
-        this.logger.Close();
+        this.logWriter.Close();
     }
 
-    internal void Flush()
+    public void Flush()
     {
-        this.logger.Flush();
+        this.logWriter.Flush();
     }
 
-    internal static Logger DefaultLogger
+    public static Logger DefaultLogger
     {
         get
         {
@@ -69,7 +71,7 @@ internal class Logger
         }
     }
 
-    internal static void Log( string outputString, LogLevel logLevel = LogLevel.Debug )
+    public static void Log( string outputString, LogLevel logLevel = LogLevel.Debug )
     {
         if ( Logger.defaultLogger is null )
         {
@@ -79,7 +81,7 @@ internal class Logger
         Logger.defaultLogger.Write( outputString, logLevel );
     }
 
-    internal static void FlushLog()
+    public static void FlushLog()
     {
         if ( Logger.defaultLogger is null )
         {
@@ -89,7 +91,7 @@ internal class Logger
         Logger.defaultLogger.Flush();
     }
 
-    internal static void End()
+    public static void End()
     {
         if ( Logger.defaultLogger is not null )
         {
@@ -97,13 +99,13 @@ internal class Logger
         }
     }
 
-    internal static Microsoft.Extensions.Logging.ILoggerFactory? LoggerFactory
+    public static Microsoft.Extensions.Logging.ILoggerFactory? LoggerFactory
     {
         get => Logger.DefaultLogger.loggerFactory;
     }
 
     private static Logger? defaultLogger;
-    private IProxyLogger logger;
+    private ILogWriter logWriter;
     private Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory;
 }
 

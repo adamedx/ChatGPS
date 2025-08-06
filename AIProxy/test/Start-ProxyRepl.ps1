@@ -91,8 +91,8 @@ function Start-ProxyRepl {
 
         [string] $LogFile,
 
-        [validateset('Default', 'None', 'Error', 'Debug', 'DebugVerbose')]
-        [string] $LogLevel,
+        [validateset('Trace', 'Debug', 'Information', 'Warning', 'Error', 'Critical', 'None')]
+        [string] $LogLevel = 'Debug',
 
         [string] $SystemPrompt = 'You are an assistant who provides support and encouragement for people to understand mathematics, science, and technology topics.',
 

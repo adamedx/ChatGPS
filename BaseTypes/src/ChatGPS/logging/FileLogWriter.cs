@@ -16,25 +16,18 @@
 
 using System.IO;
 
+using Microsoft.Extensions.Logging;
+
 namespace Modulus.ChatGPS.Logging;
 
-public class SimpleLogger : IProxyLogger
+public class FileLogWriter : ILogWriter
 {
-    internal SimpleLogger( LogLevel logLevel = LogLevel.Default, bool consoleOutput = false, bool rawOutput = false, string? logFilePath = null, object? syncObject = null )
+    internal FileLogWriter( bool consoleOutput = false, bool rawOutput = false, string? logFilePath = null, object? syncObject = null )
     {
         this.syncObject = syncObject ?? this;
         this.rawOutput = rawOutput;
         this.consoleOutput = consoleOutput;
         this.logFilePath = logFilePath;
-
-        if ( logLevel == LogLevel.Default )
-        {
-            this.logLevel = LogLevel.None;
-        }
-        else
-        {
-            this.logLevel = logLevel;
-        }
     }
 
     public void Open()
@@ -44,7 +37,7 @@ public class SimpleLogger : IProxyLogger
             throw new InvalidOperationException("The log must be started before the Write method may be executed");
         }
 
-        if ( ( this.logFilePath is not null ) && ( this.logLevel != LogLevel.None ) )
+        if ( ( this.logFilePath is not null ) )
         {
             var options = new FileStreamOptions() {
                 Mode = FileMode.Append,
@@ -61,9 +54,9 @@ public class SimpleLogger : IProxyLogger
 
     public void Write( string outputString, LogLevel logLevel = LogLevel.Debug )
     {
-        if ( this.logLevel >= logLevel )
+        if ( logLevel != LogLevel.None )
         {
-            var entryWithTime = SimpleLogger.GetFriendlyLogLine(outputString);
+            var entryWithTime = FileLogWriter.GetFriendlyLogLine(outputString);
             var logLine = this.rawOutput ? outputString + "\n" : entryWithTime;
 
             lock ( this.syncObject )
@@ -119,7 +112,6 @@ public class SimpleLogger : IProxyLogger
         return string.Format("{0}\t0x{1:X8}\t{2}\n", DateTimeOffset.Now.LocalDateTime.ToString("u"), managedThreadId, outputString);
     }
 
-    private LogLevel logLevel;
     private bool consoleOutput;
     private bool rawOutput;
     private string? logFilePath;

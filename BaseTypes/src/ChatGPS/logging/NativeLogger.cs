@@ -18,9 +18,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Modulus.ChatGPS.Logging;
 
-public class NativeLogger : IProxyLogger
+public class NativeLogger : ILogWriter
 {
-    public NativeLogger(Microsoft.Extensions.Logging.ILoggerFactory? loggerFactory)
+    public NativeLogger(ILoggerFactory? loggerFactory)
     {
         if ( loggerFactory is not null )
         {
@@ -32,9 +32,9 @@ public class NativeLogger : IProxyLogger
     {
     }
 
-    public void Write( string outputString, Modulus.ChatGPS.Logging.LogLevel logLevel = LogLevel.Debug )
+    public void Write( string outputString, LogLevel logLevel = LogLevel.Debug )
     {
-        this.logger?.Log(ProxyLogger.ToStandardLogLevel(logLevel), outputString);
+        this.logger?.Log(logLevel, outputString);
     }
 
     public void Close()
@@ -45,5 +45,5 @@ public class NativeLogger : IProxyLogger
     {
     }
 
-    Microsoft.Extensions.Logging.ILogger? logger;
+    ILogger? logger;
 }

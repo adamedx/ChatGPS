@@ -175,6 +175,7 @@ public abstract class ChatService : IChatService
 
         if ( this.loggerFactory is not null )
         {
+            // May need to find a way to clear existing log providers
             builder.Services.AddSingleton<ILoggerFactory>(this.loggerFactory);
         }
 
