@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright (c), Adam Edwards
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +12,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
+function Install-ChatLibraries {
+    [cmdletbinding(positionalbinding=$false)]
+    param(
+        [switch] $ForcePrivateDotNet,
 
-set-strictmode -version 2
-$erroractionpreference = 'stop'
+        [switch] $PassThru
+    )
 
-. (join-path $psscriptroot native.ps1)
-. (join-path $psscriptroot services.ps1)
-. (join-path $psscriptroot intent.ps1)
-. (join-path $psscriptroot presentation.ps1)
-. (join-path $psscriptroot shell.ps1)
-. (join-path $psscriptroot function.ps1)
-. (join-path $psscriptroot plugins.ps1)
-. (join-path $psscriptroot config.ps1)
-. (join-path $psscriptroot codegen.ps1)
-. (join-path $psscriptroot addons.ps1)
-. (join-path $psscriptroot commands.ps1)
-. (join-path $psscriptroot aliases.ps1)
+    $dotNetPath = InstallLibs $ForcePrivateDotNet.IsPresent
 
-InitializeModuleSettings
-
+    if ( $PassThru.IsPresent ) {
+        $dotNetPath
+    }
+}

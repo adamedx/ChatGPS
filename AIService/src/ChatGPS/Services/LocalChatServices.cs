@@ -15,6 +15,7 @@
 //
 
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -64,7 +65,67 @@ public class LocalAIChatService : ChatService
                                                     "Onnx support currently requires the Windows operating system executing " +
                                                     "on the x64 or arm64 processor architectures.");
         }
+#else
+        if ( LocalAIChatService.staticMethod is null )
+        {
 
+            var extType = Type.GetType("Microsoft.SemanticKernel.OnnxKernelBuilderExtensions, Microsoft.SemanticKernel.Connectors.Onnx");
+
+            if ( extType is null )
+            {
+                var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
+                var callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
+
+                var onnxAssemblyPath = Path.Join(callingAssemblyDirectory, "Microsoft.SemanticKernel.Connectors.Onnx.dll");
+
+                try
+                {
+                    var assembly = System.Reflection.Assembly.LoadFrom(onnxAssemblyPath);
+
+//                Console.WriteLine("Loaded!");
+                    foreach ( Type type in assembly.GetTypes() )
+                    {
+                        if ( type.FullName == "Microsoft.SemanticKernel.OnnxKernelBuilderExtensions" )
+                        {
+                            //                      Console.WriteLine("FoundType!");
+                            extType = type;
+                            break;
+                        }
+                    }
+
+//                Console.WriteLine("Enumerated!");
+                }
+                catch ( Exception e )
+                {
+                    throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type 'Microsoft.SemanticKernel.OnnxKernelBuilderExtensions' from the assembly path {onnxAssemblyPath}.", e);
+                }
+            }
+
+            if ( extType is null )
+            {
+                throw new TypeLoadException("Unable to initialize local Onnxmodel support. Could not load type 'Microsoft.SemanticKernel.OnnxKernelBuilderExtensions' from the successfully loaded assembly Microsoft.SemanticKernel.Connectors.Onnx.");
+            }
+
+            var methods = extType.GetMethods();
+
+            foreach ( var method in methods )
+            {
+                if ( method.Name == "AddOnnxRuntimeGenAIChatCompletion" )
+                {
+                    Console.Error.WriteLine("Found method!");
+                    LocalAIChatService.staticMethod = method;
+                    break;
+                }
+            }
+
+            if ( LocalAIChatService.staticMethod is null )
+            {
+                throw new MissingMethodException("The static method AddOnnxRuntimeGenAIChatCompletion was not found on OnnxKernelBuilderExtensions.");
+            }
+        }
+
+        LocalAIChatService.staticMethod.Invoke(null, new object?[] { builder, this.options.ModelIdentifier, this.options.LocalModelPath, null, null });
+#endif
         var newKernel = builder.Build();
 
         if ( newKernel == null )
@@ -75,11 +136,10 @@ public class LocalAIChatService : ChatService
         this.serviceKernel = newKernel;
 
         return newKernel;
-#else
-        throw new NotImplementedException("Support for Onnx is temporarily disabled.");
-#endif
     }
 
-
+#if !DEBUG
+    static MethodInfo? staticMethod;
+#endif
 }
 

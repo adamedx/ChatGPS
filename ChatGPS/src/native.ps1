@@ -93,9 +93,6 @@ function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningAc
     $nativeLibrarySource = GetNativeLibrarySourceDirectory
     $nativeLibraryDestination = join-path (CurrentScriptDirectory) lib
 
-    # TODO: Temporarily skipping because Onnx is enabled only for DEBUG
-    return
-
     if ( ! $nativeLibrarySource ) {
         write-warning "Unable to determine native library source directory -- native operations may not be supported for the current platform" -warningaction $warningActionValue
     } elseif ( ! ( test-path $nativeLibrarySource ) ) {
@@ -147,10 +144,10 @@ $skipVariable = get-variable -scope global __ChatGPSSkipNative -erroraction igno
 
 if ( ! $skipVariable -or ! ( $skipVariable.value -eq $true ) ) {
     write-verbose "Starting native library configuration in runtime mode."
-    ConfigureNativeLibraries
+    ConfigureNativeLibraries -warningactionvalue SilentlyContinue
 } else {
     write-verbose "Skipping library configuration because this is not runtime mode."
-    ConfigureNativeLibraries $true -warningactionvalue stop
+    ConfigureNativeLibraries $true -warningactionvalue SilentlyContinue
 }
 
 

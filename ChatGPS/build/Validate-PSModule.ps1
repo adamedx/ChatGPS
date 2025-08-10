@@ -26,9 +26,10 @@ $erroractionpreference = 'stop'
 
 $moduleManifestPath = Find-ModuleManifestPath -ModuleDirectory $ModuleDirectory
 
-Test-ModuleManifest $moduleManifestPath -erroraction stop | out-null
 
 $global:__ChatGPSSkipNative = $true
+
+Test-ModuleManifest $moduleManifestPath -erroraction stop | out-null
 
 try {
     set-item env:CHATGPS_DEFAULT_SETTINGS_PATH_OVERRIDE ([Guid]::NewGuid().ToString())
