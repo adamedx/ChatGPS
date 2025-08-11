@@ -70,7 +70,11 @@ void Start( bool whatIf, int timeout, bool consoleDebugOutput, LogLevel debugLev
     var logLevel = ( ( targetLogFilePath is not null ) || consoleDebugOutput ) ?
         debugLevel : LogLevel.None;
 
-    var builder = Host.CreateApplicationBuilder();
+    var hostSettings = new HostApplicationBuilderSettings();
+
+    hostSettings.DisableDefaults = true;
+
+    var builder = Host.CreateEmptyApplicationBuilder(hostSettings);
 
     builder.Logging.ClearProviders();
     builder.Logging.SetMinimumLevel(logLevel);

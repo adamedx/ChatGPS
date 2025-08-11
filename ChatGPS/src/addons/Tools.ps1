@@ -46,7 +46,10 @@ function InstallLibs([bool] $forcePrivateDotNet) {
     copy-item $psscriptroot/addons.ps1 "$installDirectory/addons.csproj"
     copy-item $psscriptroot/Program.ps1 "$installDirectory/Program.cs"
 
-    $projectFilePath = (get-item $installDirectory/addons.csproj).fullname
+    # Use of -force with get-item is useful on Linux where dot files / dirs are only
+    # accessible if you use -force -- if the install directory happens to have
+    # a dot named directory in the path.
+    $projectFilePath = (get-item $installDirectory/addons.csproj -force).fullname
 
     $buildCommand = "'$dotNetToolPath' build $projectFilePath --configuration release"
 
@@ -101,13 +104,13 @@ function InstallLibs([bool] $forcePrivateDotNet) {
 }
 
 function GetInstallDirectory {
-    $targetInstallDirectory = join-path $psscriptroot ../../.install
+    $targetInstallDirectory = join-path $psscriptroot ../../install
 
     if ( ! ( test-path $targetInstallDirectory ) ) {
         mkdir $targetInstallDirectory | out-null
     }
 
-    (get-item $targetInstallDirectory).FullName
+    (get-item $targetInstallDirectory -force).FullName
 }
 
 function GetTempLibrarySourceDirectory {
@@ -142,7 +145,7 @@ function GetDotNet([bool] $forcePrivate) {
     } else {
         write-verbose "Required 'dotnet' tool not detected, looking under install directory $dotnetDirectory and retrying..."
         if ( test-path $privateDotNetPath ) {
-            (Get-Item $privateDotNetPath).FullName
+            (Get-Item $privateDotNetPath -force).FullName
         }
     }
 
@@ -183,13 +186,11 @@ function GetDotNet([bool] $forcePrivate) {
 
         write-verbose "Executable not found or incorrect version, will install required .net runtime in default location '$destinationPath'..."
 
-        $noPathArgument = '-nopath'
-        $installDirectoryArgument = '-installdir'
+        $noPathArgument = '-NoPath'
+        $installDirectoryArgument = '-InstallDir'
         $dotNetInstallerFile = if ( $isWindowsOS ) {
             'dotnet-install.ps1'
         } else {
-            $noPathArgument = '--nopath'
-            $installDirectoryArgument = '--installdir'
             'dotnet-install.sh'
         }
 
@@ -213,26 +214,26 @@ function GetDotNet([bool] $forcePrivate) {
         # Installs runtime and SDK
         Write-Progress -ParentId 1 -Id 2 -Activity 'Installing dotnet tool' -PercentComplete 10
         write-verbose 'Installing new .net version...'
-        (invoke-expression "$dotNetInstallerPath $noPathArgument $installDirectoryArgument $dotNetDirectory") | write-verbose
+
+        $installerCommand = "$dotNetInstallerPath $noPathArgument $installDirectoryArgument $dotNetDirectory"
+
+        write-verbose "Executing command: $installerCommand"
+
+        # TODO: Improve error detection for cases where invoke-expression
+        # masks errors.
+        invoke-expression $installerCommand | write-verbose
 
         Write-Progress -ParentId 1 -Id 2 -Activity 'Verifying dotnet installation' -PercentComplete 100
 
-        $existingDotNetToolPath = $privateDotNetPath
-
-        $dotNetToolFinalVerification = test-path $existingDotNetToolPath
+        $dotNetToolFinalVerification = test-path $privateDotNetPath
 
         if ( ! $dotNetToolFinalVerification ) {
-            throw "Unable to install or detect required .net runtime tool 'dotnet' at location '$dotNetInstallerPath'"
+            throw "Unable to install or detect required .net runtime tool 'dotnet' at location '$privateDotNetPath'"
         }
 
-        # WORKAROUND: Again, working around global.json as described earlier.
-        $newDotNetVersion = try {
-            pushd /
-            (& $privateDotNetPath --version)
-        } finally {
-            popd
-        }
-        write-verbose "After installation dotnet version '$newDotNetVersion' detected..."
+        $existingDotNetToolPath = $privateDotNetPath
+
+        write-verbose "After installation dotnet tool '$privateDotNetPath' will be returned."
     }
 
     $existingDotNetToolPath

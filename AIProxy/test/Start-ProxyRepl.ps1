@@ -104,7 +104,7 @@ function Start-ProxyRepl {
     $currentCommand = $null
 
     if ( ! $NoLoadAssemblies.IsPresent ) {
-        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath\BaseTypes.dll") | out-null
+        [System.Reflection.Assembly]::LoadFrom("$AssemblyPath/BaseTypes.dll") | out-null
     }
 
     if ( $Reset.IsPresent -or (get-variable __TEST_AIPROXY_SESSION -erroraction ignore ) -eq $null ) {
@@ -312,7 +312,9 @@ __Get-Function $arguments
         get-content $ConfigPath | out-string
     }
 
-    $dotnetlocation = get-command $ProxyExecutablePath | select -expandproperty source
+    # Currently this requires dotnet to be in the path.
+    # Consider adding a parameter to allow an explicit path to be specified.
+    $dotnetlocation = 'dotnet'
 
     $logLevelArgument = if ( $LogLevel ) {
         "--debuglevel $LogLevel"
@@ -330,7 +332,7 @@ __Get-Function $arguments
         ""
     }
 
-    $dotNetArguments = "run --consoleDebugOutput $logLevelArgument $logFileArgument --timeout $IdleTimeout --project $psscriptroot\..\AIProxy.csproj --no-build"
+    $dotNetArguments = "run --consoleDebugOutput $logLevelArgument $logFileArgument --timeout $IdleTimeout --project $psscriptroot/../AIProxy.csproj --no-build"
 
     $processArguments = "-noprofile -command ""& '$dotnetlocation' $dotNetArguments"""
 
@@ -519,8 +521,13 @@ __Get-Function $arguments
 
         while ( ! $process.hasexited -and ! $failed ) {
             try {
+                write-debug 'Waiting for response with ReadLine'
+
                 write-progress "Waiting for response" -PercentComplete 80
                 $currentLine = $process.StandardOutput.Readline()
+
+                write-debug 'Resposne received from ReadLine'
+
                 if ( $currentLine ) { write-verbose $currentLine }
                 if ( ! $currentLine -or $currentLine[0] -eq '.' ) {
                     write-debug SKIPPING
@@ -530,6 +537,7 @@ __Get-Function $arguments
                 $output = $currentLine
                 break
             } catch {
+                write-debug "Caught error response: $_"
                 $_ | write-error -erroraction continue
                 $failed = $true
                 break
