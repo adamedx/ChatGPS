@@ -56,7 +56,7 @@ public class ServiceBuilder
                 newService = new OpenAIChatService( this.options, this.loggerFactory, this.userAgent );
                 break;
             case ModelProvider.LocalOnnx:
-                newService = new LocalAIChatService( this.options, this.loggerFactory );
+                newService = new LocalChatService( this.options, this.loggerFactory );
                 break;
             case ModelProvider.Ollama:
                 newService = new OllamaChatService( this.options, this.loggerFactory );

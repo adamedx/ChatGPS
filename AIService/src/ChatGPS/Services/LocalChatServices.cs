@@ -25,9 +25,9 @@ using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
-public class LocalAIChatService : ChatService
+public class LocalChatService : ChatService
 {
-    internal LocalAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null) : base(options, loggerFactory) { }
+    internal LocalChatService(AiOptions options, ILoggerFactory? loggerFactory = null) : base(options, loggerFactory) { }
 
     protected override Kernel GetKernel()
     {
@@ -66,65 +66,42 @@ public class LocalAIChatService : ChatService
                                                     "on the x64 or arm64 processor architectures.");
         }
 #else
-        if ( LocalAIChatService.staticMethod is null )
+        if ( LocalChatService.onnxBuilderMethod is null )
         {
+            var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
+            var callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
 
-            var extType = Type.GetType("Microsoft.SemanticKernel.OnnxKernelBuilderExtensions, Microsoft.SemanticKernel.Connectors.Onnx");
+            var onnxAssemblyPath = Path.Join(callingAssemblyDirectory, onnxAssemblyFileName);
 
-            if ( extType is null )
+            Assembly? onnxAssembly;
+
+            try
             {
-                var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
-                var callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
-
-                var onnxAssemblyPath = Path.Join(callingAssemblyDirectory, "Microsoft.SemanticKernel.Connectors.Onnx.dll");
-
-                try
-                {
-                    var assembly = System.Reflection.Assembly.LoadFrom(onnxAssemblyPath);
-
-//                Console.WriteLine("Loaded!");
-                    foreach ( Type type in assembly.GetTypes() )
-                    {
-                        if ( type.FullName == "Microsoft.SemanticKernel.OnnxKernelBuilderExtensions" )
-                        {
-                            //                      Console.WriteLine("FoundType!");
-                            extType = type;
-                            break;
-                        }
-                    }
-
-//                Console.WriteLine("Enumerated!");
-                }
-                catch ( Exception e )
-                {
-                    throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type 'Microsoft.SemanticKernel.OnnxKernelBuilderExtensions' from the assembly path {onnxAssemblyPath}.", e);
-                }
+                onnxAssembly = System.Reflection.Assembly.LoadFrom(onnxAssemblyPath);
+            }
+            catch ( Exception e )
+            {
+                throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type 'Microsoft.SemanticKernel.OnnxKernelBuilderExtensions' from the assembly path {onnxAssemblyPath}.", e);
             }
 
-            if ( extType is null )
+            var onnxBuilderType = onnxAssembly.GetType(onnxBuilderTypeName);
+
+            if ( onnxBuilderType is null )
             {
                 throw new TypeLoadException("Unable to initialize local Onnxmodel support. Could not load type 'Microsoft.SemanticKernel.OnnxKernelBuilderExtensions' from the successfully loaded assembly Microsoft.SemanticKernel.Connectors.Onnx.");
             }
 
-            var methods = extType.GetMethods();
+            LocalChatService.onnxBuilderMethod = onnxBuilderType.GetMethod(
+                onnxBuilderMethodName,
+                BindingFlags.Public | BindingFlags.Static);
 
-            foreach ( var method in methods )
-            {
-                if ( method.Name == "AddOnnxRuntimeGenAIChatCompletion" )
-                {
-                    Console.Error.WriteLine("Found method!");
-                    LocalAIChatService.staticMethod = method;
-                    break;
-                }
-            }
-
-            if ( LocalAIChatService.staticMethod is null )
+            if ( LocalChatService.onnxBuilderMethod is null )
             {
                 throw new MissingMethodException("The static method AddOnnxRuntimeGenAIChatCompletion was not found on OnnxKernelBuilderExtensions.");
             }
         }
 
-        LocalAIChatService.staticMethod.Invoke(null, new object?[] { builder, this.options.ModelIdentifier, this.options.LocalModelPath, null, null });
+        LocalChatService.onnxBuilderMethod.Invoke(null, new object?[] { builder, this.options.ModelIdentifier, this.options.LocalModelPath, null, null });
 #endif
         var newKernel = builder.Build();
 
@@ -139,7 +116,11 @@ public class LocalAIChatService : ChatService
     }
 
 #if !DEBUG
-    static MethodInfo? staticMethod;
+    const string onnxAssemblyFileName = "Microsoft.SemanticKernel.Connectors.Onnx.dll";
+    const string onnxBuilderTypeName = "Microsoft.SemanticKernel.OnnxKernelBuilderExtensions";
+    const string onnxBuilderMethodName = "AddOnnxRuntimeGenAIChatCompletion";
+
+    static MethodInfo? onnxBuilderMethod = null;
 #endif
 }
 
