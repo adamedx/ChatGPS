@@ -17,24 +17,29 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+using Microsoft.SemanticKernel;
+
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
-public class OnnxProviderAssemblyLoader
+internal class OnnxProviderAssemblyLoader
 {
-    public OnnxProviderAssemblyLoader()
+    internal OnnxProviderAssemblyLoader()
     {
+        this.PlatformString = null;
         InitializePlatformInfo();
     }
 
-    public bool IsSupportedOnCurrentPlatform
+    internal bool IsSupportedOnCurrentPlatform
     {
         get
         {
-            return this.isOsSupported && this.isArchSupported;
+            return this.PlatformString is not null;
         }
     }
+
+    internal string? PlatformString { get; private set; }
 
     private void InitializePlatformInfo()
     {
@@ -49,11 +54,11 @@ public class OnnxProviderAssemblyLoader
                     OperatingSystem.IsWindows() ?
                     "win" : null ) );
 
-        this.isOsSupported = osFragment != null;
+        var isOsSupported = osFragment != null;
 
         string? archFragment = null;
 
-        if ( this.isOsSupported )
+        if ( isOsSupported )
         {
             switch ( RuntimeInformation.ProcessArchitecture )
             {
@@ -69,22 +74,54 @@ public class OnnxProviderAssemblyLoader
 
         if ( archFragment != null )
         {
-            this.isArchSupported = true;
-
-            var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
-            this.callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
-
-            var currentNativePlatformIdentifier = $"{osFragment}-{archFragment}";
-            var targetPlatformSubdirectory = Path.Join("runtimes", currentNativePlatformIdentifier);
-            var targetSubdirectory = Path.Join(targetPlatformSubdirectory, "native");
-
-            this.targetAssemblyDirectory = Path.Join(this.callingAssemblyDirectory, targetSubdirectory);
+            this.PlatformString = $"{osFragment}-{archFragment}";
         }
     }
 
-    private bool isOsSupported = false;
-    private bool isArchSupported = false;
-    private string? callingAssemblyDirectory;
-    private string? targetAssemblyDirectory;
+    internal void AddOnnxService( IKernelBuilder onnxKernelBuilder, string modelIdentifier, string localModelPath )
+    {
+        if ( OnnxProviderAssemblyLoader.onnxBuilderMethod is null )
+        {
+            var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
+            var callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
+
+            var onnxAssemblyPath = Path.Join(callingAssemblyDirectory, onnxAssemblyFileName);
+
+            Assembly? onnxAssembly;
+
+            try
+            {
+                onnxAssembly = System.Reflection.Assembly.LoadFrom(onnxAssemblyPath);
+            }
+            catch ( Exception e )
+            {
+                throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type {onnxBuilderTypeName} from the assembly path {onnxAssemblyPath}.", e);
+            }
+
+            var onnxBuilderType = onnxAssembly.GetType(onnxBuilderTypeName);
+
+            if ( onnxBuilderType is null )
+            {
+                throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type {onnxBuilderTypeName} from the successfully loaded assembly at the path {onnxAssemblyPath}.");
+            }
+
+            OnnxProviderAssemblyLoader.onnxBuilderMethod = onnxBuilderType.GetMethod(
+                onnxBuilderMethodName,
+                BindingFlags.Public | BindingFlags.Static);
+
+            if ( OnnxProviderAssemblyLoader.onnxBuilderMethod is null )
+            {
+                throw new MissingMethodException($"The static method {onnxBuilderMethodName} was not found on type {onnxBuilderTypeName}.");
+            }
+        }
+
+        OnnxProviderAssemblyLoader.onnxBuilderMethod.Invoke(null, new object?[] { onnxKernelBuilder, modelIdentifier, localModelPath, null, null });
+    }
+
+    const string onnxAssemblyFileName = "Microsoft.SemanticKernel.Connectors.Onnx.dll";
+    const string onnxBuilderTypeName = "Microsoft.SemanticKernel.OnnxKernelBuilderExtensions";
+    const string onnxBuilderMethodName = "AddOnnxRuntimeGenAIChatCompletion";
+
+    static MethodInfo? onnxBuilderMethod = null;
 }
 

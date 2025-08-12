@@ -15,7 +15,7 @@
 //
 
 using System.Collections.Generic;
-using System.Reflection;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -48,11 +48,6 @@ public class LocalChatService : ChatService
             throw new ArgumentException("A file system path must be specified.");
         }
 
-#if DEBUG
-#pragma warning disable SKEXP0070
-        builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
-#pragma warning restore SKEXP0070
-
         var assemblyLoader = new OnnxProviderAssemblyLoader();
 
         if ( ! assemblyLoader.IsSupportedOnCurrentPlatform )
@@ -61,47 +56,17 @@ public class LocalChatService : ChatService
             var processArch = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture;
 
             throw new PlatformNotSupportedException($"This application does not support the use of Onnx local models " +
-                                                    "on the current system platform '{osVersion}, {processArch}'. " +
+                                                    "on the current system platform '{assemblyLoader.PlatformString}'. " +
                                                     "Onnx support currently requires the Windows operating system executing " +
                                                     "on the x64 or arm64 processor architectures.");
         }
+
+#if DEBUG
+#pragma warning disable SKEXP0070
+        builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
+#pragma warning restore SKEXP0070
 #else
-        if ( LocalChatService.onnxBuilderMethod is null )
-        {
-            var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
-            var callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
-
-            var onnxAssemblyPath = Path.Join(callingAssemblyDirectory, onnxAssemblyFileName);
-
-            Assembly? onnxAssembly;
-
-            try
-            {
-                onnxAssembly = System.Reflection.Assembly.LoadFrom(onnxAssemblyPath);
-            }
-            catch ( Exception e )
-            {
-                throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type 'Microsoft.SemanticKernel.OnnxKernelBuilderExtensions' from the assembly path {onnxAssemblyPath}.", e);
-            }
-
-            var onnxBuilderType = onnxAssembly.GetType(onnxBuilderTypeName);
-
-            if ( onnxBuilderType is null )
-            {
-                throw new TypeLoadException("Unable to initialize local Onnxmodel support. Could not load type 'Microsoft.SemanticKernel.OnnxKernelBuilderExtensions' from the successfully loaded assembly Microsoft.SemanticKernel.Connectors.Onnx.");
-            }
-
-            LocalChatService.onnxBuilderMethod = onnxBuilderType.GetMethod(
-                onnxBuilderMethodName,
-                BindingFlags.Public | BindingFlags.Static);
-
-            if ( LocalChatService.onnxBuilderMethod is null )
-            {
-                throw new MissingMethodException("The static method AddOnnxRuntimeGenAIChatCompletion was not found on OnnxKernelBuilderExtensions.");
-            }
-        }
-
-        LocalChatService.onnxBuilderMethod.Invoke(null, new object?[] { builder, this.options.ModelIdentifier, this.options.LocalModelPath, null, null });
+        assemblyLoader.AddOnnxService(builder, this.options.ModelIdentifier, this.options.LocalModelPath);
 #endif
         var newKernel = builder.Build();
 
@@ -114,13 +79,5 @@ public class LocalChatService : ChatService
 
         return newKernel;
     }
-
-#if !DEBUG
-    const string onnxAssemblyFileName = "Microsoft.SemanticKernel.Connectors.Onnx.dll";
-    const string onnxBuilderTypeName = "Microsoft.SemanticKernel.OnnxKernelBuilderExtensions";
-    const string onnxBuilderMethodName = "AddOnnxRuntimeGenAIChatCompletion";
-
-    static MethodInfo? onnxBuilderMethod = null;
-#endif
 }
 
