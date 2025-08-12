@@ -83,7 +83,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Get-ChatSession'
     'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
-    'Install-ChatLibraries'
+    'Install-ChatAddOn'
     'Invoke-ChatFunction'
     'New-ChatFunction'
     'New-ChatVoice'

@@ -61,12 +61,16 @@ public class LocalChatService : ChatService
 
         var builder = base.GetKernelBuilder();
 
-#if DEBUG
+#if !USE_COMPILETIME_ONNX
+
+        onnxBuilderExtension.AddOnnxService(builder, this.options.ModelIdentifier, this.options.LocalModelPath);
+
+#else
+
 #pragma warning disable SKEXP0070
         builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
 #pragma warning restore SKEXP0070
-#else
-        onnxBuilderExtension.AddOnnxService(builder, this.options.ModelIdentifier, this.options.LocalModelPath);
+
 #endif
         var newKernel = builder.Build();
 

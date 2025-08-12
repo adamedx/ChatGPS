@@ -481,10 +481,6 @@ function Connect-ChatSession {
     }
 
     if ( $isLocal ) {
-        if ( $options.provider -eq 'LocalOnnx' ) {
-            write-warning 'The Onnx provider may not be currently supported due to excessive library size issues.'
-        }
-
         if ( ! $NoConnect.IsPresent -and ! ( test-path $options.LocalModelPath ) ) {
             throw [System.IO.FileNotFoundException]::new(
                 "The path $($options.LocalModelPath) specified for a local model could not be found. " +

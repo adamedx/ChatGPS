@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-function InstallLibs([bool] $forcePrivateDotNet) {
+function InstallLibs([bool] $forcePrivateDotNet, [bool] $forceOverWriteFiles = $false) {
 
     # WORKAROUND: Wow. So we need to install some libraries, some dll's that we
     # can't package with the module without blowing it up to 100 GB... compressed
@@ -78,12 +78,10 @@ function InstallLibs([bool] $forcePrivateDotNet) {
     # temporary directory of our choosing.
     $tempLibrarySource = GetTempLibrarySourceDirectory $installDirectory
 
-    write-verbose "copy-item -r '$tempLibrarySource/*' (join-path $psscriptroot ../../lib) -erroraction ignore"
-
     # Copy the libraries from the temporary directory into the actual module where they can
     # be used.
     Write-Progress -id 1 -Activity 'Copying libraries to ChatGPS' -percentcomplete 90
-    copy-item -r "$tempLibrarySource/*" (join-path $psscriptroot ../../lib) -erroraction ignore
+    copy-item -r "$tempLibrarySource/*" (join-path $psscriptroot ../../lib) -erroraction ignore -Force:$forceOverwriteFiles
 
     # This last step moves some additional files in the module to the correct location. This
     # was required even when we pre-packaged the libraries.

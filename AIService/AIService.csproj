@@ -23,8 +23,10 @@
     <PackageReference Include="System.Text.Json" Version="9.0.3" />
   </ItemGroup>
 
+  <!--
   <ItemGroup Condition="'$(Configuration)' =='Debug'">
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.Onnx" Version="1.59.0-alpha" />
   </ItemGroup>
+  -->
 
 </Project>

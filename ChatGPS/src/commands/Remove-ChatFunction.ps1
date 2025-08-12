@@ -30,12 +30,12 @@ The name of the chat function to delete. This can only be used of the function w
 None.
 
 .EXAMPLE
-PS > Remove-ChatFunction Summarizer
+Remove-ChatFunction Summarizer
 
 In this example, the chat function named Summarizer is deleted by specifying the Name property of the function to be deleted.
 
 .EXAMPLE
-PS > Get-ChatFunction
+Get-ChatFunction
 Id                                   Name       Definition             Parameters
 --                                   ----       ----------             ----------
 59880abc-166f-48fd-a96d-220f793c4f57 Translator Translate the text {{$ {[language, language], [sourcetext, sourcetext]}

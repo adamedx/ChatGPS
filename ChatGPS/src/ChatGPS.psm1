@@ -30,7 +30,7 @@ $commands = @(
     'Get-ChatSession'
     'Get-ChatSettingsInfo'
     'Get-ChatVoiceName'
-    'Install-ChatLibraries'
+    'Install-ChatAddOn'
     'Invoke-ChatFunction'
     'New-ChatFunction'
     'New-ChatPlugin'
