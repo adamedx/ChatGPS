@@ -41,32 +41,32 @@ public class LocalChatService : ChatService
             throw new ArgumentException("An identifier for the language model must be specified.");
         }
 
-        var builder = base.GetKernelBuilder();
-
         if ( this.options.LocalModelPath == null )
         {
             throw new ArgumentException("A file system path must be specified.");
         }
 
-        var assemblyLoader = new OnnxProviderAssemblyLoader();
+        var onnxBuilderExtension = new OnnxDynamicKernelBuilderExtension();
 
-        if ( ! assemblyLoader.IsSupportedOnCurrentPlatform )
+        if ( ! onnxBuilderExtension.IsSupportedOnCurrentPlatform )
         {
             var osVersion = System.Environment.OSVersion.ToString();
             var processArch = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture;
 
             throw new PlatformNotSupportedException($"This application does not support the use of Onnx local models " +
-                                                    "on the current system platform '{assemblyLoader.PlatformString}'. " +
+                                                    "on the current system platform '{onnxBuilderExtension.PlatformString}'. " +
                                                     "Onnx support currently requires the Windows operating system executing " +
                                                     "on the x64 or arm64 processor architectures.");
         }
+
+        var builder = base.GetKernelBuilder();
 
 #if DEBUG
 #pragma warning disable SKEXP0070
         builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
 #pragma warning restore SKEXP0070
 #else
-        assemblyLoader.AddOnnxService(builder, this.options.ModelIdentifier, this.options.LocalModelPath);
+        onnxBuilderExtension.AddOnnxService(builder, this.options.ModelIdentifier, this.options.LocalModelPath);
 #endif
         var newKernel = builder.Build();
 

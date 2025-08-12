@@ -23,9 +23,9 @@ using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
-internal class OnnxProviderAssemblyLoader
+internal class OnnxDynamicKernelBuilderExtension
 {
-    internal OnnxProviderAssemblyLoader()
+    internal OnnxDynamicKernelBuilderExtension()
     {
         this.PlatformString = null;
         InitializePlatformInfo();
@@ -80,7 +80,7 @@ internal class OnnxProviderAssemblyLoader
 
     internal void AddOnnxService( IKernelBuilder onnxKernelBuilder, string modelIdentifier, string localModelPath )
     {
-        if ( OnnxProviderAssemblyLoader.onnxBuilderMethod is null )
+        if ( OnnxDynamicKernelBuilderExtension.onnxBuilderMethod is null )
         {
             var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
             var callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
@@ -105,17 +105,17 @@ internal class OnnxProviderAssemblyLoader
                 throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type {onnxBuilderTypeName} from the successfully loaded assembly at the path {onnxAssemblyPath}.");
             }
 
-            OnnxProviderAssemblyLoader.onnxBuilderMethod = onnxBuilderType.GetMethod(
+            OnnxDynamicKernelBuilderExtension.onnxBuilderMethod = onnxBuilderType.GetMethod(
                 onnxBuilderMethodName,
                 BindingFlags.Public | BindingFlags.Static);
 
-            if ( OnnxProviderAssemblyLoader.onnxBuilderMethod is null )
+            if ( OnnxDynamicKernelBuilderExtension.onnxBuilderMethod is null )
             {
                 throw new MissingMethodException($"The static method {onnxBuilderMethodName} was not found on type {onnxBuilderTypeName}.");
             }
         }
 
-        OnnxProviderAssemblyLoader.onnxBuilderMethod.Invoke(null, new object?[] { onnxKernelBuilder, modelIdentifier, localModelPath, null, null });
+        OnnxDynamicKernelBuilderExtension.onnxBuilderMethod.Invoke(null, new object?[] { onnxKernelBuilder, modelIdentifier, localModelPath, null, null });
     }
 
     const string onnxAssemblyFileName = "Microsoft.SemanticKernel.Connectors.Onnx.dll";
