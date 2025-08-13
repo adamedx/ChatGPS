@@ -51,7 +51,7 @@ Install-ChatAddOn LocalOnnx -PassThru
 
 C:\Program Files\dotnet\dotnet.exe
 
-In this case an explicit add-on is specified via the AddOns parameter, and PassThrue is used to return the tool used to install the specified AddOn, which in this case was the dotnet tool.
+In this case an explicit add-on is specified via the AddOns parameter, and PassThru is used to return the tool used to install the specified AddOn, which in this case was the dotnet tool.
 
 .LINK
 Connect-ChatSession
