@@ -50,9 +50,19 @@ public class OpenAIChatService : ChatService
 
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
-        builder.AddOpenAIChatCompletion(
-            modelId: this.options.ModelIdentifier,
-            apiKey: cleartextKey);
+        if ( this.options.ApiEndpoint is null )
+        {
+            builder.AddOpenAIChatCompletion(
+                modelId: this.options.ModelIdentifier,
+                apiKey: cleartextKey);
+        }
+        else
+        {
+            builder.AddOpenAIChatCompletion(
+                modelId: this.options.ModelIdentifier,
+                endpoint : this.options.ApiEndpoint,
+                apiKey: cleartextKey);
+        }
 
         // Configure throttling retry behavior
         builder.Services.ConfigureHttpClientDefaults(c =>
