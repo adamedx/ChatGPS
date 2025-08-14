@@ -19,6 +19,10 @@ $CurrentSession = $null
 
 $__ModuleVersionString = {}.Module.Version.ToString()
 
+$InstallAddOnsMessage = @'
+Possible missing dependencies detected. Invoke the Install-ChatAddOn command to install missing dependencies and then retry this operation.
+'@
+
 function GetUserAgent {
     $osversion = [System.Environment]::OSVersion.version.tostring()
     $platform = 'Windows NT'
@@ -285,10 +289,22 @@ function SendMessage($session, $prompt, $functionDefinition, $allowAgentAccess =
         $sendBlock.Invoke($prompt)
     }
 
-    $response = if ( $functionDefinition ) {
-        $session.GenerateFunctionResponse($functionDefinition, $targetPrompt, $allowAgentAccess)
-    } else {
-        $session.GenerateMessage(@($targetPrompt), $allowAgentAccess)
+    $response = try {
+        if ( $functionDefinition ) {
+            $session.GenerateFunctionResponse($functionDefinition, $targetPrompt, $allowAgentAccess)
+        } else {
+            $session.GenerateMessage(@($targetPrompt), $allowAgentAccess)
+        }
+    } catch {
+        # Check for specific exceptions where we can provide guidance to the user
+        if ( $_.Exception -and $_.Exception.InnerException -is [Modulus.ChatGPS.Models.AIServiceException] ) {
+            # Check for missing add-on components such as Onnx local model libraries
+            if ( $_.Exception.InnerException.OriginalExceptionTypeName -in (
+                     [TypeLoadException].FullName, [MissingMethodException].FullName) ) {
+                         write-warning $script:InstallAddonsMessage
+                     }
+        }
+        throw
     }
 
     $receiveBlock = GetReceiveBlock $session

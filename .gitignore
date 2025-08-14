@@ -6,8 +6,11 @@ testresults/
 .psrepo/
 .vscode/
 .vs/
+**/.dotnet/
+**/.install/
 **/bin/
 **/obj/
+ChatGPS/install
 
 *~
 .#*

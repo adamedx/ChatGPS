@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright (c), Adam Edwards
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,22 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#
 
-set-strictmode -version 2
-$erroractionpreference = 'stop'
-
-. (join-path $psscriptroot native.ps1)
-. (join-path $psscriptroot services.ps1)
-. (join-path $psscriptroot intent.ps1)
-. (join-path $psscriptroot presentation.ps1)
-. (join-path $psscriptroot shell.ps1)
-. (join-path $psscriptroot function.ps1)
-. (join-path $psscriptroot plugins.ps1)
-. (join-path $psscriptroot config.ps1)
-. (join-path $psscriptroot codegen.ps1)
-. (join-path $psscriptroot addons.ps1)
-. (join-path $psscriptroot commands.ps1)
-. (join-path $psscriptroot aliases.ps1)
-
-InitializeModuleSettings
+. ( join-path $psscriptroot addons/Tools.ps1 )
 

@@ -37,11 +37,25 @@ public class AIServiceException : SerializableException
         InitializeThrottleInformation(innerException);
     }
 
+    // This specific constructor is used to translate arbitrary exceptions, i.e.
+    // those that don't inherity from SerializableException. This is how most
+    // errors will be translated to the client side for error handling or display
+    // to the user.
+    public AIServiceException(string message, Exception sourceException) : base(message, sourceException)
+    {
+        InitializeTokenLimit(sourceException);
+        InitializeThrottleInformation(sourceException);
+    }
+
+    // This method is intended to be used for representing exceptions from proxy
+    // commands.
     public static AIServiceException CreateServiceException(string message, Exception? innerException = null)
     {
         AIServiceException result;
 
-        var targetException = innerException is not null ? innerException as SerializableException : null;
+        var serializableException = innerException is not null ? innerException as SerializableException : null;
+
+        var targetException = serializableException ?? innerException;
 
         if ( targetException is not null )
         {

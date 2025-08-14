@@ -172,20 +172,27 @@ Id                                   Provider    Name ModelIdentifier
 This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatShell command is used to start an interactive conversation.
 
 .EXAMPLE
-Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5 -PassThrue
+Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5
  
-Id                                   Provider    Name ModelIdentifier
---                                   --------    ---- ---------------
-5825858e-5fe3-489e-a04f-aa4d494f91b5 LocalOnnx        phi-3.5
-
 PS > Start-ChatShell
-
+ 
 (morpheus) ChatGPS>: hello
-
+ 
+WARNING: Possible missing dependencies detected. Invoke the Install-ChatAddOn command to install missing dependencies and then retry this operation."
+Start-ChatShell: Exception calling "GenerateMessage" with "2" argument(s): "Unable to initialize local Onnxmodel support. 
+ 
+(morpheus) ChatGPS>: .exit
+PS > Install-ChatAddOn
+PS > Start-ChatShell
+ 
+(morpheus) ChatGPS>: hello
+ 
 Received                 Response
 --------                 --------
 12/30/2024 11:15:06 PM   Hello! I'm Phi, an AI language model here to assist you with any questions or tasks you have.
                          How can I help you today?
+
+In this case, a connection was created to a local Onnx model. Then when a prompt was submitted using the Start-ChatShell interactive loop, the command encountered an error caused by missing dependencies for Onnx. These library dependencies are not installed with the ChatGPS module due to their size, but as the warning message suggests, running the Install-ChatAddOn command can address this by installing such missing components. The user follows this suggestion and invokes Install-ChatAddOn, the retries submitting a prompt with Start-ChatShell and this successfully returns a response from the local model.
 
 .EXAMPLE
 Send-ChatMessage "Hello what is today's date?"
@@ -481,10 +488,6 @@ function Connect-ChatSession {
     }
 
     if ( $isLocal ) {
-        if ( $options.provider -eq 'LocalOnnx' ) {
-            write-warning 'The Onnx provider may not be currently supported due to excessive library size issues.'
-        }
-
         if ( ! $NoConnect.IsPresent -and ! ( test-path $options.LocalModelPath ) ) {
             throw [System.IO.FileNotFoundException]::new(
                 "The path $($options.LocalModelPath) specified for a local model could not be found. " +

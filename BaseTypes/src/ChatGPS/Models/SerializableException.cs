@@ -18,15 +18,16 @@ namespace Modulus.ChatGPS.Models;
 
 public class SerializableException : Exception
 {
-    public SerializableException() {
+    public SerializableException()
+    {
         this.Properties = new Dictionary<string,object>();
     }
 
-    public SerializableException(string message) : base(message) {
+    public SerializableException(string message) : base(message)
+    {
         this.OriginalMessage = message;
         this.Properties = new Dictionary<string,object>();
     }
-
 
     // In general, exceptions cannot be safely serialized due to security concerns,
     // so we convert exceptions to an instance of this type that carries forward some
@@ -87,7 +88,6 @@ public class SerializableException : Exception
         {
             this.StackTrace = serializableException.StackTrace;
             this.OriginalMessage = serializableException.OriginalMessage;
-//            this.OriginalMessage = ( ( ( serializableException.Message is not null ) && serializableException.Message.Length > 0 ) ? serializableException.Message : serializableException.OriginalMessage) ?? "";
             this.OriginalExceptionTypeName = serializableException.OriginalExceptionTypeName;
         }
     }
