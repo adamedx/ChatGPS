@@ -173,6 +173,7 @@
 * Add Unregister-ChatPlugin
 * Make session listing hide id by default
 * Added AsJob to Send-ChatMessage to support async invocations
+* Install Onnx libraries at runtime using a command and remove from published module
 
 ### Plugin notes
 

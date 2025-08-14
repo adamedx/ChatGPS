@@ -156,6 +156,7 @@ FileList = @(
     'src/commands/Get-ChatSession.ps1'
     'src/commands/Get-ChatSettingsInfo.ps1'
     'src/commands/Get-ChatVoiceName.ps1'
+    'src/commands/Install-ChatAddOn.ps1'
     'src/commands/Invoke-ChatFunction.ps1'
     'src/commands/New-ChatFunction.ps1'
     'src/commands/New-ChatScriptBlock.ps1'

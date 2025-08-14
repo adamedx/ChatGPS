@@ -20,7 +20,7 @@ $CurrentSession = $null
 $__ModuleVersionString = {}.Module.Version.ToString()
 
 $InstallAddOnsMessage = @'
-Try running the Install-ChatAddOn command to install missing dependencies and retry the command."
+Possible missing dependencies detected. Invoke the Install-ChatAddOn command to install missing dependencies and then retry this operation.
 '@
 
 function GetUserAgent {
@@ -301,11 +301,10 @@ function SendMessage($session, $prompt, $functionDefinition, $allowAgentAccess =
             # Check for missing add-on components such as Onnx local model libraries
             if ( $_.Exception.InnerException.OriginalExceptionTypeName -in (
                      [TypeLoadException].FullName, [MissingMethodException].FullName) ) {
-                         write-error -errorrecord $_ -RecommendedAction $script:InstallAddonsMessage
+                         write-warning $script:InstallAddonsMessage
                      }
-        } else {
-            throw
         }
+        throw
     }
 
     $receiveBlock = GetReceiveBlock $session
