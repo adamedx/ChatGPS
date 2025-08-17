@@ -34,7 +34,7 @@ public class ProxyException : SerializableException
         this.TargetServiceException = targetServiceException;
     }
 
-    public ProxyException(Exception? originalException = null) : base (originalException) {}
+    public ProxyException(Exception originalException) : base (originalException) {}
 
     public ProxyException(string message, SerializableException? SerializableException = null) : base(message, SerializableException) {}
 
