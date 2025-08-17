@@ -142,30 +142,22 @@ public class ChatSession
     {
         get
         {
-            LazyInitialize();
-
             return this.chatService.Plugins.Plugins;
         }
     }
 
     public void AddPlugin(string name, Dictionary<string,PluginParameterValue>? parameters = null)
     {
-        LazyInitialize();
-
         this.chatService.Plugins.AddPlugin(name, parameters);
     }
 
     public void RemovePlugin(string name)
     {
-        LazyInitialize();
-
         this.chatService.Plugins.RemovePlugin(name);
     }
 
     public Plugin GetPlugin(string name)
     {
-        LazyInitialize();
-
         Plugin? result;
 
         if ( ! this.chatService.Plugins.TryGetPlugin(name, out result) || result is null )

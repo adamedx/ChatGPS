@@ -25,4 +25,3 @@ public interface IPluginTable
     bool TryGetPlugin(string name, out Plugin? plugin);
     IEnumerable<Plugin> Plugins {get;}
 }
-

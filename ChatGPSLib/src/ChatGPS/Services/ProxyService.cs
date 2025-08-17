@@ -132,8 +132,6 @@ internal class ProxyService : IChatService
     {
         get
         {
-            CheckInitialized();
-
             return this.pluginTable;
         }
     }

@@ -31,4 +31,3 @@ public interface IChatService
     public AiOptions ServiceOptions { get; }
     public IPluginTable Plugins { get; }
 }
-
