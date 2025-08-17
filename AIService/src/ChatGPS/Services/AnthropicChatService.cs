@@ -54,7 +54,8 @@ public class AnthropicChatService : ChatService
 
         this.initialPromptSettings = new OpenAIPromptExecutionSettings()
         {
-            ModelId = this.options.ModelIdentifier
+            ModelId = this.options.ModelIdentifier,
+            MaxTokens = this.options.TokenLimit ?? tokenLimitDefault
         };
 
         var builder = base.GetKernelBuilder();

@@ -230,8 +230,9 @@ public abstract class ChatService : IChatService
 
         if ( this.options.TokenLimit is not null )
         {
-            Logger.Log(string.Format("Setting token limit to {0}", this.options.TokenLimit));
-            result.MaxTokens = this.options.TokenLimit;
+            var tokenLimit = this.options.TokenLimit > 0 ? this.options.TokenLimit : tokenLimitDefault;
+            Logger.Log(string.Format("Setting token limit to {0}", tokenLimit));
+            result.MaxTokens = tokenLimit;
         }
         else
         {
@@ -281,6 +282,8 @@ public abstract class ChatService : IChatService
     protected PluginTable? pluginTable;
     protected bool initialized;
     protected OpenAIPromptExecutionSettings? initialPromptSettings = null;
+
+    protected const int tokenLimitDefault = 32768;
 
     private ILoggerFactory? loggerFactory;
 }
