@@ -22,9 +22,6 @@ internal class Connection
     internal Connection(Guid Id, IChatService chatService)
     {
         this.Id = Id;
-
-        chatService.Initialize();
-
         this.ChatService = chatService;
     }
 

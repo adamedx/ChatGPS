@@ -38,19 +38,6 @@ public abstract class ChatService : IChatService
         this.options = options;
         this.loggerFactory = loggerFactory;
         this.userAgent = userAgent;
-        this.initialized = false;
-    }
-
-    public void Initialize()
-    {
-        if ( this.initialized )
-        {
-            throw new InvalidOperationException("The object may not be re-initialized");
-        }
-
-        GetKernel();
-
-        this.initialized = true;
     }
 
     public ChatHistory CreateChat(string prompt)
@@ -184,8 +171,6 @@ public abstract class ChatService : IChatService
 
     protected Kernel GetKernelWithState()
     {
-        CheckInitialized();
-
         var kernel = GetKernel();
 
         if ( this.pluginTable is null )
@@ -194,14 +179,6 @@ public abstract class ChatService : IChatService
         }
 
         return kernel;
-    }
-
-    protected void CheckInitialized()
-    {
-        if ( ! this.initialized )
-        {
-            throw new InvalidOperationException("The object has not been initialized");
-        }
     }
 
     protected OpenAIPromptExecutionSettings GetPromptExecutionSettings(AiOptions options)
@@ -280,7 +257,6 @@ public abstract class ChatService : IChatService
     protected AiOptions options;
     protected string? userAgent;
     protected PluginTable? pluginTable;
-    protected bool initialized;
     protected OpenAIPromptExecutionSettings? initialPromptSettings = null;
 
     protected const int tokenLimitDefault = 32768;

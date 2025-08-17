@@ -59,8 +59,6 @@ public class ChatSession
 
     public string SendStandaloneMessage(string prompt, string? customSystemPrompt, bool? allowAgentAccess = null)
     {
-        LazyInitialize();
-
         ConversationBuilder temporaryConversation = new ConversationBuilder(this.chatService);
 
         var temporarySystemPrompt = customSystemPrompt ?? this.chatHistory[0].Content ?? "You are a friendly conversationalist.";
@@ -108,8 +106,6 @@ public class ChatSession
 
     public async Task<string> InvokeFunctionAsync(Guid functionId, Dictionary<string,object?>? boundParameters = null, bool? allowAgentAccess = null)
     {
-        LazyInitialize();
-
         var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
             ( this.AiOptions.AllowAgentAccess is not null ? (bool) this.AiOptions.AllowAgentAccess : false );
 
@@ -281,20 +277,8 @@ public class ChatSession
         }
     }
 
-    private void LazyInitialize()
-    {
-        if ( ! this.initialized )
-        {
-            chatService.Initialize();
-
-            this.initialized = true;
-        }
-    }
-
     private string GenerateMessageInternal(string prompt, bool? allowAgentAccess, string? functionDefinition = null)
     {
-        LazyInitialize();
-
         var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
             ( this.AiOptions.AllowAgentAccess is not null ? (bool) this.AiOptions.AllowAgentAccess : false );
 
@@ -479,7 +463,5 @@ public class ChatSession
     private TokenReducer tokenReducer;
     private IChatService chatService;
     private int latestContextLimit;
-
-    bool initialized = false;
 }
 
