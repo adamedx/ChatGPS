@@ -410,7 +410,7 @@ __Get-Function $arguments
 
                         $proxyCommandArguments = CreateConnectionRequest $configJson
                         'createconnection'
-                        break
+                         break
                     }
                     '.sendchat' {
                         ValidateConnection
@@ -526,7 +526,7 @@ __Get-Function $arguments
                 write-progress "Waiting for response" -PercentComplete 80
                 $currentLine = $process.StandardOutput.Readline()
 
-                write-debug 'Resposne received from ReadLine'
+                write-debug 'Response received from ReadLine'
 
                 if ( $currentLine ) { write-verbose $currentLine }
                 if ( ! $currentLine -or $currentLine[0] -eq '.' ) {

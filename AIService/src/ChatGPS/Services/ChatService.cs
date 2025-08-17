@@ -70,7 +70,7 @@ public abstract class ChatService : IChatService
     {
         IReadOnlyList<ChatMessageContent> result;
 
-        var requestSettings = new OpenAIPromptExecutionSettings();
+        var requestSettings = GetPromptExecutionSettings(this.options);
 
         var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
             ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
@@ -95,7 +95,7 @@ public abstract class ChatService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
-        var requestSettings = new PromptExecutionSettings();
+        var requestSettings = GetPromptExecutionSettings(this.options);
 
         var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
             ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
@@ -204,6 +204,43 @@ public abstract class ChatService : IChatService
         }
     }
 
+    protected OpenAIPromptExecutionSettings GetPromptExecutionSettings(AiOptions options)
+    {
+        // We explicitly use OpenAIPromptExecutionSettings for now because it seems to be compatible
+        // with all of the models -- for example, token limit is not part of PromptExecutionSettings,
+        // but it is part of OpenAIPromptExecutionSettings, and setting it here works even for models
+        // that don't let you specify the token limit during kernelBuilder build time. This may use
+        // the ExtensionData property of PromptExecutionSettings in some way when transmitting to
+        // models that don't use a more derived type, i.e. any properties in OpenAIPromptExecutionSettings
+        // may be expressed via the ExtensionData property, which is itself a dictionary of properties.
+        OpenAIPromptExecutionSettings result;
+
+        if ( this.initialPromptSettings is null )
+        {
+            result = new OpenAIPromptExecutionSettings();
+        }
+        else
+        {
+            // This supports providers that don't have a KernelBuilder extension that supports
+            // parameters that other more "native" SK providers configure via the builder. Some
+            // providers require parameters such as the modelId (!) to be configured through
+            // PromptExecutionSettings.
+            result = (OpenAIPromptExecutionSettings) this.initialPromptSettings.Clone();
+        }
+
+        if ( this.options.TokenLimit is not null )
+        {
+            Logger.Log(string.Format("Setting token limit to {0}", this.options.TokenLimit));
+            result.MaxTokens = this.options.TokenLimit;
+        }
+        else
+        {
+            Logger.Log("No token limit");
+        }
+
+        return result;
+    }
+
     private IChatCompletionService GetChatCompletionService()
     {
         if ( this.chatCompletionService is null )
@@ -243,6 +280,8 @@ public abstract class ChatService : IChatService
     protected string? userAgent;
     protected PluginTable? pluginTable;
     protected bool initialized;
+    protected OpenAIPromptExecutionSettings? initialPromptSettings = null;
+
     private ILoggerFactory? loggerFactory;
 }
 

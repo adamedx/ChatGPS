@@ -367,7 +367,7 @@ function Connect-ChatSession {
         [string] $CustomSystemPrompt,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx', 'Ollama', 'Google')]
+        [validateset('Anthropic', 'AzureOpenAI', 'Google', 'LocalOnnx', 'Ollama', 'OpenAI')]
         [string] $Provider,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]

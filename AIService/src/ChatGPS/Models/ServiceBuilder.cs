@@ -64,6 +64,9 @@ public class ServiceBuilder
             case ModelProvider.Google:
                 newService = new GoogleChatService( this.options, this.loggerFactory );
                 break;
+            case ModelProvider.Anthropic:
+                newService = new AnthropicChatService( this.options, this.loggerFactory );
+                break;
             default:
                 throw new NotImplementedException($"Support for the model provider id '{options.Provider}' is not yet implemented");
         }
