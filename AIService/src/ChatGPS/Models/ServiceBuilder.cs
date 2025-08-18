@@ -35,7 +35,7 @@ public class ServiceBuilder
         }
         else if ( this.options.Provider is not null )
         {
-            if ( ! ModelProvider.TryParse(this.options.Provider, out provider) )
+            if ( ! ModelProvider.TryParse(this.options.Provider, true, out provider) )
             {
                 provider = ModelProvider.Unspecified;
             }
