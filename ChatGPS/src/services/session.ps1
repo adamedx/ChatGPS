@@ -104,7 +104,7 @@ function CreateSession {
 
     $sessionSettings = GetExplicitSessionSettingsFromSessionParameters $session $BoundParameters
 
-    ConfigureSessionPlugins $Plugins
+    ConfigureSessionPlugins $session $Plugins
 
     AddSession $session $SetCurrent.IsPresent $NoSave.IsPresent $Force.IsPresent $sessionSettings
 
@@ -147,7 +147,7 @@ function TestSession($session, [Modulus.ChatGPS.Models.AiOptions] $originalAiOpt
     }
 }
 
-function ConfigureSessionPlugins([HashTable] $parametersByPlugin) {
+function ConfigureSessionPlugins($session, [HashTable] $parametersByPlugin) {
     if ( $parametersByPlugin ) {
         foreach ( $pluginName in $parametersByPlugin.Keys ) {
             $parameterTable = $parametersByPlugin[$pluginName]
@@ -157,6 +157,12 @@ function ConfigureSessionPlugins([HashTable] $parametersByPlugin) {
             $session.AddPlugin($pluginName, $parameterInfo)
         }
     }
+}
+
+function AddPluginToSession([Modulus.ChatGPS.Models.ChatSession] $session, [string] $pluginName, $parameterInfo) {
+    WarnPluginCompatibility $session $pluginName
+
+    $session.AddPlugin($pluginName, $parameterInfo)
 }
 
 function AddSession($session, [bool] $setCurrent = $false, [bool] $noSave = $false, [bool] $forceOnNameCollision, $sourceSettings = $null) {
