@@ -195,6 +195,7 @@ FileList = @(
     'src/presentation/reply.ps1'
     'src/presentation/voice.ps1'
     'src/services.ps1'
+    'src/services/compatibility.ps1'
     'src/services/session.ps1'
     'src/shell.ps1'
     'src/shell/replcommand.ps1'

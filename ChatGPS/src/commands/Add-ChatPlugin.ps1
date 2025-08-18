@@ -185,7 +185,8 @@ function Add-ChatPlugin {
         } else {
             Get-ChatSession $SessionName
         }
-        $targetSession.AddPlugin($Name, $parameterInfo)
+
+        AddPluginToSession $targetSession $Name $parameterInfo
     }
 
     end {

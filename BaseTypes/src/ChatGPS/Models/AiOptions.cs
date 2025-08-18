@@ -29,7 +29,8 @@ public enum ModelProvider
     OpenAI,
     LocalOnnx,
     Ollama,
-    Google
+    Google,
+    Anthropic
 }
 
 public class AiProviderOptions

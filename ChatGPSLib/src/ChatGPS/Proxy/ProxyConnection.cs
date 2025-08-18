@@ -31,11 +31,6 @@ internal class ProxyConnection
         this.connectionInProgress = false;
     }
 
-    internal void Initialize()
-    {
-        ConnectAiService();
-    }
-
     internal async Task SendRequestAsync(ProxyRequest request)
     {
         ConnectAiService();
@@ -182,6 +177,4 @@ internal class ProxyConnection
     int idleTimeoutMs;
     bool connectionInProgress;
   }
-
-
 

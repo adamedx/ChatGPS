@@ -48,6 +48,9 @@ For remotely hosted models some services may require this as an additional param
 .PARAMETER ApiKey
 Some remotely hosted models that require authentication may support a symmetric key that can be specified through this parameter. On the Windows platform, this parameter must be specified as an encrypted value of the symmetric key. To obtain an encrypted value, use the Get-ChatEncryptedUnicodeKeyCredential command. On non-Windows systems or if the PlainTextApiKey option is specified, the parameter is specified via plaintext rather than as a securestring. To avoid the value of the plaintext key being present in command history, use a command to read it from a secure location such as an Azure KeyVault or a local file with sufficient security measures in place, assign the value of the key to a PowerShell variable, and then use that variable to specify the value of the ApiKey parameter.
 
+.PARAMETER ReadApiKey
+Specify the ReadApiKey parameter to supply secure, interactive input for the API key instead of supplying it via the ApiKey or PlainTextApiKey parameters.
+
 .PARAMETER PlainTextApiKey
 Specify this if the ApiKey parameter being specified uses plaintext. This parameter should only be used for troubleshooting such as confirming that the actual value of the API key is correct before using encryption.
 
@@ -195,16 +198,29 @@ Received                 Response
 In this case, a connection was created to a local Onnx model. Then when a prompt was submitted using the Start-ChatShell interactive loop, the command encountered an error caused by missing dependencies for Onnx. These library dependencies are not installed with the ChatGPS module due to their size, but as the warning message suggests, running the Install-ChatAddOn command can address this by installing such missing components. The user follows this suggestion and invokes Install-ChatAddOn, the retries submitting a prompt with Start-ChatShell and this successfully returns a response from the local model.
 
 .EXAMPLE
-Send-ChatMessage "Hello what is today's date?"
+Connect-ChatSession -Provider Anthropic -ModelIdentifier claude-sonnet-4-20250514 -ReadApiKey
+ChatGPS: Enter secret key / password>: ****************************************************
+PS > Send-ChatMessage Hello
+ 
+Received                 Response
+--------                 --------
+8/16/2025 12:03:01 PM    Hello! It's nice to meet you. How are you doing today? Is there anything I can
+                         help you with or any questions you'd like to ask? I'm here to assist with
+                         information on a wide variety of topics.
 
+In this example an Anthropic model is specified using the Provider parameter and the ReadApiKey parameter is used to securely specify the ApiKey as subsequent interactive input that is encrypted in memory and never echoed to the console. After invocation of the command, Send-ChatMessage is used to elicit a response from the Anthropic model.
+
+.EXAMPLE
+Send-ChatMessage "Hello what is today's date?"
+ 
 Received                 Response
 --------                 --------
 2/9/2025 4:02:03 PM      Hello! I don’t have real-time capabilities, so I can't give you the current date. However,
                          you can easily check today's date on your device or calendar. Is there something specific
                          you'd like to know about a date or a particular event?
-
+ 
 PS > Get-ChatHistory
-
+ 
 Received                 Role       Elapsed (ms) Response
 --------                 ----       ------------ --------
 2/9/2025 4:02:02 PM      User                  0 Hello what is today's date?
@@ -212,19 +228,19 @@ Received                 Role       Elapsed (ms) Response
                                                  the current date. However, you can easily check today's date on your
                                                  device or calendar. Is there something specific you'd like to
                                                  know about a date or a particular event?
-
+ 
 PS > Connect-ChatSession -SendBlock {param($text) "The time is: $([DateTime]::Now.ToString('F')). " + $text} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
-
+ 
 PS > Send-ChatMessage "Hello what is today's date?"
-
+ 
 Received                 Response
 --------                 --------
 2/9/2025 4:05:44 PM      Hello! Today's date is February 9, 2025. If you'd like to know more about that date, such as events that may occur or
                          historical significance, feel free to ask! To check your understanding: If today is February 9, 2025,
                          what would be the date one week later?
-
+ 
 PS > Get-ChatHistory
-
+ 
 Received                 Role       Elapsed (ms) Response
 --------                 ----       ------------ --------
 2/9/2025 4:05:43 PM      User                  0 The time is: Sunday, February 9, 2025 4:05:43 PM. Hello what is
@@ -232,7 +248,7 @@ Received                 Role       Elapsed (ms) Response
 2/9/2025 4:05:44 PM      Assistant          1184 Hello! Today's date is February 9, 2025. If you'd like to know more
                                                  about that date, such as events that may occur or historical
                                                  significance, feel free to ask!
-
+ 
 This example demonstrates how the SendBlock parameter can be used to modify user text before it is sent to the model. In the first invocation
 of Send-ChatMessage, the model responds to a question about the current time with an accurate answer that it does not know. Get-ChatHistory
 is used to show the history of the conversation and it is clear that the text sent to the model is identical to the text provided to the Send-ChatMessage command.
@@ -367,7 +383,7 @@ function Connect-ChatSession {
         [string] $CustomSystemPrompt,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [validateset('AzureOpenAI', 'OpenAI', 'LocalOnnx', 'Ollama', 'Google')]
+        [validateset('Anthropic', 'AzureOpenAI', 'Google', 'LocalOnnx', 'Ollama', 'OpenAI')]
         [string] $Provider,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]

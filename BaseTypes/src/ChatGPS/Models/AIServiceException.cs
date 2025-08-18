@@ -25,7 +25,7 @@ public class AIServiceException : SerializableException
 
     public AIServiceException(string message) : base (message) {}
 
-    public AIServiceException(Exception? sourceException) : base(sourceException)
+    public AIServiceException(Exception sourceException) : base(sourceException)
     {
         InitializeThrottleInformation(sourceException);
         InitializeTokenLimit(sourceException);

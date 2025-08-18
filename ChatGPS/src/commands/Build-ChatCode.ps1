@@ -91,7 +91,7 @@ PS > Get-FileVersion (Get-Command pwsh | Select-Object -ExpandProperty Source)
 Here a new command, Get-FileVersion, is generated from instructions to determine the version information for a given file. The new command is then used to show the version of the executable for PowerShell, pwsh. When used with the FunctionName parameter to create the function, the outupt can be piped to Out-Null to avoid the display of the code in the terminal, though the output can be useful for inspecting the quality and accuracy of the generated code.
 
 .EXAMPLE
-PS > Generate-ChatCode "Generate list of all prime numbers less than a given number N"
+Generate-ChatCode "Generate list of all prime numbers less than a given number N"
 [cmdletbinding()]
 param (
     [int]$N
@@ -121,7 +121,7 @@ note that the generated code starts with [Cmdletbinding()], making it suitable f
 and then using that file directly as a script.
 
 .EXAMPLE
-PS > "Generate list of all prime numbers less than a given number N" | Generate-ChatCode -FunctionName Get-Primes | out-null
+"Generate list of all prime numbers less than a given number N" | Generate-ChatCode -FunctionName Get-Primes | out-null
 PS > Get-Primes 10
 2
 3
@@ -135,7 +135,7 @@ is executed with a parameter of 10 and displays the expected results of prime nu
 the pipeline is used
 
 .EXAMPLE
-PS > Generate-ChatCode "Get the top N processes by memory utilization. Please include the process name, process id, memory utilization, and start time. Be sure to use the correct field names for the aforementioned fields. The results must be sorted in descending order of the field used for memory utilization." | Out-File ~/documents/Get-MemoryProcesses.ps1
+Generate-ChatCode "Get the top N processes by memory utilization. Please include the process name, process id, memory utilization, and start time. Be sure to use the correct field names for the aforementioned fields. The results must be sorted in descending order of the field used for memory utilization." | Out-File ~/documents/Get-MemoryProcesses.ps1
 PS > & Get-TopMemoryProcesses -TopN 4
  
 Name              Id MemoryUsageMB StartTime
@@ -150,7 +150,7 @@ and when tab completion is used, it reveals a parameter 'TopN', and with the val
 by memory is emitted by the generated code of the new script.
 
 .EXAMPLE
-PS > "Generate list of all prime numbers less than a given number N" | Generate-ChatCode -Language python
+"Generate list of all prime numbers less than a given number N" | Generate-ChatCode -Language python
 def is_prime(num):
     if num <= 1:
         return False
@@ -175,7 +175,7 @@ This examples shows how the Generate-ChatCode command can be used to generate co
 the exact same natural language prompt used in the previous PowerShell examples.
 
 .EXAMPLE
-PS > "Generate list of all prime numbers less than a given number N" | Generate-ChatCode -Language python | python3
+"Generate list of all prime numbers less than a given number N" | Generate-ChatCode -Language python | python3
 [2, 3, 5, 7, 11, 13, 17, 19]
 
 This example for python is similar to the previous one, except that the generated code is piped to the python3 command which is

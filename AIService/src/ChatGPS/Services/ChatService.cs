@@ -38,19 +38,6 @@ public abstract class ChatService : IChatService
         this.options = options;
         this.loggerFactory = loggerFactory;
         this.userAgent = userAgent;
-        this.initialized = false;
-    }
-
-    public void Initialize()
-    {
-        if ( this.initialized )
-        {
-            throw new InvalidOperationException("The object may not be re-initialized");
-        }
-
-        GetKernel();
-
-        this.initialized = true;
     }
 
     public ChatHistory CreateChat(string prompt)
@@ -70,7 +57,7 @@ public abstract class ChatService : IChatService
     {
         IReadOnlyList<ChatMessageContent> result;
 
-        var requestSettings = new OpenAIPromptExecutionSettings();
+        var requestSettings = GetPromptExecutionSettings(this.options);
 
         var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
             ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
@@ -95,7 +82,7 @@ public abstract class ChatService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
-        var requestSettings = new PromptExecutionSettings();
+        var requestSettings = GetPromptExecutionSettings(this.options);
 
         var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
             ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
@@ -184,8 +171,6 @@ public abstract class ChatService : IChatService
 
     protected Kernel GetKernelWithState()
     {
-        CheckInitialized();
-
         var kernel = GetKernel();
 
         if ( this.pluginTable is null )
@@ -196,12 +181,42 @@ public abstract class ChatService : IChatService
         return kernel;
     }
 
-    protected void CheckInitialized()
+    protected OpenAIPromptExecutionSettings GetPromptExecutionSettings(AiOptions options)
     {
-        if ( ! this.initialized )
+        // We explicitly use OpenAIPromptExecutionSettings for now because it seems to be compatible
+        // with all of the models -- for example, token limit is not part of PromptExecutionSettings,
+        // but it is part of OpenAIPromptExecutionSettings, and setting it here works even for models
+        // that don't let you specify the token limit during kernelBuilder build time. This may use
+        // the ExtensionData property of PromptExecutionSettings in some way when transmitting to
+        // models that don't use a more derived type, i.e. any properties in OpenAIPromptExecutionSettings
+        // may be expressed via the ExtensionData property, which is itself a dictionary of properties.
+        OpenAIPromptExecutionSettings result;
+
+        if ( this.initialPromptSettings is null )
         {
-            throw new InvalidOperationException("The object has not been initialized");
+            result = new OpenAIPromptExecutionSettings();
         }
+        else
+        {
+            // This supports providers that don't have a KernelBuilder extension that supports
+            // parameters that other more "native" SK providers configure via the builder. Some
+            // providers require parameters such as the modelId (!) to be configured through
+            // PromptExecutionSettings.
+            result = (OpenAIPromptExecutionSettings) this.initialPromptSettings.Clone();
+        }
+
+        if ( this.options.TokenLimit is not null )
+        {
+            var tokenLimit = this.options.TokenLimit > 0 ? this.options.TokenLimit : tokenLimitDefault;
+            Logger.Log(string.Format("Setting token limit to {0}", tokenLimit));
+            result.MaxTokens = tokenLimit;
+        }
+        else
+        {
+            Logger.Log("No token limit");
+        }
+
+        return result;
     }
 
     private IChatCompletionService GetChatCompletionService()
@@ -242,7 +257,10 @@ public abstract class ChatService : IChatService
     protected AiOptions options;
     protected string? userAgent;
     protected PluginTable? pluginTable;
-    protected bool initialized;
+    protected OpenAIPromptExecutionSettings? initialPromptSettings = null;
+
+    protected const int tokenLimitDefault = 32768;
+
     private ILoggerFactory? loggerFactory;
 }
 

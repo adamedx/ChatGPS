@@ -1,4 +1,4 @@
-﻿#
+#
 # Copyright (c), Adam Edwards
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-. ( join-path $psscriptroot services/compatibility.ps1 )
-. ( join-path $psscriptroot services/session.ps1 )
-
+function WarnPluginCompatibility([Modulus.ChatGPS.Models.ChatSession] $session, [string] $pluginName) {
+    if ( $session.AiOptions.Provider -eq 'Anthropic' ) {
+        write-warning "Plugin '$pluginName' has been added to session '$($session.Name)' which uses an Anthropic model; plugins may not currently be supported by the Anthropic provider."
+    }
+}

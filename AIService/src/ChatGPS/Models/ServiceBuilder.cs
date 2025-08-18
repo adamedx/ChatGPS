@@ -35,7 +35,7 @@ public class ServiceBuilder
         }
         else if ( this.options.Provider is not null )
         {
-            if ( ! ModelProvider.TryParse(this.options.Provider, out provider) )
+            if ( ! ModelProvider.TryParse(this.options.Provider, true, out provider) )
             {
                 provider = ModelProvider.Unspecified;
             }
@@ -63,6 +63,9 @@ public class ServiceBuilder
                 break;
             case ModelProvider.Google:
                 newService = new GoogleChatService( this.options, this.loggerFactory );
+                break;
+            case ModelProvider.Anthropic:
+                newService = new AnthropicChatService( this.options, this.loggerFactory );
                 break;
             default:
                 throw new NotImplementedException($"Support for the model provider id '{options.Provider}' is not yet implemented");

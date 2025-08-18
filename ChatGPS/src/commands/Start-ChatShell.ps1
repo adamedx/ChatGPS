@@ -475,11 +475,11 @@ function Start-ChatShell {
             TransformResponseText -Response $initialResponse -OutputFormat $OutputFormat @initialReceiveBlock | ToResponse -role $initialResponse.Role -AsString:$RawOutput.IsPresent -Received ([DateTime]::now)
         }
 
+        ShowWelcome $NoWelcome.IsPresent $SplashTitle $ShowWelcome.IsPresent
+
         if ( ! $NoOutput.IsPresent ) {
             $transformedResponse
         }
-
-        ShowWelcome $NoWelcome.IsPresent $SplashTitle $ShowWelcome.IsPresent
     }
 
     process {

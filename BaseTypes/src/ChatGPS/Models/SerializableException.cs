@@ -35,9 +35,15 @@ public class SerializableException : Exception
     // of inner exceptions.
 
     // This extracts serializable data from the sourceException but keeps innerException null
-    protected SerializableException(Exception? originalException = null) : base ( "An unexpected error was encountered." )
+    protected SerializableException(Exception originalException) : base ( originalException.Message )
     {
-        this.OriginalMessage = this.Message;
+        // Interesting note here: at one point, we used this.OriginalMessage = this.Message.
+        // This actually caused a hang -- did not investigate further, but in any event, that
+        // was not actually the value we wanted to use -- we want the original message to
+        // come from... originalException :) so that's what we use. Just noting this hang
+        // though as a reminder that referencing properties you don't implement during object
+        // initialization is rather unwise.
+        this.OriginalMessage = originalException.Message;
         InitializeFromException(originalException);
     }
 
