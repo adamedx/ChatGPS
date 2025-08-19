@@ -37,7 +37,7 @@ Note that the conversation settings of Connect-ChatSession influence the behavio
 
 Plugins added to the session impact conversations in Start-ChatShell just as they do Send-ChatMessage, so your conversation with the model can take advantage of plugins that access web search engines, the local file system, any custom plugin functionality you define with Register-ChatPlugin, etc.
 
-To reset conversation context used by Start-ChatShell, the '.clearhistory' shell command can be used from Start-ChatShell, and it has the same impact as the Clear-ChatHistory command. Alternatively, the Clear-ChatHistory command can be invoked explicitly.
+To reset conversation context used by Start-ChatShell, the '.clearhistory' shell command can be used from Start-ChatShell, and it has the same impact as the Clear-ChatConversation command. Alternatively, the Clear-ChatConversation command can be invoked explicitly.
 
 .PARAMETER InitialPrompt
 Specify InitialPrompt so that the repl starts with a request to the language model, waiting for a response and displaying it before prompting the user and waiting for input. By default, when Start-ChatShell is invoked it is waiting for input before sending any input to the language model.
@@ -283,7 +283,7 @@ Received                 Response
 (ryu) ChatGPS>: .exit
  
 PS > Send-ChatMessage 'Can you provide that without any markdown formatting please, just PowerShell code?' | Select-Object -ExpandProperty Response | Out-File  ~/Get-PsInstances.ps1
-PS > Get-ChatHistory -CurrentContextOnly
+PS > Get-ChatConveration
  
 Received                 Role       Elapsed (ms) Response
 --------                 ----       ------------ --------
@@ -308,12 +308,12 @@ Received                 Role       Elapsed (ms) Response
 7/16/2025 6:54:37 AM     Assistant          7531 Get-Process pwsh | Sort-Object StartTime,
                                                  @{Expression='WorkingSet'; Descending=$true}
 
-This demonstrates that the use of Start-ChatShell and Send-ChatMessage may be interleaved, but the converation history across both is treated as a single continuous conversation when interacting with the language model, and this is reflected in the output of the Get-ChatHistory command, even when CurrenTContextOnly is specified it shows that both commands are part of the chat session's ongoing context.
+This demonstrates that the use of Start-ChatShell and Send-ChatMessage may be interleaved, but the converation history across both is treated as a single continuous conversation when interacting with the language model, and this is reflected in the output of the Get-ChatConversation command which shows that both commands results are part of the chat session's ongoing context.
 
 .LINK
 Connect-ChatSession
 Send-ChatMessage
-Clear-ChatHistory
+Clear-ChatConversation
 Add-ChatPlugin
 Register-ChatPlugin
 #>

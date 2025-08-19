@@ -85,6 +85,7 @@ Set-ChatAgentAccess
 Remove-ChatSession
 Save-ChatSessionSetting
 Get-ChatHistory
+Get-ChatLog
 #>
 function Get-ChatSession {
     [cmdletbinding(positionalbinding=$false, defaultparametersetname='byname')]

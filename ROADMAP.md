@@ -3,8 +3,8 @@
 
 ## To-do items
 
+* Clone chat connection
 * Switch to https://learn.microsoft.com/dotnet/api/system.security.cryptography since it is cross-platform
-* Separate Get-ChatHistory and Clear-ChatHistory into Get-ChatLog and Clear-ChatLog?
 * Make receiveblock take two parameters, the second is the request
 * Add output types to commands
 * Include processing time in custom ChatResponse type
@@ -174,6 +174,7 @@
 * Make session listing hide id by default
 * Added AsJob to Send-ChatMessage to support async invocations
 * Install Onnx libraries at runtime using a command and remove from published module
+* Separate Get-ChatHistory and Clear-ChatHistory into Get-ChatLog and Clear-ChatLog?
 
 ### Plugin notes
 
