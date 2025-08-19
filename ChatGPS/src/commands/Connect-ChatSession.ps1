@@ -219,7 +219,7 @@ Received                 Response
                          you can easily check today's date on your device or calendar. Is there something specific
                          you'd like to know about a date or a particular event?
  
-PS > Get-ChatHistory
+PS > Get-ChatConversation
  
 Received                 Role       Elapsed (ms) Response
 --------                 ----       ------------ --------
@@ -239,7 +239,7 @@ Received                 Response
                          historical significance, feel free to ask! To check your understanding: If today is February 9, 2025,
                          what would be the date one week later?
  
-PS > Get-ChatHistory
+PS > Get-ChatConversation
  
 Received                 Role       Elapsed (ms) Response
 --------                 ----       ------------ --------
@@ -250,8 +250,8 @@ Received                 Role       Elapsed (ms) Response
                                                  significance, feel free to ask!
  
 This example demonstrates how the SendBlock parameter can be used to modify user text before it is sent to the model. In the first invocation
-of Send-ChatMessage, the model responds to a question about the current time with an accurate answer that it does not know. Get-ChatHistory
-is used to show the history of the conversation and it is clear that the text sent to the model is identical to the text provided to the Send-ChatMessage command.
+of Send-ChatMessage, the model responds to a question about the current time with an accurate answer that it does not know. Get-ChatConversation
+is used to show the session's current context of the conversation and it is clear that the text sent to the model is identical to the text provided to the Send-ChatMessage command.
 However, Connect-ChatSession is used to create a new session and the SendBlock parameter is specified to the command with a script block that prepends
 the user supplied text passed to the script block with the current time in an unambiguous format. When the previous Send-ChatMessage command is
 reissued, the model responds with a current date that is the same as the date shown in the conversation history. Examination of the text sent to the model
@@ -260,7 +260,7 @@ The script block is executed every time a message is sent to the model, so this 
 during conversations.
 
 .EXAMPLE
-Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatHistory | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
 
 PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
 
@@ -302,7 +302,7 @@ Timestamp                  Role      Message
 2/9/2025 7:53:58 PM -08:00 User      In what year was integration of schools in Little Rock, Arkansas first attempted?
 2/9/2025 7:53:59 PM -08:00 Assistant The integration of schools in Little Rock, Arkansas, was first attempted in 1957.…
 
-This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatHistory command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatShell command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
+This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatLog command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatShell command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
 
 .EXAMPLE
 Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
@@ -364,8 +364,9 @@ Get-ChatSession
 Select-ChatSession
 Remove-ChatSession
 Send-ChatMessage
-Get-ChatHistory
-Clear-ChatHistory
+Get-ChatConversation
+Get-ChatLog
+Clear-ChatConversation
 Start-ChatShell
 Invoke-ChatFunction
 Add-Plugin

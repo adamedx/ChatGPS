@@ -157,7 +157,7 @@ function ReplCommandHistory( $LatestCount = -1, $Length = -1) {
 }
 
 function ReplCommandClearHistory {
-    Clear-ChatHistory -Session $ReplState.Connection
+    Clear-ChatConversation -Session $ReplState.Connection
     ToCommandOutput "Chat history cleared at $([DateTime]::now)."
 }
 

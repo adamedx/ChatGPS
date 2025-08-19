@@ -15,8 +15,10 @@
 
 
 set-alias chatgps Start-ChatShell
+set-alias Clear-ChatHistory Clear-ChatConversation
 set-alias frun Invoke-ChatFunction
 set-alias Generate-ChatCode Build-ChatCode
+set-alias Get-ChatHistory Get-ChatConversation
 set-alias gss Get-ChatSession
 set-alias ncs New-ChatScriptBlock
 set-alias sch Send-ChatMessage

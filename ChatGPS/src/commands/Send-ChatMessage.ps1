@@ -28,7 +28,7 @@ The message sent to the language model by Send-ChatMessage is added to the chat 
 
 Thus messages are communicated within the context of a chat session created by the Connect-ChatSession command. Sessions not only define the location of the model and associated access information such as credentials, but also maintain the conversation history of messages sent to the model and received from it. For more information about chat sessions, see the Connect-ChatSession command.
 
-To reset conversation context used by Send-ChatMessage, i.e. to start a new converation, use the Clear-Chathistory command.
+To reset conversation context used by Send-ChatMessage, i.e. to start a new converation, use the Clear-ChatConversation command.
 
 Send-ChatMessage provides facilities for formatting the response returned by the command. It also allows the optional specification of script blocks to process messages before they are sent to the model, and also to process responses received from the model. The ReplyBlock feature also allows the command to automatically send a new request to the model as a reply to the model's response.
 
@@ -180,7 +180,7 @@ import requests
 response = requests.get('https://api.example.com/data')
 print(response.json() if response.status_code == 200 else response.status_code)
 
-In this example multiple chat message are exchanged; notice that subsequent chat messages assume the previous requests and responses as context, so the user can refine previous requests to get a better answer as in this case, and in general interact through "human-like" exchanges of dialogue. When you do need to clear the context and start a conversation from the beginning, use the Clear-ChatHistory command.
+In this example multiple chat message are exchanged; notice that subsequent chat messages assume the previous requests and responses as context, so the user can refine previous requests to get a better answer as in this case, and in general interact through "human-like" exchanges of dialogue. When you do need to clear the context and start a conversation from the beginning, use the Clear-ChatConversation command.
 
 .EXAMPLE
 $response = Send-ChatMessage "Can you return all the scores of yesterday's professional basketball games as JSON? The structure should be an array of game element that represents the score of the game. The game element should have a two keys, one called Team1, the other called Team2, and the value of each key should be the name of each of the teams in a game. There should be two other keys in the game element, one called Score1 the other called Score2, and the value of each key should be the score of each team in that game. Only return JSON, do not return markdown or explanatory text."
@@ -199,7 +199,7 @@ Milwaukee       Toronto                  121    113
 This example demonstrates how to use the output of Send-ChatMessage with other commands for additional processing. In this case a more complex prompt was supplied. The example assumes that a plugin such as Bing or Google was added to the session with the Add-ChatPlugin command, and the AllowAgentAccess property of the session was set to true. The prompt supplied to Send-ChatMessage instructed the model to use web search to find the scores of games and represent them as JSON. The Content property of the output of Send-ChatMessage is then piped to Convert-FromJson which is able to successfully deserialize the JSON, and a well-formatted result of the scores is presented to the terminal.
 
 .EXAMPLE
-$logger = {param($text) $text; $logPath = '~/scrapbook.csv'; $existinglog = test-path $logPath; (Get-ChatHistory | Select-Object -Last 2 | ConvertTo-Csv -NoHeader:$existingLog) -Replace "`n", '' >> $logPath}
+$logger = {param($text) $text; $logPath = '~/scrapbook.csv'; $existinglog = test-path $logPath; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader:$existingLog) -Replace "`n", '' >> $logPath}
 PS > Get-Content ~/myprompts.txt | Send-ChatMessage -ReceiveBlock $logger
 PS > Get-Content ~/scrapbook.csv | ConvertFrom-Csv | Format-Table
  
@@ -232,7 +232,7 @@ In this example, the ReplyBlock feature is used as a way to send additional requ
 
 .LINK
 Connect-ChatSession
-Start-ChatShell                                                                                                                                                                                       Clear-ChatHistory
+Start-ChatShell                                                                                                                                             Clear-ChatConversation
 Add-ChatPlugin
 #>
 function Send-ChatMessage {

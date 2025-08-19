@@ -369,18 +369,19 @@ public class ChatSession
         //
         // Note that this wasn't a problem until I invoked a method before the last throw -- it doesn't matter
         // that that method correctly handles null apparently.
-        if ( response == null )
-        {
-            var genericException = new ArgumentException("The AI assistant was unable to generate a response.");
-            UpdateStateWithLatestResponse(genericException);
-            throw genericException;
-        }
 
         UpdateStateWithLatestResponse(responseException);
 
         if ( responseException is not null )
         {
             throw responseException;
+        }
+
+        if ( response is null )
+        {
+            var genericException = new ArgumentException("The AI assistant was unable to generate a response.");
+            UpdateStateWithLatestResponse(genericException);
+            throw genericException;
         }
 
         return response;

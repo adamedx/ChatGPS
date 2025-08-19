@@ -64,15 +64,21 @@ public class OpenAIChatService : ChatService
                 apiKey: cleartextKey);
         }
 
-        // Configure throttling retry behavior
         builder.Services.ConfigureHttpClientDefaults(c =>
         {
+            // Configure throttling retry behavior
             c.AddStandardResilienceHandler(o =>
             {
                 o.Retry.ShouldRetryAfterHeader = true;
                 o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
             });
-        });
+
+            // Set network timeout
+            c.ConfigureHttpClient(httpClient =>
+            {
+                httpClient.Timeout = TimeSpan.FromMinutes(2);
+            });
+         });
 
         var newKernel = builder.Build();
 
