@@ -118,18 +118,7 @@ By default, the command has no output. But if the NoSave or PassThru parameters 
 Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
 PS > Send-ChatMessage 'how do I find my mac address?'
 
-In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
- 
-Received                 Response
---------                 --------
-12/30/2024 9:24:18 PM    ```powershell
-                         # This command retrieves the MAC addresses of all network adapters on the system.
-
-                         # Get network adapter information and select the Name and MAC Address properties
-                         Get-NetAdapter | Select-Object Name, MacAddress # Displays the Name and MAC Address of each
-                         adapter
-
-In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
+In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified.
 
 .EXAMPLE
 Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
@@ -248,7 +237,7 @@ Received                 Role       Elapsed (ms) Response
 2/9/2025 4:05:44 PM      Assistant          1184 Hello! Today's date is February 9, 2025. If you'd like to know more
                                                  about that date, such as events that may occur or historical
                                                  significance, feel free to ask!
- 
+
 This example demonstrates how the SendBlock parameter can be used to modify user text before it is sent to the model. In the first invocation
 of Send-ChatMessage, the model responds to a question about the current time with an accurate answer that it does not know. Get-ChatConversation
 is used to show the session's current context of the conversation and it is clear that the text sent to the model is identical to the text provided to the Send-ChatMessage command.
@@ -256,43 +245,41 @@ However, Connect-ChatSession is used to create a new session and the SendBlock p
 the user supplied text passed to the script block with the current time in an unambiguous format. When the previous Send-ChatMessage command is
 reissued, the model responds with a current date that is the same as the date shown in the conversation history. Examination of the text sent to the model
 shows that unlike in the previous attempt, the message sent from the user includes the current time due to the script block specified to SendBlock.
-The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data
-during conversations.
+The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data during conversations.
 
 .EXAMPLE
 Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
-
+ 
 PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
-
+ 
 PS > Start-ChatShell
-
+ 
 (morpheus) ChatGPS>: hello
-
+ 
 Received                 Response
 --------                 --------
 2/9/2025 7:53:47 PM      Hello! How can I assist you today?
-
+ 
 (morpheus) ChatGPS>: Can you tell me the year in which Brown v. Board of Education was decided?
-
+ 
 2/9/2025 7:53:53 PM      Brown v. Board of Education was decided in the year 1954.
                          This landmark Supreme Court case declared racial segregation
                          in public schools unconstitutional.
-
                          Would you like to know more about the case or its impact on
                          civil rights?
-
+ 
 (morpheus) ChatGPS>: In what year was integration of schools in Little Rock, Arkansas first attempted?
-
+ 
 2/9/2025 7:53:59 PM      The integration of schools in Little Rock, Arkansas, was
                          first attempted in 1957. This event is famously associated
                          with the Little Rock Nine, a group of nine African American
                          students who enrolled in the previously all-white Central
                          High School.
-
+ 
 (morpheus) ChatGPS>: .exit
-
+ 
 PS > Get-Content ~/chatlog.csv | ConvertFrom-Csv | Format-Table -Property Timestamp, Role, Message
-
+ 
 Timestamp                  Role      Message
 ---------                  ----      -------
 2/9/2025 7:53:46 PM -08:00 User      hello
@@ -415,7 +402,7 @@ function Connect-ChatSession {
         [string] $ServiceIdentifier,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [int32] $TokenLimit = 32768,
+        [int32] $TokenLimit = 16384,
 
         [validateset('None', 'Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Summarize',

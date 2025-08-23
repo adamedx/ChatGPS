@@ -60,7 +60,7 @@ Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the u
       param ([int]$Days = 30) Get-HotFix | Where-Object { $_.InstalledOn -gt (Get-Date).AddDays(-$Days) }
   } -Description 'Returns the list of operating system updates applied to the system in the last N days' |
   Add-ChatPluginFunction get_os_drive_free_space { (Get-PSDrive ($env:SystemDrive).Trim(':')).Free
-    } -Description "Returns the amount of free disk space in bytes for the drive that hosts the operating system.' |
+    } -Description 'Returns the amount of free disk space in bytes for the drive that hosts the operating system.' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
 Name                           Desciption                                           Parameters

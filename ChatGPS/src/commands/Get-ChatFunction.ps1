@@ -34,8 +34,8 @@ For a chat function given an optional friendly name, specify the function's name
 The chat function or functions given by the parameters specified to the command.
 
 .EXAMPLE
-PS > Get-ChatFunction
-
+Get-ChatFunction
+ 
 Id                                   Name       Definition
 --                                   ----       ----------
 1e23861b-0beb-44fe-a515-8bf0c83138cb            Generate PowerShell code that accomplishes the following goal {{$goal}…
@@ -46,13 +46,13 @@ b2869d25-7910-4846-be8a-677eab45500e Translator Translate the text {{$sourcetext
 Here Get-ChatFunction is specified with no parameters to retrieve all chat functions defined by invocaions of New-ChatFunction or New-ChaScriptBlock
 
 .EXAMPLE
-PS > Get-ChatFunction Merger
-
+Get-ChatFunction Merger
+ 
 Id                                   Name       Definition
 --                                   ----       ----------
-d7b26b42-241a-43e8-92f4-99df30a1f1ba Merger     Provide a single sentence that has the same meaning as the individual …
+d7b26b42-241a-43e8-92f4-99df30a1f1ba Merger     Provide a single sentence that has the same meaning as the individual sentences combined
 
-Specify a value for the name parameter to return a function by name.
+This example demonstrates specifying a value for the name parameter to return a function by name.
 
 .EXAMPLE
 PS > Get-ChatFunction | Where-Object { ! $_.Name } | Remove-ChatFunction

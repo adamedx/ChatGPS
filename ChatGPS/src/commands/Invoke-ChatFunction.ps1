@@ -27,6 +27,8 @@ For more details on how to define a chat function, see the New-ChatFunction comm
 
 The function to process may by specified to Invoke-ChatFunction by its unique identiier or for functions that have a user defined name the name may also be specified. Chat functions can take parameters, so the Parameters parameter of Invoke-ChatFunction is used to specify any parameters for the function.
 
+NOTE: Chat functions require a language model to be accessible from a ChatGPS session, and they also depend on ChatGPS. If the function's behavior could be accomplished without the capabilities of language models to process natural language or unstructured data, consider using the Generate-ChatCode command instead which uses the language model to generate traditional code that can then be used any number of times without using a language model at all and even without ChatGPS, all at a much computationally lower cost. See the documentation for Generate-ChatCode for more details.
+
 .PARAMETER Id
 All chat functions have a unique identifier -- specify the unique identifier of the function to be processed using the Id parameter. Functions may also be specified by a user defined name through the Name parameter.
 
