@@ -11,6 +11,7 @@ testresults/
 **/bin/
 **/obj/
 ChatGPS/install
+ChatGPS/testdocs
 
 *~
 .#*

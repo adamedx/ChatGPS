@@ -84,11 +84,11 @@ Received                 Response
 PS > Get-Date
  
 Sunday, July 13, 2025 3:31:06 AM
-
+ 
 PS > Set-ChatAgentAccess -Allowed
-
+ 
 Send-ChatMessage 'What is the date today?'
-
+ 
 Received                 Response
 --------                 --------
 7/13/2025 10:10:13 AM    Today's date is July 13, 2025.
@@ -100,31 +100,31 @@ $encryptedBingApiKey = Get-AzKeyVaultSecret -VaultName BingVault -Name SearchApi
 PS > Add-ChatPlugin -PluginName Bing -ParameterNames apiKey -ParameterValues $encryptedBingApiKey
 PS > Add-ChatPlugin -PluginName TimePlugin
 PS > Send-ChatMessage 'Can you give a very brief synopsis of three of the latest new features released for PowerShell? Please describe specific features, not just the releases. Please also indicate the approximate dates they were released.'
-
+ 
 Received                 Response
 --------                 --------
 7/19/2025 11:15:53 PM    Here are three of the latest new features released for PowerShell in
                          the last three months:
-
+ 
                          1. PSDirectToVariable (experimental feature) - This new feature allows
                          direct assignment of output to variables, which can enhance
                          scripting convenience and efficiency. [Release date: recent within last 3
                          months, exact date not specified]
-
+ 
                          2. PSNativeWindowsTildeExpansion (experimental feature) - A feature
                          that improves path handling by expanding tilde (~) paths natively on
                          Windows environments. This helps in better path resolution in scripts.
                          [Release date: recent within last 3 months, exact date not specified]
-
+ 
                          3. PSSerializeJSONLongEnumAsNumber (experimental feature) - This feature
                          provides better serialization options for JSON, specifically handling long
                          enums as numbers during serialization, improving compatibility and performance in data
                          interchange. [Release date: recent within last 3 months, exact date not specified]
-
+ 
                          These come with bug fixes and various improvements to the PowerShell
                          environment as part of the update released recently. The specific
                          release date for these features is around July 2025.
-
+ 
                          If you want details on specific release notes or dates for minor updates,
                          I can assist further.
 

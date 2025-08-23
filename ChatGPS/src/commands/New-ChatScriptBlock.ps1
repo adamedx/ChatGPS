@@ -28,6 +28,8 @@ See the New-ChatFunction command documentation for additional information about 
 
 The script block created by New-ChatScriptBlock will have parameters with the same names as the parameters of the chat function in the same positional order. The values of the script block parameters will be bound to the corresponding chat function parameters when the script block is invoked. The first parameter of the script block will be defined to come from the input pipeline unless the NoInputObject parameter of New-ChatScriptBlock is specified.
 
+NOTE: Chat functions require a language model to be accessible from a ChatGPS session, and they also depend on ChatGPS. If the function's behavior could be accomplished without the capabilities of language models to process natural language or unstructured data, consider using the Generate-ChatCode command instead which uses the language model to generate traditional code that can then be used any number of times without using a language model at all and even without ChatGPS, all at a much computationally lower cost. See the documentation for Generate-ChatCode for more details.
+
 .PARAMETER Id
 All chat functions have a unique identifier -- specify the unique identifier of the function to be returned using the Id parameter.
 
@@ -70,11 +72,11 @@ wrote
 went, running
 
 .EXAMPLE
-In this example, New-ScriptBlock is used with the BindToNativeFunctionName parameter to define a new PowerShell function Translate-Text. This powershell function has the same parameters as the chat function specified in the Definition parameter of New-ChatScriptBlock, and specifying those parameters via the function has the same effect as specifying them to the chat function when it is invoked.
-
 PS > New-ChatScriptBlock 'Translate the text {{$sourcetext}} into the language {{$language}} and respond with output only in that language.' -BindToNativeFunctionName Translate-Text
 PS > Translate-Text -sourcetext 'I can translate text using PowerShell!' -language Spanish
 ¡Puedo traducir texto usando PowerShell!
+
+In this example, New-ScriptBlock is used with the BindToNativeFunctionName parameter to define a new PowerShell function Translate-Text. This powershell function has the same parameters as the chat function specified in the Definition parameter of New-ChatScriptBlock, and specifying those parameters via the function has the same effect as specifying them to the chat function when it is invoked.
 
 .EXAMPLE
 As in the example above, the generated function also takes input from the pipeline, so output from one command can be sent to the command for processing. In this example, script
