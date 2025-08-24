@@ -57,7 +57,15 @@ $docsDir = if ( $GeneratePublishableDocs.IsPresent ) {
 $productionDocsPath = join-path $parentPath $productionDocsDir
 $testDocsPath = join-path $parentPath $testDocsDir
 
-$commandHelpPath = join-path $parentPath $docsDir commands
+$targetDocsDir = if ( $GeneratePublishableDocs.IsPresent ) {
+    $productionDocsPath
+} else {
+    $testDocsPath
+}
+
+$commandRelativeDirectory = 'commands'
+
+$commandHelpPath = join-path $parentPath $docsDir $commandRelativeDirectory
 
 write-verbose "Command docs will be placed under the path '$commandHelpPath'"
 
@@ -86,6 +94,8 @@ $generatedFiles = if ( ! $CleanOnly ) {
       foreach {
           New-MarkdownHelp -command $_ -OutputFolder $commandHelpPath
       }
+
+    & $psscriptroot/Get-CommandReferenceContent.ps1 -ModuleName $ModuleName -CommandHelpRelativeDirectory $commandRelativeDirectory | Out-File $targetDocsDir/CommandReference.md
 
     write-verbose "Finished generating markdown files."
 } else {
