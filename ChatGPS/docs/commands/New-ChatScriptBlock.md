@@ -54,29 +54,28 @@ See the documentation for Generate-ChatCode for more details.
 
 ### EXAMPLE 1
 ```
-This example creates a new script block based on a chat function definition that extracts verbs from the input text passed to the chat function's 'text' parameter from the script block's corresponding 'text' parameter. The script block is saved in a variable and is then used in a foreach loop to process multiple inputs via invocation through the '.' dot-sourcing operator:
-```
-
-PS \> $verbExtractor = New-ChatScriptBlock 'Extract all the verbs from the text {{$text}} and only the verbs -- do not emit any additional text or explanations.' not emit any additional text or explanations.'
-PS \> 'I ran to the store', 'I wrote PowerShell code', 'I went running.' | foreach { .
-$verbExtractor -text $_ }
-
+$verbExtractor = New-ChatScriptBlock 'Extract all the verbs from the text {{$text}} and only the verbs -- do not emit any additional text or explanations.' not emit any additional text or explanations.'
+PS > 'I ran to the store', 'I wrote PowerShell code', 'I went running.' | foreach { . $verbExtractor -text $_ }
+ 
 ran
 wrote
 went, running
+```
+
+This example creates a new script block based on a chat function definition that extracts verbs from the input text passed to the chat function's 'text' parameter from the script block's corresponding 'text' parameter.
+The script block is saved in a variable and is then used in a foreach loop to process multiple inputs via invocation through the '.' dot-sourcing operator.
 
 ### EXAMPLE 2
 ```
-This example is similar to the previous one, except that the input is passed using the pipeline rather than the generated parameter name:
-```
-
-PS \> $verbExtractor = New-ChatScriptBlock 'Extract all the verbs from the text {{$text}} and only the verbs -- do not emit any additional text or explanations.' not emit any additional text or explanations.'
-PS \> 'I ran to the store', 'I wrote PowerShell code', 'I went running.' | .
-$verbExtractor
-
+$verbExtractor = New-ChatScriptBlock 'Extract all the verbs from the text {{$text}} and only the verbs -- do not emit any additional text or explanations.' not emit any additional text or explanations.'
+PS > 'I ran to the store', 'I wrote PowerShell code', 'I went running.' | . $verbExtractor
+ 
 ran
 wrote
 went, running
+```
+
+This example is similar to the previous one, except that the input is passed using the pipeline rather than the generated parameter name.
 
 ### EXAMPLE 3
 ```
@@ -90,46 +89,42 @@ This powershell function has the same parameters as the chat function specified 
 
 ### EXAMPLE 4
 ```
-As in the example above, the generated function also takes input from the pipeline, so output from one command can be sent to the command for processing. In this example, script
-```
-
-PS \> New-ChatScriptBlock -BindToNativeFunctionName Classify-Text 'Classify the input text {{$inputtext}} according to what human or computer languages are contained in it, and respond with a comma separated list of these languages in order of descending prominence of each language in the text.
-Do not respond with anything else other than the comma separated list of languages.' | Out-Null
-PS \> Get-ChildItem -File * | foreach { $_ | Get-Content | Out-String } | Classify-Text
-
+New-ChatScriptBlock -BindToNativeFunctionName Classify-Text 'Classify the input text {{$inputtext}} according to what human or computer languages are contained in it, and respond with a comma separated list of these languages in order of descending prominence of each language in the text. Do not respond with anything else other than the comma separated list of languages.' | Out-Null
+PS > Get-ChildItem -File * | foreach { $_ | Get-Content | Out-String } | Classify-Text
+ 
 C#, JSON
 English, JSON
 JSON, HTML
 JSON
 Visual Studio Solution File, C#
 PowerShell, JSON, Markdown
+```
+
+As in the example above, the generated function also takes input from the pipeline, so output from one command can be sent to the command for processing.
+In this example, script
 
 ### EXAMPLE 5
 ```
-The BindToNativeFunctionName parameter can be used to create a PowerShell function that can be used to execute the chat function instead of the less elegant Invoke-ChatFunction command -- in this example, a chat function that summarizes the functionality of PowerShell script code is turned into a PowerShell function, which is then executed as a command:
+New-ChatScriptBlock 'Summarize the purpose of the PowerShell code given by {{$powershellcode}} using no more than 5 sentences' -BindToNativeFunctionName Summarize-Script
+ 
+Get-Content ./New-ChatScriptBlock.ps1 | Out-String | Summarize-Script
 ```
 
-PS \> New-ChatScriptBlock 'Summarize the purpose of the PowerShell code given by {{$powershellcode}} using no more than 5 sentences' -BindToNativeFunctionName Summarize-Script
-
-PS \> Get-Content ./New-ChatScriptBlock.ps1 | Out-String | Summarize-Script
-
-The PowerShell code defines a function called \`New-ChatScriptBlock\`, which creates a parameterized PowerShell script block that integrates with a chat function defined by \`New-ChatFunction\`.
-This script block acts as a wrapper, allowing users to invoke chat functions using a more intuitive syntax, avoiding the complexities of the \`Invoke-ChatFunction\` command.
-The function supports specifying chat functions by their unique identifier or name, and allows for customization such as binding the script block to a native PowerShell function and controlling whether the first parameter accepts pipeline input.
-Overall, it simplifies the process of incorporating chat capabilities into PowerShell scripts.
+The BindToNativeFunctionName parameter is be used to create a PowerShell function called Summarize-Script that can be used to execute the chat function instead of the less elegant Invoke-ChatFunction command -- in this example, a chat function that summarizes the functionality of PowerShell script code is turned into a PowerShell function, which is then executed as a command.
+The use of BindToNativeFunction provides a more seamless developer experience such that externally the chat function appears just like any other native PowerShell function or comman.
 
 ### EXAMPLE 6
 ```
-This example shows the capability of New-ChatScriptBlock to bind a script block to an existing chat function using the pipeline -- it also uses the BindToNativeFunctionName parameter to generate a PowerShell function for each existing named chat function:
-```
-
-PS \> Get-ChatFunction | Where-Object { $_.name } | foreach { $_ | New-ChatScriptBlock -BindToNativeFunctionName "Invoke-Gen$($_.name)" }
-
+Get-ChatFunction | Where-Object { $_.name } | foreach { $_ | New-ChatScriptBlock -BindToNativeFunctionName "Invoke-Gen$($_.name)" }
+ 
 CommandType     Name                                               Version    Source
 -----------     ----                                               -------    ------
 Function        Invoke-GenPascal
 Function        Invoke-GenMerger
 Function        Invoke-GenTranslator
+```
+
+This example shows the capability of New-ChatScriptBlock to bind a script block to an existing chat function using the pipeline -- it also uses the BindToNativeFunctionName parameter to generate a PowerShell function for each existing named chat function.
 
 ## PARAMETERS
 

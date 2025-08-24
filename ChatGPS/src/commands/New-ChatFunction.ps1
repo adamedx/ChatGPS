@@ -40,33 +40,33 @@ Use the Force parameter to specify that default behavior to fail the command if 
 A function object that describes the defined function and that may be passed as input to other commands that operate on functions such as Invoke-ChatFunction or Remove-ChatFunction.
 
 .EXAMPLE
-In this example, the New-ChatFunction command is used to define a function that translates text to a particular language -- both the text to be translated and the target language for translation are specified as parameters to the function:
-
-PS > New-ChatFunction -name Translator 'Translate the text {{$sourcetext}} into the language {{$language}} and respond with output only in that language.'
-
+New-ChatFunction -name Translator 'Translate the text {{$sourcetext}} into the language {{$language}} and respond with output only in that language.'
+ 
 Id                                   Name       Definition             Parameters
 --                                   ----       ----------
 59880abc-166f-48fd-a96d-220f793c4f57 Translator Translate the text {{$ {[language, language], [sourcetext, sourcetext]}
-
+ 
 PS > Invoke-ChatFunction -Parameters 'I use PowerShell for both work and play.', Spanish
-
+ 
 Uso PowerShell tanto para el trabajo como para el ocio.
 
+In this example, the New-ChatFunction command is used to define a function that translates text to a particular language -- both the text to be translated and the target language for translation are specified as parameters to the function:
+
 .EXAMPLE
-This example shows how to use a function created by New-ChatFunction that has no name. In this case, the output of New-ChatOutput is assigned to a variable that can be used with other function-related commands; here it is used via the pipeline to specify the function to be invoked by Invoke-ChatFunction
-
-PS > $pascalFunction = New-ChatFunction -Name Pascal 'Show the first {{$rows}} levels of Pascals triangle's of Pascals triangle'
+$pascalFunction = New-ChatFunction -Name Pascal 'Show the first {{$rows}} levels of Pascals triangle's of Pascals triangle'
 PS > $pascalFunction | Invoke-ChatFunction -Parameters 5
-
+ 
 Pascal's Triangle is constructed by starting with a single "1" at the top (the 0th row), and then each number below it is the sum of the two numbers directly above it. Here are the first five levels (rows) of Pascal's Triangle:
-
-```
+ 
+\`\`\`
        1       (Row 0)
       1 1      (Row 1)
      1 2 1     (Row 2)
     1 3 3 1    (Row 3)
    1 4 6 4 1   (Row 4)
-```
+\`\`\`
+
+This example shows how to use a function created by New-ChatFunction that has no name. In this case, the output of New-ChatOutput is assigned to a variable that can be used with other function-related commands; here it is used via the pipeline to specify the function to be invoked by Invoke-ChatFunction.
 
 .LINK
 Invoke-ChatFunction

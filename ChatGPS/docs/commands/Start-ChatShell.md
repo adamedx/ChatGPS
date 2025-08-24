@@ -126,18 +126,16 @@ Received                 Response
                          questions or need assistance with anything else, feel free to ask!
  
 (ryu) ChatGPS>: .exit
-```
-
-PS \> chatgps
+ 
+PS > chatgps
  
 Received                 Response
 --------                 --------
-7/19/2025 10:21:30 PM    You're welcome!
-I'm glad you found it helpful.
-If you have any more
+7/19/2025 10:21:30 PM    You're welcome! I'm glad you found it helpful. If you have any more
                          questions or need assistance with anything else, feel free to ask!
  
-(ryu) ChatGPS\>:
+(ryu) ChatGPS>:
+```
 
 This example uses the alias chatgps instead of Start-Shell.
 The user and language model engage in a brief conversation about language translation.
@@ -263,17 +261,17 @@ Received                 Response
 (ryu) ChatGPS>: can you modify it so that it lists them in order of process creation?
 ```
 
-7/20/2025 6:52:30 AM     \`\`\`powershell
+7/20/2025 6:52:30 AM     \\\`\\\`\\\`powershell
                          Get-Process pwsh | Sort-Object StartTime
-                         \`\`\`
+                         \\\`\\\`\\\`
  
 (ryu) ChatGPS\>: Thanks.
 Can you also add a secondary ordering by memory utilization?
  
-7/20/2025 6:52:56 AM     \`\`\`powershell
+7/20/2025 6:52:56 AM     \\\`\\\`\\\`powershell
                          Get-Process pwsh | Sort-Object StartTime,
                          @{Expression='WorkingSet'; Descending=$true}
-                         \`\`\`
+                         \\\`\\\`\\\`
  
 (ryu) ChatGPS\>: .exit
  
@@ -284,21 +282,21 @@ Received                 Role       Elapsed (ms) Response
 --------                 ----       ------------ --------
 7/16/2025 6:51:13 AM     User                  0 Can you show a  PowerShell script that enumerates all the
                                                  PowerShell 7 processes?
-7/16/2025 6:51:21 AM     Assistant          7667 \`\`\`powershell
+7/16/2025 6:51:21 AM     Assistant          7667 \\\`\\\`\\\`powershell
                                                  Get-Process pwsh
-                                                 \`\`\`
+                                                 \\\`\\\`\\\`
 7/16/2025 6:52:22 AM     User                  0 can you modify it so that it lists them in order of process
                                                  creation?
-7/16/2025 6:52:30 AM     Assistant          7345 \`\`\`powershell
+7/16/2025 6:52:30 AM     Assistant          7345 \\\`\\\`\\\`powershell
                                                  Get-Process pwsh | Sort-Object StartTime
-                                                 \`\`\`
+                                                 \\\`\\\`\\\`
 7/16/2025 6:52:56 AM     User                  0 Thanks.
 Can you also add a secondary ordering by memory
                                                  utilization?
-7/16/2025 6:52:56 AM     Assistant           761 \`\`\`powershell
+7/16/2025 6:52:56 AM     Assistant           761 \\\`\\\`\\\`powershell
                                                  Get-Process pwsh | Sort-Object StartTime,
                                                  @{Expression='WorkingSet'; Descending=$true}
-                                                 \`\`\`
+                                                 \\\`\\\`\\\`
 7/16/2025 6:54:30 AM     User                  0 Can you provide that without any markdown
                                                  formatting please, just PowerShell code?
 7/16/2025 6:54:37 AM     Assistant          7531 Get-Process pwsh | Sort-Object StartTime,
