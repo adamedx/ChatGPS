@@ -77,7 +77,7 @@
 
   <Target Name="GeneratePowerShellModuleDocs" DependsOnTargets="AnyTargetDependencies;PowerShellModule" AfterTargets="PowerShellModule">
     <Message Text="Generating documentation" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeToolsScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName PlatyPS -ToolsModuleVersion 0.14.2; pushd $(ProjectDir); ./build/build-documentation.ps1 -modulename chatgps &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeToolsScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName platyPS -ToolsModuleVersion 0.14.2; pushd $(ProjectDir); ./build/build-documentation.ps1 -modulename chatgps &quot;" />
   </Target>
 
   <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies">
