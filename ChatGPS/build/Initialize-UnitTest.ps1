@@ -50,9 +50,6 @@ foreach ( $module in $toolsModuleName ) {
         throw [ArgumentException]::new("Missing version number for module '$module'")
     }
 
-    $testToolManifestPath = & "$psscriptroot/Install-TestFx.ps1" -ToolsRootPath $ToolsRootPath -ModuleName $module -Version $version
-    import-module -force $module
-
     $targetManifestPath = Find-ModuleManifestPath -ModuleDirectory $TestTargetModuleDirectory
     import-module -force $targetManifestPath
 }
