@@ -1,7 +1,7 @@
 Welcome to ChatGPS
 ==================
 
-|[Commands](commands)|
+|[Commands](CommandReference.md)|
 |--------------------|
 
 # What is ChatGPS?

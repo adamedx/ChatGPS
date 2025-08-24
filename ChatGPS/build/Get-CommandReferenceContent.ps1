@@ -51,6 +51,9 @@ $documentPrologue = @'
 Command Reference
 =================
 
+|[Documentation Home](Introduction.md)|
+|-------------------------------------|
+
 |Command|Description|
 |-------|-----------|
 '@
