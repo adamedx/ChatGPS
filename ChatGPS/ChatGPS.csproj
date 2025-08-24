@@ -29,7 +29,7 @@
       <PowerShellCommand>pwsh</PowerShellCommand>
       <PowerShellCommonArguments>-NoProfile -NonInteractive -ExecutionPolicy Unrestricted</PowerShellCommonArguments>
       <ModuleValidateScriptPath>$(ProjectDir)build/Validate-PSModule.ps1</ModuleValidateScriptPath>
-      <InitializeTestScriptPath>$(ProjectDir)build/Initialize-UnitTest.ps1</InitializeTestScriptPath>
+      <InitializeToolsScriptPath>$(ProjectDir)build/Initialize-Tools.ps1</InitializeToolsScriptPath>
       <PublishModuleScriptPath>$(ProjectDir)build/Publish-ModulePackage.ps1</PublishModuleScriptPath>
     </PropertyGroup>
 
@@ -77,12 +77,12 @@
 
   <Target Name="GeneratePowerShellModuleDocs" DependsOnTargets="AnyTargetDependencies;PowerShellModule" AfterTargets="PowerShellModule">
     <Message Text="Generating documentation" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName PlatyPS -ToolsModuleVersion 0.14.2; pushd $(ProjectDir); ./build/build-documentation.ps1 -modulename chatgps &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeToolsScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName PlatyPS -ToolsModuleVersion 0.14.2; pushd $(ProjectDir); ./build/build-documentation.ps1 -modulename chatgps &quot;" />
   </Target>
 
   <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Running PowerShell unit tests" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName Pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeToolsScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName Pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
   </Target>
 
   <Target Name="PublishModule" DependsOnTargets="AnyTargetDependencies">
