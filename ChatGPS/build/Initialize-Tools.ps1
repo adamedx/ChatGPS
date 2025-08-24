@@ -37,7 +37,7 @@ if ( ! ( test-path $ToolsRootPath ) ) {
 
 Enable-ModuleTools -ToolsRootPath $ToolsRootPath
 
-$global:__ChatGPSSkipNative = $true # This updates files in the module directory, we don't want to do this.
+$global:__ChatGPSSkipNative = $true # This updates files in the module directory, we don't want to do this at build time, only runtime.
 
 set-item env:CHATGPS_SKIP_SETTINGS_ON_LOAD 'true'
 
