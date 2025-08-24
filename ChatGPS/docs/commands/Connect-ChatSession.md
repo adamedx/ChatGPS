@@ -100,11 +100,11 @@ The session is also given a name with the Name parameter.
 $secretKey = Get-ChatEncryptedUnicodeKeyCredential
 PS > Connect-ChatSession -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
-```
-
+ 
 Id                                   Provider    Name ModelIdentifier
 --                                   --------    ---- ---------------
 15934765-10c5-4caf-b477-180abd9d893d OpenAI           gpt-4o-mini
+```
 
 This example is similar to those above, but it uses the OpenAI provider instead -- since OpenAI does not currently require an ApiEndpoint parameter but does require an ApiKey parameter, use of the OpenAI provider is the default when only ApiKey is specified.
 For OpenAI however the ModelIdentifier is required:
@@ -274,60 +274,55 @@ The ConvertFrom-Csv command along with standard PowerShell formatting commands c
 Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $personalKey
-```
-
-PS \> $unreadMail = GetUnreadMail
-PS \> $emailSummary = Invoke-ChatFunction SummarizeMail $unreadMail -Session $work2 | Show-Markdown
-
-PS \> Start-ChatShell
-
-(morpheus) ChatGPS\>: please translate this Chinese text: '我应该乘坐什么火车去机场？'
-
+ 
+PS > $unreadMail = GetUnreadMail
+PS > $emailSummary = Invoke-ChatFunction SummarizeMail $unreadMail -Session $work2 | Show-Markdown
+ 
+PS > Start-ChatShell
+ 
+(morpheus) ChatGPS>: please translate this Chinese text: '我应该乘坐什么火车去机场？'
+ 
 Received                 Response
 --------                 --------
 12/30/2024 11:01:03 AM   The Chinese text '我应该乘坐什么火车去机场？' translates to "Which train should I take to the
                          airport?"
-
-(morpheus) ChatGPS\>: .exit
-
-PS \> $tahomaWeather = Invoke-WebRequest -UseBasicParsing 'https://forecast.weather.gov/MapClick.php?lat=46.9381&lon=-121.8623&unit=0&lg=english&FcstType=text&TextType=1' | select -ExpandProperty content
-PS \> Send-ChatMessage -Session $personal "Summarize the plaintext contained in this html content regarding the weather forecast for Mt.
-Rainier $tahomaWeather"
-
+ 
+(morpheus) ChatGPS>: .exit
+ 
+PS > $tahomaWeather = Invoke-WebRequest -UseBasicParsing 'https://forecast.weather.gov/MapClick.php?lat=46.9381&lon=-121.8623&unit=0&lg=english&FcstType=text&TextType=1' | select -ExpandProperty content
+PS > Send-ChatMessage -Session $personal "Summarize the plaintext contained in this html content regarding the weather forecast for Mt. Rainier $tahomaWeather"
+ 
 Received                 Response
 --------                 --------
-12/30/2024 11:04:22 AM   The weather forecast for the area 7 miles northwest of Mt.
-Rainier, WA, indicates the
+12/30/2024 11:04:22 AM   The weather forecast for the area 7 miles northwest of Mt. Rainier, WA, indicates the
                          following:
-
+ 
                          - **Tonight:** Partly cloudy with a low around 21°F and a light south southwest wind.
-
-                         - **Tuesday:** A 30% chance of snow after 4 PM, partly sunny with a high near 28°F.
-Wind
+ 
+                         - **Tuesday:** A 30% chance of snow after 4 PM, partly sunny with a high near 28°F. Wind
                          chill values between 12°F and 22°F, with less than half an inch of new snow expected.
-
-                         - **Tuesday Night:** Snow likely after 10 PM, with a low around 23°F.
-Wind chill values
+ 
+                         - **Tuesday Night:** Snow likely after 10 PM, with a low around 23°F. Wind chill values
                          between 10°F and 15°F, an 80% chance of precipitation, and 1 to 3 inches of new snow
                          accumulation possible.
-
+ 
                          - **New Year's Day (Wednesday):** Snow likely mainly before 4 PM, mostly cloudy, high near
                          29°F, and a 70% chance of precipitation with 1 to 2 inches of new snow expected.
-
-PS \> Start-ChatShell
-
+ 
+PS > Start-ChatShell
+ 
 Received                 Response
 --------                 --------
 12/30/2024 11:01:03 AM   The Chinese text '我应该乘坐什么火车去机场？' translates to "Which train should I take to the
                          airport?"
-
-(morpheus) ChatGPS\>: Thank you!
-
-12/30/2024 11:07:42 AM   You're welcome!
-If you have any more questions or need help with anything else, feel free to
+ 
+(morpheus) ChatGPS>: Thank you!
+ 
+12/30/2024 11:07:42 AM   You're welcome! If you have any more questions or need help with anything else, feel free to
                          ask!
-
-(morpheus) ChatGPS\>:
+ 
+(morpheus) ChatGPS>:
+```
 
 In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session.
 One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes.

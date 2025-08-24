@@ -71,25 +71,25 @@ function Generate-PascalsTriangle {
     param (
         [int]$levels
     )
-
+ 
     # Initialize triangle with the first row
     $triangle = @()
     $triangle += @(1)
-
+ 
     for ($i = 1; $i -lt $levels; $i++) {
         # Create a new row
         $row = @(1)
-
+ 
         # Calculate the values for the new row
         for ($j = 1; $j -lt $i; $j++) {
             $row += $triangle[$i - 1][$j - 1] + $triangle[$i - 1][$j]
         }
         $row += @(1)
-
+ 
         # Add the new row to the triangle
         $triangle += ,$row
     }
-
+ 
     return $triangle
 }
  

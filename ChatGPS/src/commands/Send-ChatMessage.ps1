@@ -82,7 +82,7 @@ When the AsJob parameter is not specivied, the command returns a message object 
 
 .EXAMPLE
 Send-ChatMessage Hello
-
+ 
 Received                 Response
 --------                 --------
 3/11/2025 10:10:16 PM    Hello! How can I assist you today?
@@ -165,13 +165,13 @@ Content
 -------
 Sure! Here's a concise version of the Python code to issue an HTTP GET request:ª
  
-```python
+\`\`\`python
 import requests
  
 response = requests.get('https://api.example.com/data')
 print(response.json() if response.status_code == 200 else response.status_code)
-```
-  PS > Send-ChatMessage 'Can you show Python code that will issue an HTTP GET request?' | Select-Object Content
+\`\`\`
+ PS > Send-ChatMessage 'Can you show Python code that will issue an HTTP GET request?' | Select-Object Content
  
 Content
 -------
@@ -217,11 +217,11 @@ Send-ChatMessage "Can you show me powershell code that for a given file will lis
  
 Received                 Response
 --------                 --------
-7/19/2025 6:57:56 PM     ```powershell
+7/19/2025 6:57:56 PM     \`\`\`powershell
                          $filePath = "C:\path\to\your\file.exe"
                          $fileVersionInfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filePath)
                          $fileVersionInfo.FileVersion
-                         ```
+                         \`\`\`
 7/19/2025 6:57:56 PM     Please try again -- you included markdown, you should only generate output that PowerShell
                          can execute
 7/19/2025 6:57:57 PM     $filePath = "C:\path\to\your\file.exe"
@@ -232,7 +232,7 @@ In this example, the ReplyBlock feature is used as a way to send additional requ
 
 .LINK
 Connect-ChatSession
-Start-ChatShell                                                                                                                                             Clear-ChatConversation
+Start-ChatShell                                                                       Clear-ChatConversation
 Add-ChatPlugin
 #>
 function Send-ChatMessage {
