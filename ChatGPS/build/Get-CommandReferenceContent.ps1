@@ -42,13 +42,13 @@ $commandInfo = $module |
 
 
 $commandTable = foreach ( $command in $commandInfo ) {
-    "|[$($command.Name)]($($CommandHelpRelativeDirectory)/$($command.Name))|$($command.Synopsis)|`n"
+    "|[$($command.Name)]($($CommandHelpRelativeDirectory)/$($command.Name).md)|$($command.Synopsis)|`n"
 }
 
 
 
 $documentPrologue = @'
-Command Reference
+ChatGPS Command Reference
 =================
 
 |[Documentation Home](Introduction.md)|
