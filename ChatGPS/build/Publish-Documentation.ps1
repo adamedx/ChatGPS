@@ -32,7 +32,7 @@ if ( ! ( & $psscriptroot/Is-DocBuildDisabled.ps1 ) ) {
 
     $moduleName = split-path -leafbase $ModulePath
 
-    & $psscriptroot/Initialize-Tools.ps1 -TestTargetModuleDirectory $modulePath -ToolsRootPath "$psscriptroot/../tools" -ToolsModuleName PlatyPS -ToolsModuleVersion 0.14.2
+    & $psscriptroot/Initialize-Tools.ps1 -TestTargetModuleDirectory $modulePath -ToolsRootPath "$psscriptroot/../tools" -ToolsModuleName platyPS -ToolsModuleVersion 0.14.2
 
     & $psscriptroot/build-documentation -modulename $moduleName -GeneratePublishableDocs:($Production.IsPresent) -DocsParentDirectory $DocsParentDirectory
 } else {
