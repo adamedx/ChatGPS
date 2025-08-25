@@ -1,10 +1,7 @@
-Welcome to ChatGPS
-==================
-
 |[Commands](CommandReference.md)|
 |--------------------|
 
-# What is ChatGPS?
+# Welcome -- What is ChatGPS?
 
 ChatGPS is a tool for interacting with large language models (LLMs) using PowerShell. You can use it to:
 
@@ -350,12 +347,13 @@ First, the plugin is added to the current session using the `Add-ChatPlugin` com
 
 Note that `Connect-ChatSession` includes parameters to add plugins at session creation time, as well as to allow agent access, to avoid the need to subsequently run `Add-ChatPlugin` and `Set-ChatAgentAccess`.
 
-Since sessions can have multiple plugins added, let's add the `Google` plugin which enables web searches. With both the time plugin and the Google plugin, we can get answers to questions that require the model to know the current time and have access to search engine results:
+Since sessions can have multiple plugins added, let's add the `Google` plugin which enables web searches -- the `Get-ChatEncryptedUnicodeKeyCredential` command allows you to enter that plugin's API key securely. With both the time plugin and the Google plugin, we can get answers to questions that require the model to know the current time and have access to search engine results:
 
 ```powershell
 PS > $apiKey = Get-ChatEncryptedUnicodeKeyCredential
-PS > $googleSearchEngineId = 'fijsAx09934'
 ChatGPS: Enter secret key / password>: ***************************************
+
+PS > $googleSearchEngineId = 'fijsAx09934'
 
 PS > Add-ChatPlugin Google apikey, searchEngineId $apikey, $googleSearchEngineId
 

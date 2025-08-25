@@ -66,3 +66,11 @@ Here is a sample command for the `Publish-Documentation` command executed from t
 ```
 
 Note that currently the configuration of the build used by `dotnet build` has no impact on documentation generation, so either `Debug` or `Release` should work fine for instance.
+
+## Implementation notes for docs
+
+This module's markdown-based documentation utilizes the [platyPS](https://www.powershellgallery.com/packages/platyPS) PowerShell module, despite the fact that this plugin has been formally superseded by the quite recently released (end of 2024) [Microsoft.PowerShell.PlatyPS](https://www.powershellgallery.com/packages/Microsoft.PowerShell.PlatyPS) module.
+
+Both modules were considered, but the newer module fared poorly on the the ChatGPS module's requirements, which were to generate markdown help from PowerShell-based comment help -- the new `platyPS` is apparently optimized for generating fully-featured MAML help with markdown as the source. When used with PowerShell-based help, the module generated content in its output, apparently due to idiosyncrasies of the content of the ChatGPS command-based help. The original `platyPS` ran without error, though it does require some workarounds to deal with comments that themselves contain markdown (!) and also multi-line code blocks that contain empty lines.
+
+Once the newer module is more mature and can handle comment-based help reliably, then the implementation can be changed to utilize it. Or perhaps this module will require MAML-based help or markdown instead of PowerShell comments as the authoritative documentation source; in that case the new `platyPus` would be sufficient.
