@@ -1,3 +1,6 @@
+| [Documentation](ChatGPS/docs/Introduction.md) | [Development](#development-and-testing) | [Command reference](ChatGPS/docs/CommandReference.md) |
+|-------------|-------------|-------------|
+
 ChatGPS
 =======
 

@@ -35,7 +35,7 @@ ChatGPS Command Reference
  |[Save-ChatSessionSetting](commands/Save-ChatSessionSetting.md)|Saves the current configuration of a chat session to the settings configuration file.|
  |[Select-ChatSession](commands/Select-ChatSession.md)|Sets the default 'current' session used by commands that interact with language models when the command does not explicitly specify a session.|
  |[Send-ChatMessage](commands/Send-ChatMessage.md)|Sends a message with conversation context to a language model and returns the response from the model.|
- |[Set-ChatAgentAccess](commands/Set-ChatAgentAccess.md)|Configures a chat session to allow or disallow interactions between language models and chat plugins that enable language model interactions with user accessible resources including the local computer system and applications.|
+ |[Set-ChatAgentAccess](commands/Set-ChatAgentAccess.md)|Configures a chat session to allow or disallow plugin-based interactions between language models including system resources and remote services.|
  |[Set-ChatCurrentVoice](commands/Set-ChatCurrentVoice.md)|Experimental command that creates a new text-to-speech voice.|
  |[Start-ChatShell](commands/Start-ChatShell.md)|Sends a message with conversation context to a language model and returns the response from the model.|
  |[Unregister-ChatPlugin](commands/Unregister-ChatPlugin.md)|Unregisters a custom chat plugin created by Register-ChatPlugin.|
