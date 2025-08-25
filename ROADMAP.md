@@ -3,7 +3,8 @@
 
 ## To-do items
 
-* Clone chat connection
+* Let Azure use the ModelIdentifier parameter as the DeploymentName if it is not specified, or consider removing DeploymetName or aliasing it
+* Clone chat connection (sort of already exists with saveas)
 * Switch to https://learn.microsoft.com/dotnet/api/system.security.cryptography since it is cross-platform
 * Make receiveblock take two parameters, the second is the request
 * Add output types to commands

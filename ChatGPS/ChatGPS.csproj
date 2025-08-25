@@ -24,13 +24,15 @@
       <TestOutputDirectory>$(ProjectDir)$(TestOutputSubdirectory)</TestOutputDirectory>
       <ModuleOutputDirectory>$(TargetDir)/Module/$(ProjectName)</ModuleOutputDirectory>
       <OutputLibDirectory>$(ModuleOutputDirectory)/$(LibDirectory)</OutputLibDirectory>
+      <TestDocsOutputDirectory>$(ProjectDir)/testdocs</TestDocsOutputDirectory>
       <ModuleManifestSourceDirectory>$(ProjectDir)</ModuleManifestSourceDirectory>
       <PowerShellSourceFilesRoot>src</PowerShellSourceFilesRoot>
       <PowerShellCommand>pwsh</PowerShellCommand>
       <PowerShellCommonArguments>-NoProfile -NonInteractive -ExecutionPolicy Unrestricted</PowerShellCommonArguments>
       <ModuleValidateScriptPath>$(ProjectDir)build/Validate-PSModule.ps1</ModuleValidateScriptPath>
-      <InitializeTestScriptPath>$(ProjectDir)build/Initialize-UnitTest.ps1</InitializeTestScriptPath>
+      <InitializeToolsScriptPath>$(ProjectDir)build/Initialize-Tools.ps1</InitializeToolsScriptPath>
       <PublishModuleScriptPath>$(ProjectDir)build/Publish-ModulePackage.ps1</PublishModuleScriptPath>
+      <PublishDocsScriptPath>$(ProjectDir)build/Publish-Documentation.ps1</PublishDocsScriptPath>
     </PropertyGroup>
 
     <ItemGroup>
@@ -75,9 +77,14 @@
     <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(ModuleValidateScriptPath) -ModuleDirectory $(ModuleOutputDirectory) &quot;" />
   </Target>
 
+  <Target Name="GeneratePowerShellModuleDocs" DependsOnTargets="AnyTargetDependencies;PowerShellModule" AfterTargets="PowerShellModule">
+    <Message Text="Generating documentation" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot; &amp; $(PublishDocsScriptPath) -ModulePath $(ModuleOutputDirectory) &quot;" />
+  </Target>
+
   <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Running PowerShell unit tests" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeTestScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName Pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeToolsScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName Pester -ToolsModuleVersion 5.5.0; pushd $(ProjectDir); ./build/Invoke-PesterTests -TestFileLocation $(TestOutputSubdirectory)/pester-testresults.xml &quot;" />
   </Target>
 
   <Target Name="PublishModule" DependsOnTargets="AnyTargetDependencies">
@@ -88,7 +95,8 @@
   <Target Name="CleanModule" AfterTargets="Clean" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Removing intermediate and output directories..." />
     <RemoveDir Directories="$(BaseOutputPath);$(BaseIntermediateOutputPath)" />
-    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory);$(TestOutputDirectory)" />
+    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory);$(TestOutputDirectory);$(TestDocsOutputDirectory)" />
   </Target>
 
 </Project>
+

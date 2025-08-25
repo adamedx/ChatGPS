@@ -48,7 +48,7 @@ This example installs all add-ons. Because no add-ons were specified with the Ad
 
 .EXAMPLE
 Install-ChatAddOn LocalOnnx -PassThru
-
+ 
 C:\Program Files\dotnet\dotnet.exe
 
 In this case an explicit add-on is specified via the AddOns parameter, and PassThru is used to return the tool used to install the specified AddOn, which in this case was the dotnet tool.

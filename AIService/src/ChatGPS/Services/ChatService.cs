@@ -259,7 +259,7 @@ public abstract class ChatService : IChatService
     protected PluginTable? pluginTable;
     protected OpenAIPromptExecutionSettings? initialPromptSettings = null;
 
-    protected const int tokenLimitDefault = 32768;
+    protected const int tokenLimitDefault = 16384;
 
     private ILoggerFactory? loggerFactory;
 }

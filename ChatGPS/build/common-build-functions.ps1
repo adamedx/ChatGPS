@@ -103,16 +103,25 @@ function Find-ModuleManifestPath {
     param(
         [parameter(mandatory=$true)]
         [string] $ModuleDirectory,
+        [string] $ModuleName,
         [switch] $Recurse,
         [switch] $IgnoreNotFound
     )
 
-    $manifestPath = Get-ChildItem $ModuleDirectory -Filter *.psd1 -Recurse:$Recurse.IsPresent -erroraction ignore
+    $targetDirectory = if ( $ModuleName ) {
+        join-path $ModuleDirectory $ModuleName
+    } else {
+        $ModuleDirectory
+    }
+
+    $manifestPath = Get-ChildItem $targetDirectory -Filter *.psd1 -Recurse:$Recurse.IsPresent -erroraction ignore |
+      sort-object fullname |
+      Select-object -first 1
+
     $manifestCount = ( $manifestPath | measure-object ).Count
 
-    if ( ( $manifestCount -eq 0 -and ! $IgnoreNotFound.IsPresent ) -or
-         ( $manifestCount -gt 1 ) ) {
-        write-error "Unable to find exactly one .psd1 file at the path '$ModuleDirectory'" -erroraction Stop
+    if ( $manifestCount -eq 0 -and ! $IgnoreNotFound.IsPresent ) {
+        write-error "Unable to find exactly one .psd1 file at the path '$targetDirectory'" -erroraction Stop
     }
 
     if ( $manifestPath ) {
@@ -126,8 +135,10 @@ function Enable-ModuleTools {
         [string] $ToolsRootPath
     )
 
-    if ( ! ( $env:PSModulePath -like "*$($ToolsRootPath)*" ) ) {
-        set-item env:PSModulePath ("$ToolsRootPath;" + $env:PSModulePath)
+    $normalizedPath = (Get-Item $ToolsRootPath).FullName
+
+    if ( ! ( $env:PSModulePath -like "*$($normalizedPath)*" ) ) {
+        set-item env:PSModulePath ("$normalizedPath;" + $env:PSModulePath)
     }
 }
 

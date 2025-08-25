@@ -118,18 +118,7 @@ By default, the command has no output. But if the NoSave or PassThru parameters 
 Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
 PS > Send-ChatMessage 'how do I find my mac address?'
 
-In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
- 
-Received                 Response
---------                 --------
-12/30/2024 9:24:18 PM    ```powershell
-                         # This command retrieves the MAC addresses of all network adapters on the system.
-
-                         # Get network adapter information and select the Name and MAC Address properties
-                         Get-NetAdapter | Select-Object Name, MacAddress # Displays the Name and MAC Address of each
-                         adapter
-
-In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified:
+In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified.
 
 .EXAMPLE
 Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
@@ -158,7 +147,7 @@ In this example, a chat session is used to a remote model as in the previous exa
 $secretKey = Get-ChatEncryptedUnicodeKeyCredential
 PS > Connect-ChatSession -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
-
+ 
 Id                                   Provider    Name ModelIdentifier
 --                                   --------    ---- ---------------
 15934765-10c5-4caf-b477-180abd9d893d OpenAI           gpt-4o-mini
@@ -248,7 +237,7 @@ Received                 Role       Elapsed (ms) Response
 2/9/2025 4:05:44 PM      Assistant          1184 Hello! Today's date is February 9, 2025. If you'd like to know more
                                                  about that date, such as events that may occur or historical
                                                  significance, feel free to ask!
- 
+
 This example demonstrates how the SendBlock parameter can be used to modify user text before it is sent to the model. In the first invocation
 of Send-ChatMessage, the model responds to a question about the current time with an accurate answer that it does not know. Get-ChatConversation
 is used to show the session's current context of the conversation and it is clear that the text sent to the model is identical to the text provided to the Send-ChatMessage command.
@@ -256,43 +245,41 @@ However, Connect-ChatSession is used to create a new session and the SendBlock p
 the user supplied text passed to the script block with the current time in an unambiguous format. When the previous Send-ChatMessage command is
 reissued, the model responds with a current date that is the same as the date shown in the conversation history. Examination of the text sent to the model
 shows that unlike in the previous attempt, the message sent from the user includes the current time due to the script block specified to SendBlock.
-The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data
-during conversations.
+The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data during conversations.
 
 .EXAMPLE
 Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
-
+ 
 PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
-
+ 
 PS > Start-ChatShell
-
+ 
 (morpheus) ChatGPS>: hello
-
+ 
 Received                 Response
 --------                 --------
 2/9/2025 7:53:47 PM      Hello! How can I assist you today?
-
+ 
 (morpheus) ChatGPS>: Can you tell me the year in which Brown v. Board of Education was decided?
-
+ 
 2/9/2025 7:53:53 PM      Brown v. Board of Education was decided in the year 1954.
                          This landmark Supreme Court case declared racial segregation
                          in public schools unconstitutional.
-
                          Would you like to know more about the case or its impact on
                          civil rights?
-
+ 
 (morpheus) ChatGPS>: In what year was integration of schools in Little Rock, Arkansas first attempted?
-
+ 
 2/9/2025 7:53:59 PM      The integration of schools in Little Rock, Arkansas, was
                          first attempted in 1957. This event is famously associated
                          with the Little Rock Nine, a group of nine African American
                          students who enrolled in the previously all-white Central
                          High School.
-
+ 
 (morpheus) ChatGPS>: .exit
-
+ 
 PS > Get-Content ~/chatlog.csv | ConvertFrom-Csv | Format-Table -Property Timestamp, Role, Message
-
+ 
 Timestamp                  Role      Message
 ---------                  ----      -------
 2/9/2025 7:53:46 PM -08:00 User      hello
@@ -308,53 +295,53 @@ This example uses the ReceiveBlock parameter to configure the session such that 
 Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $personalKey
-
+ 
 PS > $unreadMail = GetUnreadMail
 PS > $emailSummary = Invoke-ChatFunction SummarizeMail $unreadMail -Session $work2 | Show-Markdown
-
+ 
 PS > Start-ChatShell
-
+ 
 (morpheus) ChatGPS>: please translate this Chinese text: '我应该乘坐什么火车去机场？'
-
+ 
 Received                 Response
 --------                 --------
 12/30/2024 11:01:03 AM   The Chinese text '我应该乘坐什么火车去机场？' translates to "Which train should I take to the
                          airport?"
-
+ 
 (morpheus) ChatGPS>: .exit
-
+ 
 PS > $tahomaWeather = Invoke-WebRequest -UseBasicParsing 'https://forecast.weather.gov/MapClick.php?lat=46.9381&lon=-121.8623&unit=0&lg=english&FcstType=text&TextType=1' | select -ExpandProperty content
 PS > Send-ChatMessage -Session $personal "Summarize the plaintext contained in this html content regarding the weather forecast for Mt. Rainier $tahomaWeather"
-
+ 
 Received                 Response
 --------                 --------
 12/30/2024 11:04:22 AM   The weather forecast for the area 7 miles northwest of Mt. Rainier, WA, indicates the
                          following:
-
+ 
                          - **Tonight:** Partly cloudy with a low around 21°F and a light south southwest wind.
-
+ 
                          - **Tuesday:** A 30% chance of snow after 4 PM, partly sunny with a high near 28°F. Wind
                          chill values between 12°F and 22°F, with less than half an inch of new snow expected.
-
+ 
                          - **Tuesday Night:** Snow likely after 10 PM, with a low around 23°F. Wind chill values
                          between 10°F and 15°F, an 80% chance of precipitation, and 1 to 3 inches of new snow
                          accumulation possible.
-
+ 
                          - **New Year's Day (Wednesday):** Snow likely mainly before 4 PM, mostly cloudy, high near
                          29°F, and a 70% chance of precipitation with 1 to 2 inches of new snow expected.
-
+ 
 PS > Start-ChatShell
-
+ 
 Received                 Response
 --------                 --------
 12/30/2024 11:01:03 AM   The Chinese text '我应该乘坐什么火车去机场？' translates to "Which train should I take to the
                          airport?"
-
+ 
 (morpheus) ChatGPS>: Thank you!
-
+ 
 12/30/2024 11:07:42 AM   You're welcome! If you have any more questions or need help with anything else, feel free to
                          ask!
-
+ 
 (morpheus) ChatGPS>:
 
 In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatShell command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatShell is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatShell as it still shows the last response from the previous Start-ChatShell usage on that session as the latest response.
@@ -415,7 +402,7 @@ function Connect-ChatSession {
         [string] $ServiceIdentifier,
 
         [parameter(valuefrompipelinebypropertyname=$true)]
-        [int32] $TokenLimit = 32768,
+        [int32] $TokenLimit = 16384,
 
         [validateset('None', 'Truncate', 'Summarize')]
         [string] $TokenStrategy = 'Summarize',

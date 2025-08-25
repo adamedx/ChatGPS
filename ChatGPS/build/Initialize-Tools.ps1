@@ -12,7 +12,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 #
 
 [cmdletbinding(PositionalBinding=$false)]
@@ -24,22 +23,37 @@ param(
     [string] $ToolsRootPath,
 
     [parameter(mandatory=$true)]
-    [string] $ToolsModuleName,
+    [string[]] $ToolsModuleName,
 
     [parameter(mandatory=$true)]
-    [string] $ToolsModuleVersion
+    [string[]] $ToolsModuleVersion
 )
 
 . ("$psscriptroot/common-build-functions.ps1")
 
+if ( ! ( test-path $ToolsRootPath ) ) {
+    new-directory $ToolsRootPath | out-null
+}
+
 Enable-ModuleTools -ToolsRootPath $ToolsRootPath
 
-$global:__ChatGPSSkipNative = $true # This updates files in the module directory, we don't want to do this.
+$global:__ChatGPSSkipNative = $true # This updates files in the module directory, we don't want to do this at build time, only runtime.
 
 set-item env:CHATGPS_SKIP_SETTINGS_ON_LOAD 'true'
 
-$testToolManifestPath = & "$psscriptroot/Install-TestFx.ps1" -ToolsRootPath $ToolsRootPath -ModuleName $ToolsModuleName -Version $ToolsModuleVersion
-import-module -force $testtoolManifestPath
+$versionIndex = 0
+
+foreach ( $module in $toolsModuleName ) {
+    $version = $ToolsModuleVersion[$versionIndex++]
+
+    if ( ! $version ) {
+        throw [ArgumentException]::new("Missing version number for module '$module'")
+    }
+
+    $testToolManifestPath = & "$psscriptroot/Install-TestFx.ps1" -ToolsRootPath $ToolsRootPath -ModuleName $module -Version $version
+
+    import-module -force $testToolManifestPath
+}
 
 $targetManifestPath = Find-ModuleManifestPath -ModuleDirectory $TestTargetModuleDirectory
 import-module -force $targetManifestPath
