@@ -24,6 +24,7 @@
       <TestOutputDirectory>$(ProjectDir)$(TestOutputSubdirectory)</TestOutputDirectory>
       <ModuleOutputDirectory>$(TargetDir)/Module/$(ProjectName)</ModuleOutputDirectory>
       <OutputLibDirectory>$(ModuleOutputDirectory)/$(LibDirectory)</OutputLibDirectory>
+      <TestDocsOutputDirectory>$(ProjectDir)/testdocs</TestDocsOutputDirectory>
       <ModuleManifestSourceDirectory>$(ProjectDir)</ModuleManifestSourceDirectory>
       <PowerShellSourceFilesRoot>src</PowerShellSourceFilesRoot>
       <PowerShellCommand>pwsh</PowerShellCommand>
@@ -31,6 +32,7 @@
       <ModuleValidateScriptPath>$(ProjectDir)build/Validate-PSModule.ps1</ModuleValidateScriptPath>
       <InitializeToolsScriptPath>$(ProjectDir)build/Initialize-Tools.ps1</InitializeToolsScriptPath>
       <PublishModuleScriptPath>$(ProjectDir)build/Publish-ModulePackage.ps1</PublishModuleScriptPath>
+      <PublishDocsScriptPath>$(ProjectDir)build/Publish-Documentation.ps1</PublishDocsScriptPath>
     </PropertyGroup>
 
     <ItemGroup>
@@ -77,7 +79,7 @@
 
   <Target Name="GeneratePowerShellModuleDocs" DependsOnTargets="AnyTargetDependencies;PowerShellModule" AfterTargets="PowerShellModule">
     <Message Text="Generating documentation" />
-    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot;&amp; $(InitializeToolsScriptPath) -TestTargetModuleDirectory $(ModuleOutputDirectory) -ToolsRootPath $(DevToolDirectory) -ToolsModuleName platyPS -ToolsModuleVersion 0.14.2; pushd $(ProjectDir); ./build/build-documentation.ps1 -modulename chatgps &quot;" />
+    <Exec Command="$(PowerShellCommand) $(PowerShellCommonArguments) -Command &quot; &amp; $(PublishDocsScriptPath) -ModulePath $(ModuleOutputDirectory) &quot;" />
   </Target>
 
   <Target Name="UnitTestPowerShellModule" DependsOnTargets="AnyTargetDependencies">
@@ -93,7 +95,8 @@
   <Target Name="CleanModule" AfterTargets="Clean" DependsOnTargets="AnyTargetDependencies">
     <Message Text="Removing intermediate and output directories..." />
     <RemoveDir Directories="$(BaseOutputPath);$(BaseIntermediateOutputPath)" />
-    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory);$(TestOutputDirectory)" />
+    <RemoveDir Directories="$(DevLibDirectory);$(DevToolDirectory);$(TestOutputDirectory);$(TestDocsOutputDirectory)" />
   </Target>
 
 </Project>
+

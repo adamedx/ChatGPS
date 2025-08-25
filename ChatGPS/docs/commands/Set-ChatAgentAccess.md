@@ -8,7 +8,7 @@ schema: 2.0.0
 # Set-ChatAgentAccess
 
 ## SYNOPSIS
-Configures a chat session to allow or disallow interactions between language models and chat plugins that enable language model interactions with user accessible resources including the local computer system and applications.
+Configures a chat session to allow or disallow plugin-based interactions between language models including system resources and remote services.
 
 ## SYNTAX
 
