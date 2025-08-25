@@ -3,6 +3,8 @@
 
 # <img src="ChatGPS/assets/ChatGPS.png" width="50"> ChatGPS
 
+[![Build Status](https://adamedx.visualstudio.com/ChatGPS/_apis/build/status%2Fadamedx.ChatGPS?branchName=main)](https://adamedx.visualstudio.com/ChatGPS/_build/latest?definitionId=7&branchName=main)
+
 **ChatGPS** enhances your interactive and scripted PowerShell sessions with artificial intelligence. With ChatGPS you can:
 
 * Generate PowerShell code from natural language prompts within your PowerShell interactive experience
