@@ -1,8 +1,7 @@
 | [Documentation](ChatGPS/docs/Introduction.md) | [Development](#development-and-testing) | [Command reference](ChatGPS/docs/CommandReference.md) |
 |-------------|-------------|-------------|
 
-ChatGPS
-=======
+# <img src="ChatGPS/assets/ChatGPS.png" width="50"> ChatGPS
 
 **ChatGPS** enhances your interactive and scripted PowerShell sessions with artificial intelligence. With ChatGPS you can:
 
