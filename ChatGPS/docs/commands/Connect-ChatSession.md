@@ -111,6 +111,28 @@ For OpenAI however the ModelIdentifier is required:
 
 ### EXAMPLE 5
 ```
+Connect-ChatSession -Provider Ollama -ModelIdentifier llama3:latest
+Send-ChatMessage 'Hello!'
+ 
+Received                 Response
+--------                 --------
+4/13/2025 9:43:59 AM     Hello! It's nice to meet you. Is there something I can help
+                         you with or would you like to chat about a particular topic?
+```
+
+This example connects to a local Ollama model using the default http://localhost:11434 endpoint.
+To use Ollama models, you'll need to install the Ollama client application from https://ollama.com on your system and download / configure a model using the application.
+
+### EXAMPLE 6
+```
+Connect-ChatSession -Provider Ollama -ApiEndpoint http://localhost:11435 -ModelIdentifier llama3:latest
+```
+
+The Ollama client application defaults to the URI http://localhost:11434, but can be can be configured to use a different port.
+If your model is hosted with a non-default URI, specify the URI using the ApiEndPoint parameter as demonstrated in this example.
+
+### EXAMPLE 7
+```
 Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5 -PassThru
  
 Id                                   Provider    Name ModelIdentifier
@@ -122,7 +144,7 @@ This example shows how to connect to a local phi-3.5 onnx model -- the Provider 
 The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect.
 Lastly, the Start-ChatShell command is used to start an interactive conversation.
 
-### EXAMPLE 6
+### EXAMPLE 8
 ```
 Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5
  
@@ -150,7 +172,7 @@ Then when a prompt was submitted using the Start-ChatShell interactive loop, the
 These library dependencies are not installed with the ChatGPS module due to their size, but as the warning message suggests, running the Install-ChatAddOn command can address this by installing such missing components.
 The user follows this suggestion and invokes Install-ChatAddOn, the retries submitting a prompt with Start-ChatShell and this successfully returns a response from the local model.
 
-### EXAMPLE 7
+### EXAMPLE 9
 ```
 Connect-ChatSession -Provider Anthropic -ModelIdentifier claude-sonnet-4-20250514 -ReadApiKey
 ChatGPS: Enter secret key / password>: ****************************************************
@@ -163,10 +185,24 @@ Received                 Response
                          information on a wide variety of topics.
 ```
 
-In this example an Anthropic model is specified using the Provider parameter and the ReadApiKey parameter is used to securely specify the ApiKey as subsequent interactive input that is encrypted in memory and never echoed to the console.
+The example uses the Provider parameter to specify Anthropic, and the ModelIdentifier parameter is used to choose the specific model.
+The ReadApiKey parameter is used to securely specify the ApiKey as subsequent interactive input that is encrypted in memory and never echoed to the console.
 After invocation of the command, Send-ChatMessage is used to elicit a response from the Anthropic model.
 
-### EXAMPLE 8
+### EXAMPLE 10
+```
+Connect-ChatSession -Provider Google -ModelIdentifier gemini-2.0-flash-001 -ReadApiKey
+ChatGPS: Enter secret key / password>: ****************************************************
+PS > Send-ChatMessage Hello
+ 
+Received                Response
+--------                --------
+8/4/2025 2:40:01 PM     Hello! How can I help you today?
+```
+
+This example shows how to use the Google provider using the Provider parameter -- like the Anthropic provider, the ModelIdentifier parameter is used to specify the model.
+
+### EXAMPLE 11
 ```
 Send-ChatMessage "Hello what is today's date?"
  
@@ -220,7 +256,7 @@ Examination of the text sent to the model
 shows that unlike in the previous attempt, the message sent from the user includes the current time due to the script block specified to SendBlock.
 The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data during conversations.
 
-### EXAMPLE 9
+### EXAMPLE 12
 ```
 > ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
  
@@ -269,7 +305,7 @@ The script block contains code that reads the last two lines of history via the 
 A subsequent use of the Start-ChatShell command to conduct a short conversation is thus captured in the log file.
 The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
 
-### EXAMPLE 10
+### EXAMPLE 13
 ```
 Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
 PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
