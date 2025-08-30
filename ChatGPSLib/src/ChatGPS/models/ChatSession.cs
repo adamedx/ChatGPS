@@ -295,6 +295,8 @@ public class ChatSession
 
         Task<string>? messageTask = null;
 
+        bool reduced = false;
+
         for ( int attempt = 0; attempt < 4; attempt++ )
         {
             // Assumption: network error handling (e.g. throttling retries) is addressed
@@ -334,21 +336,19 @@ public class ChatSession
                     ( messageTask.Exception is not null ) ) ?
                     messageTask.Exception.InnerException as AIServiceException : null;
 
-                if ( messageException is not null )
+                if ( ( messageException?.ExceededTokenLimit ?? false ) || ( attempt > 0 && ! reduced ) )
                 {
-                    if ( messageException.ExceededTokenLimit )
-                    {
-                        tokenException = messageException;
-                        var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
+                    tokenException = messageException;
+                    var reducedHistory = this.tokenReducer.Reduce(this.chatHistory, newMessageRole);
 
-                        if ( reducedHistory != null )
-                        {
-                            this.chatHistory = reducedHistory;
-                        }
-                        else
-                        {
-                            break;
-                        }
+                    if ( reducedHistory != null )
+                    {
+                        reduced = true;
+                        this.chatHistory = reducedHistory;
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
             }

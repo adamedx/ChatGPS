@@ -59,7 +59,7 @@ class TokenReducer
         ValidateHistory(chatHistory, triggeringRole);
 
         var historySize = chatHistory.Count;
-        int lossIndexStart = this.startMessageIndex + retainBeginningMessagePairs * 2 - 1;
+        int lossIndexStart = this.startMessageIndex + this.retainBeginningMessagePairs * 2 - 1;
 
         int retainMostRecentCount = this.lastMessagePairCount * 2 + 1;
         int lossIndexEnd = historySize - retainMostRecentCount;
