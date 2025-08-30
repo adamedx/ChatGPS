@@ -302,15 +302,18 @@ function SendMessage($session, $prompt, $functionDefinition, $allowAgentAccess =
             $session.GenerateMessage(@($targetPrompt), $allowAgentAccess)
         }
     } catch {
+        $targetException = $_.Exception
         # Check for specific exceptions where we can provide guidance to the user
         if ( $_.Exception -and $_.Exception.InnerException -is [Modulus.ChatGPS.Models.AIServiceException] ) {
             # Check for missing add-on components such as Onnx local model libraries
             if ( $_.Exception.InnerException.OriginalExceptionTypeName -in (
                      [TypeLoadException].FullName, [MissingMethodException].FullName) ) {
+                         # Recreate the exception in this case to customize the message
+                         $targetException = ($_.Exception.GetType())::new($script:InstallAddonsMessage, $_.Exception)
                          write-warning $script:InstallAddonsMessage
                      }
         }
-        throw
+        throw $targetException
     }
 
     $receiveBlock = GetReceiveBlock $session
