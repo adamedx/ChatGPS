@@ -14,6 +14,8 @@
 
 ChatGPS supports several AI model providers such as OpenAI, Azure OpenAI, Anthropic, Google, etc., including local providers like Onnx and Ollama among others.
 
+> ChatGPS is currently at an early *Preview* level of quality -- there may be rough edges, so please report issues on the repository's [Issues board](https://github.com/adamedx/ChatGPS/issues)!
+
 ```powershell
 PS > Connect-ChatSession -ApiEndpoint https://searcher-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ReadApiKey
 ChatGPS: Enter secret key / password>: *****************
@@ -29,8 +31,10 @@ ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic
 
 # Installation and usage
 
+Install ChatGPS from [PowerShell Gallery](https://powershellgallery.com) with the following PowerShell command:
+
 ```powershell
-# TBD!!!
+Install-Module ChatGPS
 ```
 
 ## Prerequisites
@@ -110,7 +114,7 @@ Each provider requires specific parameters for initialization; see the [authenti
 
 # Help and support
 
-Please use this repository's [Issues](issues) board to post questions or report defects or request improvements.
+Please use this repository's [Issues](issues board) to post questions or report defects or request improvements.
 
 # Development and contribution
 
