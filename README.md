@@ -12,7 +12,7 @@
 * **Build agents:** enable language models to use specific PowerShell scripts on your system
 * **Chat interactively** with language models without leaving your PowerShell terminal
 
-ChatGPS supports several AI model providers such as OpenAI, Azure OpenAI, Anthropic, Google, etc. This includes support for local providers like Onnx and Ollama among others.
+ChatGPS supports several AI model providers such as OpenAI, Azure OpenAI, Anthropic, Google, etc., including local providers like Onnx and Ollama among others.
 
 ```powershell
 PS > Connect-ChatSession -ApiEndpoint https://searcher-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ReadApiKey
