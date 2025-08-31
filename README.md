@@ -70,7 +70,7 @@ Note that each message you send with `Send-ChatMessage` refers to all previous m
 And rather than issue a command every time you want to have a "back and forth," you can use `Start-ChatShell` to have an interactive exchange, very useful for exploring solutions to a problem or just having a diverting conversation:
 
 ```powershell
-Start-ChatShell
+PS > Start-ChatShell
 
 (ryu) ChatGPS>: hello
 

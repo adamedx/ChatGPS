@@ -500,7 +500,15 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
     if ( $isValidSetting ) {
         $model = if ( $models ) {
-            $models | where-object { $null -ne $_ } | where-object name -eq $sourceSetting.modelName
+            $filteredModels = $models | where-object { $null -ne $_ } | where-object name -eq $sourceSetting.modelName
+
+            if ( $filteredModels ) {
+                if ( ($filteredModels | measure-object).Count -gt 1 ) {
+                    write-warning "The settings file contains more than one instance of model '$($sourceSetting.modelName)' -- only one will be used."
+                }
+
+                $filteredModels | select-object -first 1
+            }
         }
 
         if ( $model ) {
