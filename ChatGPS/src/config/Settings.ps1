@@ -214,7 +214,7 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
         }
     }
 
-    write-verbose "Resulting settings configuration path is '$settingsPath'. If the path is empty then initialization was skipped by environment variable."
+    write-verbose "Resulting settings configuration path is '$targetPath'. If the path is empty then initialization was skipped by environment variable."
 
     $settingsJson = if ( $targetPath -and ( test-path $targetPath ) ) {
         try {

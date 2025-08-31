@@ -3,6 +3,7 @@
 
 ## To-do items
 
+* Add tests to validate native configuration
 * Generalize the use of GetPromptExecutionSettings
 * Use ITokenizer to count tokens
 * Let Azure use the ModelIdentifier parameter as the DeploymentName if it is not specified, or consider removing DeploymetName or aliasing it
