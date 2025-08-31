@@ -89,6 +89,8 @@ Anthropic's model service is also available using a command like the following:
 Connect-ChatSession -Provider Anthropic -ModelIdentifier claude-sonnet-4-20250514 -ReadApiKey
 ```
 
+For full details of how to use `Connect-ChatSession` for different model providers, see the [authentication documentation](Authentication.md)
+
 ### Multiple sessions
 
 Note that you can have multiple sessions and switch between them. Each session has a separate conversation history, so this multi-session capability is useful whenever you need to maintain multiple conversations. And each session can use a different model, so the need to use different language models is another relevant multi-session situation.
