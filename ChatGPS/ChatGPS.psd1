@@ -215,19 +215,16 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi', 'Ollama', 'Gemini')
+        Tags = @('DevOps', 'AI', 'LLM', 'GPT', 'Azure', 'OpenAI', 'Onnx', 'Phi', 'Ollama', 'Gemini', 'Anthropic', 'Claude')
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'http://www.apache.org/licenses/LICENSE-2.0'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://github.com/adamedx/chatgps'
+        ProjectUri = 'https://github.com/adamedx/ChatGPS'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
-
-        # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        IconUri = 'https://raw.githubusercontent.com/adamedx/ChatGPS/main/ChatGPS/assets/ChatGPS.png'
 
         # Prerelease string of this module
         Prerelease = 'beta'
@@ -237,6 +234,41 @@ PrivateData = @{
 
         # External dependent modules of this module
         # ExternalModuleDependencies = @()
+
+        # ReleaseNotes of this module
+        ReleaseNotes = @'
+## ChatGPS Release Notes
+
+Initial release of the ChatGPS module for large language model orchestration and integration with PowerShell.
+
+### New dependencies
+
+* Microsoft.SemanticKernel 1.59.0
+
+### Breaking changes
+
+N/A, initial release.
+
+### New features
+
+* Commands to send a request for chat completions to a large language model and receive a response
+* Interactive read-eval-print loop (REPL) for interactive chat
+* Support for OpenAI, Azure OpenAI, Anthropic, Google Gemini, Ollama, and Onnx model providers
+* Define functions with natural language and invoke them
+* Bind PowerShell functions to natural language functions
+* Support for plugins for time, file system access, http access, internet search, Word documents
+* Create custom plugins using PowerShell
+* Commands for generating code for multiple programming /scripting langauges from natural language
+* Asynchronous execution for chat completions commands
+* Integration with OpenTelemetry logging, including in Semantic Kernel libraries
+* Settings configuration file for defining access to language models
+* Use multiple language models interactively and / or in scripts
+
+### Fixed defects
+
+N/A, initial release.
+
+'@
 
     } # End of PSData hashtable
 
