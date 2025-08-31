@@ -227,7 +227,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/adamedx/ChatGPS/main/ChatGPS/assets/ChatGPS.png'
 
         # Prerelease string of this module
-        Prerelease = 'beta'
+        Prerelease = 'preview'
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         RequireLicenseAcceptance = $false

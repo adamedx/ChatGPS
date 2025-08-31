@@ -566,10 +566,10 @@ function Connect-ChatSession {
     }
 
     $targetProxyPath = if ( $useProxy ) {
-        write-verbose "Model will be accessed using a proxy"
+        write-debug "Model will be accessed using a proxy"
         "$psscriptroot/../../lib/AIProxy.exe"
     } else {
-        write-verbose "Model will be accessed without a proxy"
+        write-debug "Model will be accessed without a proxy"
     }
 
     if ( $targetProxyPath ) {
