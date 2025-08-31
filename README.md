@@ -1,7 +1,7 @@
 | [Documentation](ChatGPS/docs/Introduction.md) | [Development](#development-and-testing) | [Command reference](ChatGPS/docs/CommandReference.md) |
 |-------------|-------------|-------------|
 
-# <img src="ChatGPS/assets/ChatGPS.png" width="50"> ChatGPS
+# <img src="ChatGPS/assets/ChatGPS.png" width="50"> ChatGPS (preview)
 
 [![Build Status](https://adamedx.visualstudio.com/ChatGPS/_apis/build/status%2Fadamedx.ChatGPS?branchName=main)](https://adamedx.visualstudio.com/ChatGPS/_build/latest?definitionId=7&branchName=main)
 
@@ -47,7 +47,7 @@ To use ChatGPS, you'll need:
 
 ## How do I use ChatGPS?
 
-Once the module is installed, you're two commands away from language module interaction:
+Once the module is installed, you're only *two commands* away from language module interaction:
 
 1. Use the `Connect-ChatSession` command to establish a connection to the desired language model
 2. Use a command like `Send-ChatMesage` or `Start-ChatShell` to start chatting!
@@ -99,7 +99,7 @@ You can do more than just chat with language models -- you can make them into sc
 
 ## Supported model providers
 
-The following providers are supported by ChatGPS; in some cases a providers outside of this list that expose the same API as a supported provider (e.g.OpenAI) or use the same inferencing libraries may also work with ChatGPS:
+The following providers are supported by ChatGPS; in some cases a provider outside of this list that exposes the same API as one of these (e.g.OpenAI) or uses the same inferencing libraries may also work with ChatGPS:
 
 |Provider     |Sample models                |Notes                                                    |
 |-------------|-----------------------------|---------------------------------------------------------|
@@ -114,7 +114,7 @@ Each provider requires specific parameters for initialization; see the [authenti
 
 # Help and support
 
-Please use this repository's [Issues](issues board) to post questions or report defects or request improvements.
+Please use this repository's [Issues board](https://github.com/adamedx/ChatGPS/issues) to post questions or report defects or request improvements.
 
 # Development and contribution
 
