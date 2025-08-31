@@ -155,6 +155,22 @@ Id                                   Provider    Name ModelIdentifier
 This example is similar to those above, but it uses the OpenAI provider instead -- since OpenAI does not currently require an ApiEndpoint parameter but does require an ApiKey parameter, use of the OpenAI provider is the default when only ApiKey is specified. For OpenAI however the ModelIdentifier is required:
 
 .EXAMPLE
+Connect-ChatSession -Provider Ollama -ModelIdentifier llama3:latest
+Send-ChatMessage 'Hello!'
+ 
+Received                 Response
+--------                 --------
+4/13/2025 9:43:59 AM     Hello! It's nice to meet you. Is there something I can help
+                         you with or would you like to chat about a particular topic?
+
+This example connects to a local Ollama model using the default http://localhost:11434 endpoint. To use Ollama models, you'll need to install the Ollama client application from https://ollama.com on your system and download / configure a model using the application.
+
+.EXAMPLE
+Connect-ChatSession -Provider Ollama -ApiEndpoint http://localhost:11435 -ModelIdentifier llama3:latest
+
+The Ollama client application defaults to the URI http://localhost:11434, but can be can be configured to use a different port. If your model is hosted with a non-default URI, specify the URI using the ApiEndPoint parameter as demonstrated in this example.
+
+.EXAMPLE
 Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5 -PassThru
  
 Id                                   Provider    Name ModelIdentifier
@@ -197,7 +213,18 @@ Received                 Response
                          help you with or any questions you'd like to ask? I'm here to assist with
                          information on a wide variety of topics.
 
-In this example an Anthropic model is specified using the Provider parameter and the ReadApiKey parameter is used to securely specify the ApiKey as subsequent interactive input that is encrypted in memory and never echoed to the console. After invocation of the command, Send-ChatMessage is used to elicit a response from the Anthropic model.
+The example uses the Provider parameter to specify Anthropic, and the ModelIdentifier parameter is used to choose the specific model. The ReadApiKey parameter is used to securely specify the ApiKey as subsequent interactive input that is encrypted in memory and never echoed to the console. After invocation of the command, Send-ChatMessage is used to elicit a response from the Anthropic model.
+
+.EXAMPLE
+Connect-ChatSession -Provider Google -ModelIdentifier gemini-2.0-flash-001 -ReadApiKey
+ChatGPS: Enter secret key / password>: ****************************************************
+PS > Send-ChatMessage Hello
+ 
+Received                Response
+--------                --------
+8/4/2025 2:40:01 PM     Hello! How can I help you today?
+
+This example shows how to use the Google provider using the Provider parameter -- like the Anthropic provider, the ModelIdentifier parameter is used to specify the model.
 
 .EXAMPLE
 Send-ChatMessage "Hello what is today's date?"
@@ -539,10 +566,10 @@ function Connect-ChatSession {
     }
 
     $targetProxyPath = if ( $useProxy ) {
-        write-verbose "Model will be accessed using a proxy"
+        write-debug "Model will be accessed using a proxy"
         "$psscriptroot/../../lib/AIProxy.exe"
     } else {
-        write-verbose "Model will be accessed without a proxy"
+        write-debug "Model will be accessed without a proxy"
     }
 
     if ( $targetProxyPath ) {

@@ -15,7 +15,7 @@ This section gives a preliminary look at the process for developing, submitting,
 
 Submit your contribution through the following steps:
 
-* **Build, test, and debug** your changes in your own branch as described in the [Build README](build/README.md)
+* **Build, test, and debug** your changes in your own branch as described in the [Build README](BUILD.md)
 * **Follow the [Coding standards](#coding-standards**)** in your source code changes
 * **Ensure all tests pass** on your branch and fix any issues that prevent this
 * **Sign the [Developer Certificate of Origin](#developer-certificate-of-origin-(DCO))** on all commits in your branch

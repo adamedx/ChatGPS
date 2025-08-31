@@ -27,7 +27,10 @@ internal class ProxyConnection
         this.transport = transport;
         this.idleTimeoutMs = idleTimeoutMs;
         this.channel = new Channel(proxyHostPath, idleTimeoutMs, logFilePath, logLevel);
+
+        // This retains sensitive data in order to re-establish connections
         this.options = options;
+
         this.connectionInProgress = false;
     }
 
@@ -156,10 +159,7 @@ internal class ProxyConnection
 
                 if ( createConnectionResponse.CurrentOptions is not null )
                 {
-                    // This constructor treats this as the base type which has
-                    // no sensitive fields so the resulting object will
-                    // be free of such data.
-                    this.options = new AiOptions(createConnectionResponse.CurrentOptions);
+                    AiOptions.UpdateOptions(this.options, createConnectionResponse.CurrentOptions);
                 }
             }
             finally

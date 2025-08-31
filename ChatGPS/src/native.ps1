@@ -30,6 +30,8 @@
 set-strictmode -version 2
 $erroractionpreference = 'stop'
 
+$proxyExecutablePath = "$psscriptroot/../lib/AIProxy.exe"
+
 function CurrentScriptDirectory {
     split-path -parent $psscriptroot
 }
@@ -140,13 +142,45 @@ function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningAc
     }
 }
 
+function ConfigureNativeExecutables {
+    if ( $PSVersionTable.Platform -ne 'Win32NT' ) {
+        write-verbose 'Starting native executable configuration because the platform is not Windows'
+        $script:proxyExecutableInfo = Get-Item $script:proxyExecutablePath -ErrorAction Ignore
+
+        if ( $proxyExecutableInfo ) {
+            $hasExecutableMode = $proxyExecutableInfo.UnixFileMode -band [System.IO.UnixFileMode]::UserExecute
+
+            if ( ! $hasExecutableMode ) {
+                if ( get-command chmod -erroraction ignore ) {
+                    & chmod +x $script:proxyExecutablePath
+
+                    if ( $LASTEXITCODE -ne 0 ) {
+                        write-warning "Unable to set executable mode on the path '$script:proxyExecutablePath' on a non-Windows platform; AI operations will likely fail."
+                    } else {
+                        write-verbose "Successfully updated the executable attribute of the proxy executable at '$script:proxyExecutablePath'"
+                    }
+                } else {
+                    write-warning "Unable to find the 'chmod' command to update the executable mode of the '$script:proxyExecutablePath' file on a non-Windows platform; AI operations will likely fail."
+                }
+            } else {
+                write-verbose "Proxy executable file at path '$script:proxyExecutablePath' has the executable attribute set, no changes needed."
+            }
+        } else {
+            write-warning "Unable to locate the path '$script:proxyExecutablePath' to set executable mode on non-Windows platform; AI operations may fail."
+        }
+    } else {
+        write-verbose 'Skipping native executable configuration because it is not needed on the Windows OS platform.'
+    }
+}
+
 $skipVariable = get-variable -scope global __ChatGPSSkipNative -erroraction ignore
 
 if ( ! $skipVariable -or ! ( $skipVariable.value -eq $true ) ) {
-    write-verbose "Starting native library configuration in runtime mode."
+    write-verbose "Starting native configuration in runtime mode."
+    ConfigureNativeExecutables
     ConfigureNativeLibraries -warningactionvalue SilentlyContinue
 } else {
-    write-verbose "Skipping library configuration because this is not runtime mode."
+    write-verbose "Skipping native configuration because this is not runtime mode."
     ConfigureNativeLibraries $true -warningactionvalue SilentlyContinue
 }
 

@@ -39,17 +39,7 @@ public class AiProviderOptions
 
     public AiProviderOptions( AiProviderOptions options )
     {
-        this.Provider = options.Provider;
-        this.ApiEndpoint = options.ApiEndpoint;
-        this.LocalModelPath = options.LocalModelPath;
-        this.ModelIdentifier = options.ModelIdentifier;
-        this.DeploymentName = options.DeploymentName;
-        this.ServiceIdentifier = options.ServiceIdentifier;
-        this.TokenLimit = options.TokenLimit;
-        this.OutputType = options.OutputType;
-        this.SigninInteractionAllowed = options.SigninInteractionAllowed;
-        this.PlainTextApiKey = options.PlainTextApiKey;
-        this.AllowAgentAccess = options.AllowAgentAccess;
+        CopyOptions( options );
     }
 
     public string? Provider {get; set;}
@@ -64,6 +54,21 @@ public class AiProviderOptions
     public bool? AllowAgentAccess { get; set; }
 
     public string? OutputType {get; set;}
+
+    protected void CopyOptions( AiProviderOptions options )
+    {
+        this.Provider = options.Provider;
+        this.ApiEndpoint = options.ApiEndpoint;
+        this.LocalModelPath = options.LocalModelPath;
+        this.ModelIdentifier = options.ModelIdentifier;
+        this.DeploymentName = options.DeploymentName;
+        this.ServiceIdentifier = options.ServiceIdentifier;
+        this.TokenLimit = options.TokenLimit;
+        this.OutputType = options.OutputType;
+        this.SigninInteractionAllowed = options.SigninInteractionAllowed;
+        this.PlainTextApiKey = options.PlainTextApiKey;
+        this.AllowAgentAccess = options.AllowAgentAccess;
+    }
 }
 
 public sealed class AiOptions : AiProviderOptions
@@ -91,5 +96,10 @@ public sealed class AiOptions : AiProviderOptions
     }
 
     public string? ApiKey { get; set; }
+
+    public static void UpdateOptions(AiOptions target, AiProviderOptions source)
+    {
+        target.CopyOptions(source);
+    }
 }
 

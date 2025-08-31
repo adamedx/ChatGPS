@@ -214,7 +214,7 @@ function InitializeCurrentSettings([string] $settingsPath = $null) {
         }
     }
 
-    write-verbose "Resulting settings configuration path is '$settingsPath'. If the path is empty then initialization was skipped by environment variable."
+    write-verbose "Resulting settings configuration path is '$targetPath'. If the path is empty then initialization was skipped by environment variable."
 
     $settingsJson = if ( $targetPath -and ( test-path $targetPath ) ) {
         try {
@@ -500,7 +500,15 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
     if ( $isValidSetting ) {
         $model = if ( $models ) {
-            $models | where-object { $null -ne $_ } | where-object name -eq $sourceSetting.modelName
+            $filteredModels = $models | where-object { $null -ne $_ } | where-object name -eq $sourceSetting.modelName
+
+            if ( $filteredModels ) {
+                if ( ($filteredModels | measure-object).Count -gt 1 ) {
+                    write-warning "The settings file contains more than one instance of model '$($sourceSetting.modelName)' -- only one will be used."
+                }
+
+                $filteredModels | select-object -first 1
+            }
         }
 
         if ( $model ) {
