@@ -47,7 +47,7 @@ $repositoryKey = if ( $repositoryKeyFile -ne $null ) {
 
 if ( ! $repositoryKey -or $pscmdlet.shouldprocess($moduleManifestPath, "Publish to public repository '$targetRepositoryName'") ) {
     $keyArgument = if ( $repositoryKey ) {
-        NugetApiKey = $repositoryKey
+        @{NugetApiKey=$repositoryKey}
     } else {
         @{}
     }
