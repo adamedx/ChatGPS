@@ -29,7 +29,7 @@ ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic
 
 # Installation and usage
 
-Install ChatGPS from [PowerShell Gallery](https://powershellgallery.com) with the following PowerShell command:
+Install ChatGPS from [PowerShell Gallery](https://powershellgallery.com/packages/ChatGPS) with the following PowerShell command:
 
 ```powershell
 Install-Module ChatGPS -AllowPrerelease
