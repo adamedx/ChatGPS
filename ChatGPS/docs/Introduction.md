@@ -28,7 +28,7 @@ Conversation is just the start. You can use natural language to direct the model
 ChatGPS is published to [PowerShell Gallery](https://powershellgallery.com), so you can easily install it from PowerShell itself:
 
 ```powershell
-Install-Module ChatGPS
+Install-Module ChatGPS -AllowPrerelease
 ```
 
 # What are the prerequisites for using ChatGPS?
