@@ -99,6 +99,17 @@ function Get-ModuleName([string] $ModuleManifestPath) {
     $ModuleManifestPath | select -expandproperty basename
 }
 
+function Get-RepositoryKeyFromFile($path) {
+    $fileData = get-content $path
+    $keyContent = if ( $fileData -is [string] ) {
+        $fileData
+    } else {
+        $fileData[0]
+    }
+
+    $keyContent.trim()
+}
+
 function Find-ModuleManifestPath {
     param(
         [parameter(mandatory=$true)]
