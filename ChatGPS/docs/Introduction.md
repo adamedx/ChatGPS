@@ -28,7 +28,7 @@ Conversation is just the start. You can use natural language to direct the model
 ChatGPS is published to [PowerShell Gallery](https://powershellgallery.com), so you can easily install it from PowerShell itself:
 
 ```powershell
-Install-Module ChatGPS -AllowPrerelease
+Install-Module ChatGPS
 ```
 
 # What are the prerequisites for using ChatGPS?
@@ -39,7 +39,7 @@ If you're already using language models from providers like these, you can skip 
 
 ## Getting access to a model
 
-If you're new to language model products or have only interacted with AI models indirectly through AI user interfaces embedded in other products, you'll need to provision a model through an account with a provider of model APIs or host a model on your local computer:
+If you're new to language models or have only interacted with AI models indirectly through embedded application "assistant" offerings, you'll need to provision a model through an account with a provider of model APIs or host a model on your local computer:
 
 * Remote: Provide your model's authentication configuration (often an API key or OAuth2 parameters) and any http API endpoint information, the identifier for the specific model you want to use, as well as any other configuration required by the model's provider.
   * Register for an account with the model provider, use the account to choose / enable a particular model, and then access the configuration required for that model and your account.
