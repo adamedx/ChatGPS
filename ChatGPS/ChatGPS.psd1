@@ -30,10 +30,10 @@ CompanyName = 'Modulus Group'
 Copyright = '(c) Adam Edwards.'
 
 # Description of the functionality provided by this module
-Description = 'AI PowerShell user experience enhancements and automation.'
+Description = 'Access language models in your scripts and terminal, build AI agents with PowerShell.'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '7.4.0'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -227,7 +227,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/adamedx/ChatGPS/main/ChatGPS/assets/ChatGPS.png'
 
         # Prerelease string of this module
-        Prerelease = 'preview'
+        # Prerelease = 'preview'
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         RequireLicenseAcceptance = $false
@@ -237,7 +237,7 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-## ChatGPS Release Notes
+## ChatGPS 0.1.0 Release Notes
 
 Initial release of the ChatGPS module for large language model orchestration and integration with PowerShell.
 
