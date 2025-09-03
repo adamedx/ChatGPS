@@ -244,6 +244,7 @@ Initial release of the ChatGPS module for large language model orchestration and
 ### New dependencies
 
 * Microsoft.SemanticKernel 1.59.0
+* PowerShell 7.4.0
 
 ### Breaking changes
 
@@ -266,7 +267,7 @@ N/A, initial release.
 
 ### Fixed defects
 
-N/A, initial release.
+* Enforce minimum PowerShell 7.4.0 so that PowerShell 5.1 users get actionable error messages.
 
 '@
 
