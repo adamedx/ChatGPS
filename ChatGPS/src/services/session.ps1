@@ -86,10 +86,25 @@ function CreateSession {
         (Get-Item $LogDirectory).FullName
     }
 
+    $historyFilePath = if ( $PSVersionTable.Platform -eq 'Win32NT' ) {
+        join-path $env:appdata 'Microsoft/Windows/PowerShell/PSReadLine/ConsoleHost_history.txt'
+    } else {
+        '~/.local/share/powershell/PSReadLine/ConsoleHost_history.txt'
+    }
+
+    $historyFilePathCanonical = if ( test-path $historyFilePath ) {
+        (get-item $historyFilePath).FullName
+    }
+
+    $shellContext = [Modulus.ChatGPS.Plugins.ShellContext]::new()
+
+    $shellContext.Initialize($PSVersionTable.PSVersion, $historyFilePathCanonical)
+
     $context = @{
         SendBlock = $SendBlock
         ReceiveBlock = $ReceiveBlock
         Options = $Options
+        ClientContext = $shellContext
     }
 
     $targetUserAgent = if ( $UserAgent ) {
@@ -98,7 +113,7 @@ function CreateSession {
         GetUserAgent
     }
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent, $shellContext)
 
     TestSession $session $Options $NoConnect.IsPresent
 
@@ -295,6 +310,8 @@ function SendMessage($session, $prompt, $functionDefinition, $allowAgentAccess =
         $sendBlock.Invoke($prompt)
     }
 
+    UpdateClientContext $session
+
     $response = try {
         if ( $functionDefinition ) {
             $session.GenerateFunctionResponse($functionDefinition, $targetPrompt, $allowAgentAccess)
@@ -335,6 +352,14 @@ function SendConnectionTestMessage($session) {
     }
 }
 
+function UpdateClientContext($session) {
+    $clientContext = GetClientContext $session
+
+    if ( $clientContext ) {
+        $clientContext.Update((Get-Location).Path)
+    }
+}
+
 function GetSendBlock($session) {
     if ( $session.CustomContext ) {
         $session.CustomContext['SendBlock']
@@ -344,6 +369,12 @@ function GetSendBlock($session) {
 function GetReceiveBlock($session) {
     if ( $session.CustomContext ) {
         $session.CustomContext['ReceiveBlock']
+    }
+}
+
+function GetClientContext($session) {
+    if ( $session.CustomContext ) {
+        $session.CustomContext['ClientContext']
     }
 }
 

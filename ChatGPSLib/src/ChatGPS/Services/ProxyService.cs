@@ -31,7 +31,7 @@ using Modulus.ChatGPS.Models.Proxy;
 
 internal class ProxyService : IChatService
 {
-    public ProxyService(AiOptions options, string proxyHostPath, string? logFilePath = null, string? logLevel = null, int idleTimeoutMs = 60000, bool whatIfMode = false)
+    public ProxyService(AiOptions options, string proxyHostPath, IShellContext? clientContext = null, string? logFilePath = null, string? logLevel = null, int idleTimeoutMs = 60000, bool whatIfMode = false)
     {
         options.Validate();
 
@@ -44,6 +44,7 @@ internal class ProxyService : IChatService
         this.proxyConnection = new ProxyConnection(this.proxyTransport, options, proxyHostPath, logFilePath, logLevel, idleTimeoutMs);
         this.whatIfMode = whatIfMode;
         this.pluginTable = new PluginTable();
+        this.clientContext = clientContext;
     }
 
 
@@ -62,7 +63,7 @@ internal class ProxyService : IChatService
 
     public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
     {
-        var sendChatRequest = new SendChatRequest(history, this.pluginTable.Plugins, allowAgentAccess);
+        var sendChatRequest = new SendChatRequest(history, this.pluginTable.Plugins, allowAgentAccess, this.clientContext);
 
         var request = ProxyRequest.FromRequestCommand(sendChatRequest);
 
@@ -87,7 +88,7 @@ internal class ProxyService : IChatService
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
-        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, this.pluginTable.Plugins, parameters ?? new Dictionary<string,object?>(), allowAgentAccess);
+        var invokeFunctionRequest = new InvokeFunctionRequest(definitionPrompt, this.pluginTable.Plugins, parameters ?? new Dictionary<string,object?>(), allowAgentAccess, this.clientContext);
 
         var request = ProxyRequest.FromRequestCommand(invokeFunctionRequest);
 
@@ -124,4 +125,5 @@ internal class ProxyService : IChatService
 
     ProxyConnection proxyConnection;
     PluginTable pluginTable;
+    IShellContext? clientContext = null;
 }

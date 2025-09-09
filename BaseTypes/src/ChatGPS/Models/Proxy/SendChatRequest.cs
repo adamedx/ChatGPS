@@ -25,22 +25,25 @@ public class SendChatRequest : CommandRequest
     public SendChatRequest() {}
 
     // This constructor is used by clients without access to SK types
-    public SendChatRequest(ChatMessageHistory chatHistory, IEnumerable<Plugin>? plugins, bool? allowFunctionCall)
+    public SendChatRequest(ChatMessageHistory chatHistory, IEnumerable<Plugin>? plugins, bool? allowFunctionCall, IShellContext? clientContext)
     {
         this.History = chatHistory.SourceHistory;
         this.AllowFunctionCall = allowFunctionCall;
         this.Plugins = plugins;
+        this.Context = clientContext is not null ? new ShellContext(clientContext) : null;
     }
 
-    public SendChatRequest(ChatHistory chatHistory, IEnumerable<Plugin>? plugins, bool? allowFunctionCall)
+    public SendChatRequest(ChatHistory chatHistory, IEnumerable<Plugin>? plugins, bool? allowFunctionCall, IShellContext? clientContext)
     {
         this.History = chatHistory;
         this.AllowFunctionCall = allowFunctionCall;
         this.Plugins = plugins;
+        this.Context = clientContext is not null ? new ShellContext(clientContext) : null;
     }
 
     public ChatHistory? History { get; set; }
     public bool? AllowFunctionCall { get; set; }
     public IEnumerable<Plugin>? Plugins { get; set; }
+    public ShellContext? Context { get; set; }
 }
 
