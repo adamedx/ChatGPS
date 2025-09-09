@@ -3,6 +3,17 @@
 
 ## To-do items
 
+* Use StaticPlugin for localcontext
+* Make proxy protocol stateless
+* Remove methods from IPluginContext
+* Troubleshoot previous commands
+* Troubleshoot script execution
+* Generalization of command history and output into scripts
+* Remove-ChatSessionSetting
+* PowerShell History Plugin
+* LocalHistory mode with
+* Plugin documentation
+* PS Session / history integration
 * Add tests to validate native configuration
 * Generalize the use of GetPromptExecutionSettings
 * Use ITokenizer to count tokens
@@ -221,3 +232,13 @@
     * can read command history
     * can read powershell variables
     * uses powershell host
+
+### PS Session / Console integration
+
+* History locations:
+
+- **Windows**: `C:\Users\<YourUsername>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`
+
+- **macOS/Linux**: `~/.local/share/powershell/PSReadLine/ConsoleHost_history.txt`
+
+* Start-Transcript / Stop-Transcript

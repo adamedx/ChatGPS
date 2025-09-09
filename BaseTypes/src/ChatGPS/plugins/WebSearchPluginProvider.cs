@@ -38,7 +38,7 @@ public class WebSearchPluginProvider : PluginProvider
         AddPluginParameter("searchEngineId", "Id for the search engine instance required for search engine scenarios", false, false);
     }
 
-    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null)
+    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
     {
         if ( parameters is null || parameters.Count < 1 )
         {

@@ -14,18 +14,13 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Document;
-using Microsoft.SemanticKernel.Plugins.Document.FileSystem;
-using Microsoft.SemanticKernel.Plugins.Document.OpenXml;
-
 namespace Modulus.ChatGPS.Plugins;
 
-public class DocumentPluginProvider : PluginProvider
+public class LocalContextPluginProvider : PluginProvider
 {
-    internal DocumentPluginProvider() : base("DocumentPlugin")
+    internal LocalContextPluginProvider() : base("LocalContext")
     {
-        this.Description = "Enables the ability to read the contents of Microsoft Word documents in the local file system";
+        this.Description = "Enables the ability to read information about the operating system environment of the user or system accessing this application.";
     }
 
     internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
@@ -35,16 +30,18 @@ public class DocumentPluginProvider : PluginProvider
             throw new ArgumentException($"This parameter does not accept parameters, but {parameters.Count} parameters were specified");
         }
 
+        var targetContext = context;
+
+        if ( targetContext is null )
+        {
+            var newContext = new ShellContext();
+            newContext.Initialize();
+            targetContext = newContext;
+        }
+
         if ( this.nativeInstance is null )
         {
-            #pragma warning disable SKEXP0050
-
-            var wordConnector = new WordDocumentConnector();
-            var localFileSystemConnector = new LocalFileSystemConnector();
-
-            this.nativeInstance = new DocumentPlugin(wordConnector, localFileSystemConnector);
-
-            #pragma warning restore SKEXP0050
+            this.nativeInstance = new LocalContextNativePlugin(targetContext);
         }
 
         return this.nativeInstance;
@@ -52,4 +49,3 @@ public class DocumentPluginProvider : PluginProvider
 
     private object? nativeInstance;
 }
-
