@@ -3,7 +3,6 @@
 
 ## To-do items
 
-* Use StaticPlugin for localcontext
 * Make proxy protocol stateless
 * Remove methods from IPluginContext
 * Troubleshoot previous commands
