@@ -30,50 +30,43 @@ public sealed class LocalContextNativePlugin
         this.context = context;
     }
 
-    [Description("Gets the process id of the user's application process.")]
-    [KernelFunction]
+    [KernelFunction, Description("Gets the process id of the user's application process.")]
     public int? get_process_id()
     {
         return this.context?.ProcessId;
     }
 
-    [Description("Gets the friendly name of the user's application process.")]
-    [KernelFunction]
+    [KernelFunction, Description("Gets the friendly name of the user's application process.")]
     public string? get_process_name()
     {
         return this.context?.ProcessName;
     }
 
-    [Description("Gets the version number of the PowerShell instance that the user is using in accessing this application.")]
-    [KernelFunction]
+    [KernelFunction, Description("Gets the version number of the PowerShell instance that the user is using in accessing this application.")]
     public string? get_process_powershell_version()
     {
         return this.context?.PSVersion;
     }
 
-    [Description("Gets the version number and name of the operating system hosting the PowerShell instance that the user is using to accessing this application.")]
-    [KernelFunction]
+    [KernelFunction, Description("Gets the version number and name of the operating system hosting the PowerShell instance that the user is using to accessing this application.")]
     public string? get_operating_system()
     {
         return this.context?.OperatingSystem;
     }
 
-    [Description("Returns the current working directory of the process that the user is using to access this application")]
-    [KernelFunction]
+    [KernelFunction, Description("Returns the current working directory of the process that the user is using to access this application")]
     public string? get_current_directory()
     {
         return context?.CurrentDirectory;
     }
 
-    [Description("Returns the path to the PowerShell command history file")]
-    [KernelFunction]
+    [KernelFunction, Description("Returns the path to the PowerShell command history file")]
     public string? get_command_history_file_path()
     {
         return context?.HistoryFilePath;
     }
 
-    [Description("Returns the most recent N lines of commands executed with PowerShell")]
-    [KernelFunction]
+    [KernelFunction, Description("Returns the most recent N lines of commands executed with PowerShell")]
     public string? get_most_commands_from_history(int count_of_commands)
     {
         string? result = null;
