@@ -352,13 +352,27 @@ function SendConnectionTestMessage($session) {
     }
 }
 
-function UpdateClientContext($session) {
+function UpdateClientContext($session, $transcriptPath = $null, [switch] $ForgetTranscript) {
     $clientContext = GetClientContext $session
 
     if ( $clientContext ) {
-        $clientContext.Update((Get-Location).Path)
+        if ( $ForgetTranscript.IsPresent ) {
+            if ( $transcriptPath ) {
+                throw [ArgumentException]::new("A transcript path was specified at the same time the ForgetTranscript option was specified")
+            }
+
+            $clientContext.TranscriptPath = $null
+        } elseif ( $transcriptPath ) {
+            $clientContext.TranscriptPath = $transcriptPath
+        }
+
+        $clientContext.CurrentDirectory = (Get-Location).Path
+
+        $clientContext.Update($clientContext)
+    } elseif ( $transcriptPath ) {
+        throw [InvalidOperationException]::new("The transcript directory cannot be updated because there is not client context")
     }
-}
+ }
 
 function GetSendBlock($session) {
     if ( $session.CustomContext ) {
@@ -375,6 +389,30 @@ function GetReceiveBlock($session) {
 function GetClientContext($session) {
     if ( $session.CustomContext ) {
         $session.CustomContext['ClientContext']
+    }
+}
+
+function GetShellAgentStatus($session) {
+    if ( $session.CustomContext ) {
+        $session.CustomContext['ShellAgentEnabled']
+    }
+}
+
+function SetShellAgentStatus($session, [bool] $enabled) {
+    if ( ! $session.CustomContext ) {
+        throw [InvalidOperationException]::new("The agent cannot be enabled because the session has no context")
+    }
+
+    $session.CustomContext['ShellAgentEnabled'] = $enabled
+}
+
+function GetAgentTranscriptPath($session) {
+    $context = GetClientContext $session
+
+    if ( $context ) {
+        $context.TranscriptPath
+    } else {
+        throw [InvalidOperationException]::new("The transcript for the specified session cannot be retrieved because it does not contain a client context")
     }
 }
 

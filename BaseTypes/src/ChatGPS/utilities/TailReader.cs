@@ -31,7 +31,12 @@ internal class TailReader
 
         string? line;
 
-        using ( var reader = new StreamReader(textFilePath) )
+        var options = new FileStreamOptions();
+        options.Share = FileShare.ReadWrite;
+        options.Mode = FileMode.Open;
+        options.Access = FileAccess.Read;
+
+        using ( var reader = new StreamReader(textFilePath, options) )
         {
             while ( ( line = reader.ReadLine() ) is not null )
             {

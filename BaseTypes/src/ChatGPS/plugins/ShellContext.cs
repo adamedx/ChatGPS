@@ -36,10 +36,10 @@ public class ShellContext : IShellContext
         this.OperatingSystem = context.OperatingSystem;
         this.HistoryFilePath = context.HistoryFilePath;
         this.CurrentDirectory = context.CurrentDirectory;
-        this.TranscriptDirectory = TranscriptDirectory;
+        this.TranscriptPath = context.TranscriptPath;
     }
 
-    public void Initialize(string? psVersion = null, string? historyFilePath = null, string? transcriptDirectory = null)
+    public void Initialize(string? psVersion = null, string? historyFilePath = null, string? transcriptPath = null)
     {
         if ( this.ProcessId != 0 )
         {
@@ -55,7 +55,7 @@ public class ShellContext : IShellContext
         this.OperatingSystem = System.Environment.OSVersion.VersionString;
         this.HistoryFilePath = historyFilePath;
         this.CurrentDirectory = System.Environment.CurrentDirectory;
-        this.TranscriptDirectory = transcriptDirectory;
+        this.TranscriptPath = transcriptPath;
     }
 
     public void Update(string currentDirectory)
@@ -68,6 +68,7 @@ public class ShellContext : IShellContext
         if ( shellContext is not null )
         {
             this.CurrentDirectory = shellContext.CurrentDirectory;
+            this.TranscriptPath = shellContext.TranscriptPath;
         }
     }
 
@@ -83,7 +84,7 @@ public class ShellContext : IShellContext
 
     public string? CurrentDirectory { get; set; }
 
-    public string? TranscriptDirectory { get; set; }
+    public string? TranscriptPath { get; set; }
 
     public string? OperatingSystem { get; set; }
 }
