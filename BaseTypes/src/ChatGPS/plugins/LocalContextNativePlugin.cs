@@ -66,8 +66,15 @@ public sealed class LocalContextNativePlugin
         return context?.HistoryFilePath;
     }
 
+    [KernelFunction, Description("Returns a path that contains the terminal output of the user's PowerShell session, including all user input and command output, both success output and error output as text.")]
+    public string? get_command_transcript_file_path()
+    {
+        return context?.TranscriptPath;
+    }
+
+
     [KernelFunction, Description("Returns the most recent N lines of commands executed with PowerShell")]
-    public string? get_most_commands_from_history(int count_of_commands)
+    public string? get_most_recent_commands_from_history(int count_of_commands)
     {
         string? result = null;
 
@@ -76,6 +83,25 @@ public sealed class LocalContextNativePlugin
             var historyReader = new TailReader(count_of_commands);
 
             result = historyReader.ReadTail(context.HistoryFilePath);
+        }
+
+        return result;
+    }
+
+    [KernelFunction, Description("Returns the most recent N lines of the user's PowerShell session output as it was rendered, including both the user's input command text and the resulting output of those commands, both success and error output. It is best to read at least a screenful of lines, for example 50 lines or so at least (50 is a good default), but it is also good to read more if you want to look further into previous command output to help the user.")]
+    public string? get_latest_terminal_output(int count_of_lines)
+    {
+        string? result = null;
+
+        if ( context?.TranscriptPath is not null )
+        {
+            var transcriptReader = new TailReader(count_of_lines);
+
+            result = transcriptReader.ReadTail(context.TranscriptPath);
+        }
+        else
+        {
+            result = "";
         }
 
         return result;

@@ -49,7 +49,9 @@ $commands = @(
     'Send-ChatMessage'
     'Set-ChatAgentAccess'
     'Set-ChatCurrentVoice'
+    'Start-ChatAgent'
     'Start-ChatShell'
+    'Stop-ChatAgent'
     'Unregister-ChatPlugin'
     'Update-ChatSettings'
 )

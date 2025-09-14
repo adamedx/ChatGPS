@@ -38,7 +38,7 @@ public interface IShellContext
 
     public string? CurrentDirectory { get; }
 
-    public string? TranscriptDirectory { get; }
+    public string? TranscriptPath { get; }
 
     public string? OperatingSystem { get; }
 }

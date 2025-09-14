@@ -47,7 +47,6 @@ internal class ProxyService : IChatService
         this.clientContext = clientContext;
     }
 
-
     public ChatHistory CreateChat(string prompt)
     {
         return new ChatHistory(prompt);
