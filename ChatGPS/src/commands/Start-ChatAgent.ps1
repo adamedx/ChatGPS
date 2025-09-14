@@ -72,7 +72,7 @@ function Start-ChatAgent {
         $transcriptDirectoryPath = if ( $TranscriptDirectory ) {
             $TranscriptDirectory
         } else {
-            '~/.chatgps/session/AgentTranscripts'
+            GetTranscriptDirectory
         }
 
         $targetDirectory = if ( ( test-path $transcriptDirectoryPath ) ) {
@@ -81,7 +81,7 @@ function Start-ChatAgent {
             new-item -type directory -force $transcriptDirectoryPath
         }
 
-        $transcriptPath = join-path $targetDirectory "AgentTranscript-$($targetSession.Id)).txt"
+        $transcriptPath = GetTranscriptPathFromIds $targetDirectory $targetSession
 
         Start-Transcript -Path $transcriptPath | out-null
 

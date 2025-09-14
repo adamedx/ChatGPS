@@ -20,6 +20,7 @@ $commands = @(
     'Add-ChatPlugin'
     'Add-ChatPluginFunction'
     'Build-ChatCode'
+    'Clear-ChatAgentState'
     'Clear-ChatConversation'
     'Clear-ChatLog'
     'Connect-ChatSession'

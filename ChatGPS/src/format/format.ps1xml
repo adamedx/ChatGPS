@@ -276,6 +276,19 @@ All Rights Reserved.
                 <Label>HistoryContextLimit</Label>
                 <PropertyName>HistoryContextLimit</PropertyName>
               </ListItem>
+
+              <ListItem>
+                <Label>ShellAgentStatus</Label>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) (GetShellAgentStatus $session) -eq $true ? 'Active' : 'Inactive'},@($_))</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>ShellTranscriptPath</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) GetShellAgentStatus $session},@($_))</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>(Get-Module ChatGPS).Invoke({param($session) (GetClientContext $session).TranscriptPath},@($_))</ScriptBlock>
+              </ListItem>
+
               <ListItem>
                 <Label>LastResponseError</Label>
                 <ItemSelectionCondition>
@@ -283,6 +296,7 @@ All Rights Reserved.
                 </ItemSelectionCondition>
                 <ScriptBlock>$_.LastResponseError</ScriptBlock>
               </ListItem>
+
             </ListItems>
           </ListEntry>
         </ListEntries>
