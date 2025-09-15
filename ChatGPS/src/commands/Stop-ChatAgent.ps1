@@ -20,11 +20,10 @@
 Stops the shell agent and removes its state.
 
 .DESCRIPTION
-
+Stop-ChatAgent stops the shell agent started by Start-ChatAgent. It also removes any state associated with the agent such as transcripts of PowerShell session output that may contain private data.
 
 .PARAMETER SessionName
 The name property of an existing session on which to enable to agent.
-
 
 .OUTPUTS
 None.
