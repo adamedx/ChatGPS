@@ -20,11 +20,14 @@
 Enables an agent that has awareness of the current PowerShell session.
 
 .DESCRIPTION
+Start-ChatAgent enables language model interaction with the PowerShell session used to invoke ChatGPS commands, i.e. the session in which the ChatGPS module is loaded. This can allow the AI to interact with your command history, actual terminal output, and get context about the current process id, the current directory , etc. This can allow the AI to assist in correcting errors in commands, explaining terminal output, or otherwise having the abilities of a person sitting next to you as you interact with powerShell.
 
+Start-ChatAgent can create text logs of PowerShell session text output; it is normally removed by the use of Stop-ChatAgent, but if PowerShell is executed without executing Stop-ChatAgent, any such files will be orphaned. These files may contain sensitive information since they can include any output the was entered into a terminal as well as the output returned by commands. To ensure unneeded files are removed and no longer a risk to expose private information, use the Clear-ChatAgent command.
+
+Note: You can use the Get-ChatSession command to see the location of such state including the transcript path by sending its output to Format-List.
 
 .PARAMETER SessionName
 The name property of an existing session on which to enable to agent.
-
 
 .OUTPUTS
 None.
