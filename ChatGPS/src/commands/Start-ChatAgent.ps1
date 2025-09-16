@@ -84,7 +84,7 @@ function Start-ChatAgent {
             new-item -type directory -force $transcriptDirectoryPath
         }
 
-        $transcriptPath = GetTranscriptPathFromIds $targetDirectory $targetSession
+        $transcriptPath = GetTranscriptPathFromIds $targetDirectory $targetSession.Id
 
         Start-Transcript -Path $transcriptPath | out-null
 
