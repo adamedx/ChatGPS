@@ -391,8 +391,6 @@ function GetTranscriptPathFromIds {
         [switch] $MatchAll
     )
 
-
-    $processid = 4
     $prefix = 'AgentTranscript-'
 
     $targetProcessId = if ( 0 -eq $ProcessId ) {
