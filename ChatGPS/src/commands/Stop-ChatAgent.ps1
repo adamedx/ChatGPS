@@ -42,24 +42,30 @@ function Stop-ChatAgent {
         [Modulus.ChatGPS.Models.ChatSession] $Session
     )
 
-    $targetSession = if ( $Session ) {
-        $Session
-    } else {
-        Get-ChatSession -Current
+    begin {}
+
+    process {
+        $targetSession = if ( $Session ) {
+            $Session
+        } else {
+            Get-ChatSession -Current
+        }
+
+        if ( ! ( GetShellAgentStatus $targetSession  ) ) {
+            return
+        }
+
+        $transcriptPath = GetAgentTranscriptPath $targetSession
+
+        if ( $transcriptPath ) {
+            Stop-Transcript -ErrorAction Ignore | out-null
+            $transcriptPath | remove-item
+        }
+
+        UpdateClientContext $targetSession -ForgetTranscript
+
+        SetShellAgentStatus $targetSession $false
     }
 
-    if ( ! ( GetShellAgentStatus $targetSession  ) ) {
-        return
-    }
-
-    $transcriptPath = GetAgentTranscriptPath $targetSession
-
-    if ( $transcriptPath ) {
-        Stop-Transcript -ErrorAction Ignore | out-null
-        $transcriptPath | remove-item
-    }
-
-    UpdateClientContext $targetSession -ForgetTranscript
-
-    SetShellAgentStatus $targetSession $false
+    end {}
 }
