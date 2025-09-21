@@ -1,8 +1,10 @@
  Roadmap for ChatGPS
 ===================
 
+
 ## To-do items
 
+* Add additional language execution defaults and options to Generate-ChatCode
 * Make proxy protocol stateless
 * Remove methods from IPluginContext
 * Troubleshoot previous commands
@@ -241,3 +243,21 @@
 - **macOS/Linux**: `~/.local/share/powershell/PSReadLine/ConsoleHost_history.txt`
 
 * Start-Transcript / Stop-Transcript
+
+### MCP Server
+
+* MCPServer
+  * Use SemanticKernel
+  * Use pwsh -Custompipename and pass module path
+  * Use Enter-PSHostProcess to send plugin configuration commands and start the mcp server
+
+* ChatGPSLib
+  * Reuse proxyconnection to send start-mcpserver and of course exit
+  * New MCPServer type
+
+* ChatGPS
+  * Add-ChatPlugin, Remove-ChatPlugin, Get-ChatPlugin should support an MCP server parameter
+  * Start-ChatMCPServer -- contains plugins
+  * Get-ChatMCPServer
+  * Stop-ChatMCPServer
+  * 

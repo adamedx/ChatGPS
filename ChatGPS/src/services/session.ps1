@@ -23,6 +23,8 @@ $InstallAddOnsMessage = @'
 Possible missing dependencies detected. Invoke the Install-ChatAddOn command to install missing dependencies and then retry this operation.
 '@
 
+$__PS_ChatGPS_Session_Id = [Guid]::newguid().ToString()
+
 function GetUserAgent {
     $osversion = [System.Environment]::OSVersion.version.tostring()
     $platform = 'Windows NT'
@@ -400,7 +402,7 @@ function GetTranscriptPathFromIds {
     }
 
     $transcriptRelativePath = if ( ! $MatchAll.IsPresent ) {
-        "$($prefix)PID=$($targetProcessId)-$($sessionId)).txt"
+        "$($prefix)PID=$($targetProcessId)-$($__PS_ChatGPS_Session_Id)).txt"
     } else {
         "$($prefix)*.txt"
     }
@@ -448,6 +450,13 @@ function GetAgentTranscriptPath($session) {
     } else {
         throw [InvalidOperationException]::new("The transcript for the specified session cannot be retrieved because it does not contain a client context")
     }
+}
+
+function GetTranscriptCount {
+    (get-chatsession |
+      where { $_.customcontext['ShellAgentEnabled'] -and
+              $_.customcontext['ClientContext'].TranscriptPath } |
+                measure-object).Count
 }
 
 function RegisterSessionCompleter([string] $command, [string] $parameterName, [string] $propertyNameToComplete) {

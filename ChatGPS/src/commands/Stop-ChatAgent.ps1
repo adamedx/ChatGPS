@@ -58,8 +58,12 @@ function Stop-ChatAgent {
         $transcriptPath = GetAgentTranscriptPath $targetSession
 
         if ( $transcriptPath ) {
-            Stop-Transcript -ErrorAction Ignore | out-null
-            $transcriptPath | remove-item
+            $activeTranscriptCount = GetTranscriptCount
+
+            if ( $activeTranscriptCount -eq 1 ) {
+                Stop-Transcript -erroraction continue | write-verbose
+                $transcriptPath | remove-item -erroraction continue
+            }
         }
 
         UpdateClientContext $targetSession -ForgetTranscript

@@ -86,7 +86,11 @@ function Start-ChatAgent {
 
         $transcriptPath = GetTranscriptPathFromIds $targetDirectory $targetSession.Id
 
-        Start-Transcript -Path $transcriptPath | out-null
+        $activeTranscriptCount = GetTranscriptCount
+
+        if ( $activeTranscriptCount -eq 0 ) {
+            Start-Transcript -Path $transcriptPath | out-null
+        }
 
         UpdateClientContext $targetSession $transcriptPath
     }
