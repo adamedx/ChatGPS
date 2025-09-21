@@ -20,7 +20,7 @@ using Modulus.ChatGPS.Utilities;
 
 namespace Modulus.ChatGPS.Plugins;
 
-[Description("Users of this plugin are using PowerShell as the user experience to access this application, and this plugin is likely executing outside of that PowerShell process. This plugin enables the ability to read information about the operating system environment of the PowerShell instance currently being accessed by the user to invoke this plugin.")]
+[Description("Users of this plugin are using PowerShell as the user experience to access this application, and this plugin is likely executing outside of that PowerShell process. This plugin enables the ability to to obtain information about the operating system environment of the PowerShell instance currently being accessed by the user to invoke this plugin and to read the user's terminal output.")]
 public sealed class LocalContextNativePlugin
 {
     public LocalContextNativePlugin() {}
@@ -88,7 +88,7 @@ public sealed class LocalContextNativePlugin
         return result;
     }
 
-    [KernelFunction, Description("Returns the most recent N lines of the user's PowerShell session output as it was rendered, including both the user's input command text and the resulting output of those commands, both success and error output. It is best to read at least a screenful of lines, for example 50 lines or so at least (50 is a good default), but it is also good to read more if you want to look further into previous command output to help the user.")]
+    [KernelFunction, Description("Returns the most recent N lines of the user's PowerShell session terminal output as it was rendered, including both the user's input command text and the resulting output of those commands, both success and error output. It is best to read at least a screenful of lines, for example 50 lines or so at least (50 is a good default), but it is also good to read more if you want to look further into previous command output to help the user.")]
     public string? get_latest_terminal_output(int count_of_lines)
     {
         string? result = null;
