@@ -4,6 +4,7 @@
 
 ## To-do items
 
+* Add "WrapperOnly" to generate chatcode
 * Add additional language execution defaults and options to Generate-ChatCode
 * Make proxy protocol stateless
 * Remove methods from IPluginContext

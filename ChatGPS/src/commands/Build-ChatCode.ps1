@@ -229,11 +229,15 @@ function Build-ChatCode {
 
         [string] $Language = 'PowerShell',
 
+        [scriptblock] $RunBlock = $null,
+
         [string] $CustomGenerationInstructions,
 
         [switch] $NoScriptBlock,
 
         [switch] $NoCmdletBinding,
+
+        [switch] $NoRunBlock,
 
         [switch] $SkipModelSelfAssessment,
 
@@ -274,19 +278,23 @@ function Build-ChatCode {
         if ( ! $generationResult.GenerationException ) {
             $scriptBlockResult = $generationResult.ExecutableScriptBlock
 
-            if ( $scriptBlockResult -and ! $NoScriptBlock.IsPresent ) {
+            $generatedCode = if ( $scriptBlockResult -and ! $NoScriptBlock.IsPresent ) {
                 $generationResult.ExecutableScriptBlock
             } else {
                 $generationResult.CodeText
             }
 
+            $boundCode = GetBoundCode $generatedCode $Language $RunBlock $NoScriptBlock.IsPresent
+
             if ( $FunctionName ) {
-                if ( $scriptBlockResult ) {
-                    (. $__ChatGPS_ModuleParentFunctionBuilder $FunctionName $scriptBlockResult $Force.IsPresent ) | out-null
+                if ( ! $NoScriptBlock.IsPresent ) {
+                    (. $__ChatGPS_ModuleParentFunctionBuilder $FunctionName $boundcode $Force.IsPresent ) | out-null
                 } else {
                     write-error "The FunctionName parameter was specified with a value of '$($FunctionName)', but the generated code did not result in a PowerShell script block so it could not be bound to a PwoerShell function with the specified name."
                 }
             }
+
+            $boundCode
         } else {
             write-error $generationResult.GenerationException
         }
@@ -295,6 +303,8 @@ function Build-ChatCode {
     end {
     }
 }
+
+RegisterLanguageCompleter Build-ChatCode Language
 
 RegisterSessionCompleter Build-ChatCode SessionName
 RegisterSessionCompleter Build-ChatCode VerifierSessionName SessionName

@@ -68,7 +68,7 @@ If code that solves the user's request cannot be generated, then you MUST add th
 
       $requirementsInstructions =
     @"
-Your entire response must be a valid fragment of code in the language $($language), unless you cannot satisfy the request because it doesn't make sense or is not possible. You must not embed the code in markdown formatting. This means the response must not start with ``` or end with ```. You may include explanation of the code, but only as comments valid in the specified language. If you have the ability to search the internet for examples of code that satisfies the user's request, you may perform the search and incorporate ideas from the search results into the result that you obtain. If you cannot generate code that satisfies the user's request, then respond with a sentence that says that you cannot generate the code and why.
+Your entire response must be a valid fragment of code in the language $($language), unless you cannot satisfy the request because it doesn't make sense or is not possible. You must NOT embed the code in markdown formatting. This means the response must not start with ``` on the first line or end with ```. You may include explanation of the code, but only as comments valid in the specified language. If you have the ability to search the internet for examples of code that satisfies the user's request, you may perform the search and incorporate ideas from the search results into the result that you obtain. If you cannot generate code that satisfies the user's request, then respond with a sentence that says that you cannot generate the code and why.
 "@
 
     $codeGenerationFunctionDefinition = $functionPrologue + "`n" +
@@ -88,7 +88,7 @@ Your entire response must be a valid fragment of code in the language $($languag
 
 function GetGeneralVerifierFunctionDefinition([string] $language, [string] $definitionParameterName, [string] $modelResponseParameterName) {
     @"
-A user has asked for the following natural language text to be translated to the programming language $($language): {{`$$($definitionParameterName)}}. The user received the following generated code in answer to that request: {{`$$($modelResponseParameterName)}}. Give a response of either yes or no to the answer of whether the answer is a valid and accurate reply to the user's question. If the answer does not satisfy the user's question, then you should say no. If the user asked for something that is not possible, then you should also say no, since it is not possible to satisfy an impossible request. If the generated code answer contains comments that indicate that the code is incorrect or solves a problem different than the one asked by the user, you should say no. And if the answer is simply wrong, then you should say no. But if the code does seem to answer the user's original question correctly, you should say yes. The first line of your response should be the either the word 'yes' or 'no' depending on whether the generated code satisfied the user's question. You may then add additional lines of text after that first line to explain your reasoning on why the response is deemed incorrect."
+A user has asked for the following natural language text to be translated to the programming language $($language): {{`$$($definitionParameterName)}}. The user received the following generated code in answer to that request: {{`$$($modelResponseParameterName)}}. Give a response of either yes or no to the answer of whether the answer is a valid and accurate reply to the user's question. If the answer does not satisfy the user's question, then you should say no. If the user asked for something that is not possible, then you should also say no, since it is not possible to satisfy an impossible request. If the generated code answer contains comments that indicate that the code is incorrect or solves a problem different than the one asked by the user, you should say no. And if the answer is simply wrong, then you should say no. But if the code does seem to answer the user's original question correctly, you should say yes. The first line of your response should be the either the word 'yes' or 'no' depending on whether the generated code satisfied the user's question. You may then add additional lines of text after that first line to explain your reasoning on why the response is deemed incorrect. When analyzing the code, do not treat HTML escape codes as a problem, just accept them as the unescaped characters they would normally represent and do not flag them as errors. Also, the code must NOT be embedded in markdown escape characters; if it is then consider the code invalid."
 "@
 }
 
@@ -154,11 +154,11 @@ function GenerateCodeForLanguage([string] $language, [string] $naturalLanguageDe
                 $explanation = if ( $verificationResponse ) {
                     $lines = $verificationResponse -split "`n"
 
-                    $validResponse = $null -ne $lines ? ($lines[0]).Trim() : 'no-response-from-model'
+                    $validResponse = $null -ne $lines ? ($lines[0]).Trim().Trim('*').Trim('.') : 'no-response-from-model'
 
                     if ( $validResponse -ne 'yes' ) {
                         if ($validResponse -ne 'no' ) {
-                            write-warning "Code generation verification by the model returned an ambigous answer of '$validResponse' instead of the expected 'yes' or 'no'. The generated code may not be valid."
+                            write-warning "Code generation verification by the model returned an ambiguous answer of '$validResponse' instead of the expected 'yes' or 'no'. The generated code may not be valid."
                         }
                         $skippedFirst = $false
                         $additionalInformation = $lines | foreach {
