@@ -148,6 +148,7 @@ FileList = @(
     'src/addons/Tools.ps1'
     'src/codegen.ps1'
     'src/codegen/CodeGeneration.ps1'
+    'src/codegen/LanguageBinding.ps1'
     'src/codegen/PowerShellCodeGen.ps1'
     'src/commands.ps1'
     'src/commands/Add-ChatPlugin.ps1'
@@ -212,6 +213,7 @@ FileList = @(
     'src/shell.ps1'
     'src/shell/replcommand.ps1'
     'src/shell/ReplState.ps1'
+    'src/shell/ShellAgent.ps1'
     'src/shell/shellux.ps1'
 )
 
