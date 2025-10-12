@@ -4,18 +4,16 @@
 
 ## To-do items
 
-* Add "WrapperOnly" to generate chatcode
-* Add additional language execution defaults and options to Generate-ChatCode
+* Add parameter passing support to Build-ChatCode
+* Add "WrapperOnly" to Build-ChatCode
+* Add additional language execution defaults and options to Build-ChatCode
 * Make proxy protocol stateless
 * Remove methods from IPluginContext
 * Troubleshoot previous commands
 * Troubleshoot script execution
 * Generalization of command history and output into scripts
 * Remove-ChatSessionSetting
-* PowerShell History Plugin
-* LocalHistory mode with
 * Plugin documentation
-* PS Session / history integration
 * Add tests to validate native configuration
 * Generalize the use of GetPromptExecutionSettings
 * Use ITokenizer to count tokens
@@ -100,10 +98,7 @@
 * Better error messages for local model platform support, move to chatsession and chat service interface
 * Add types to function parameters
 * Provide a type for function output
-* Normal powershell functions defined by natural language
 * NL chat
-* Non-repl: Include command history in context
-* Non-repl: Include command output in context
 * Support json schema for function output: https://github.com/microsoft/semantic-kernel/blob/main/dotnet/src/SemanticKernel.Abstractions/Functions/KernelJsonSchema.cs
 * Structured output: https://learn.microsoft.com/en-us/dotnet/api/microsoft.semantickernel.connectors.openai.openaipromptexecutionsettings.responseformat?view=semantic-kernel-dotnet#microsoft-semantickernel-connectors-openai-openaipromptexecutionsettings-responseformat
 * Plugin creation
@@ -190,8 +185,13 @@
 * Add Unregister-ChatPlugin
 * Make session listing hide id by default
 * Added AsJob to Send-ChatMessage to support async invocations
+* Normal powershell functions defined by natural language
 * Install Onnx libraries at runtime using a command and remove from published module
 * Separate Get-ChatHistory and Clear-ChatHistory into Get-ChatLog and Clear-ChatLog?
+* PowerShell History Plugin (LocalContext plugin)
+* PS Session / history integration (LocalContext plugin)
+* Non-repl: Include command history in context (LocalContext plugin)
+* Non-repl: Include command output in context (LocalContext plugin)
 
 ### Plugin notes
 
