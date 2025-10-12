@@ -15,18 +15,18 @@ Typically accessed through the Generate-ChatCode alias.
 
 ### nofunction (Default)
 ```
-Build-ChatCode [-Definition] <String> [-Language <String>] [-CustomGenerationInstructions <String>]
- [-NoScriptBlock] [-NoCmdletBinding] [-SkipModelSelfAssessment] [-SkipModelErrorDetection]
- [-MaxAttempts <Int32>] [-SessionName <String>] [-VerifierSessionName <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Build-ChatCode [-Definition] <String> [-Language <String>] [-RunBlock <ScriptBlock>]
+ [-CustomGenerationInstructions <String>] [-NoScriptBlock] [-NoCmdletBinding] [-NoRunBlock]
+ [-SkipModelSelfAssessment] [-SkipModelErrorDetection] [-MaxAttempts <Int32>] [-SessionName <String>]
+ [-VerifierSessionName <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### function
 ```
-Build-ChatCode [-Definition] <String> -FunctionName <String> [-Language <String>]
- [-CustomGenerationInstructions <String>] [-NoScriptBlock] [-NoCmdletBinding] [-SkipModelSelfAssessment]
- [-SkipModelErrorDetection] [-MaxAttempts <Int32>] [-SessionName <String>] [-VerifierSessionName <String>]
- [-Force] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Build-ChatCode [-Definition] <String> -FunctionName <String> [-Language <String>] [-RunBlock <ScriptBlock>]
+ [-CustomGenerationInstructions <String>] [-NoScriptBlock] [-NoCmdletBinding] [-NoRunBlock]
+ [-SkipModelSelfAssessment] [-SkipModelErrorDetection] [-MaxAttempts <Int32>] [-SessionName <String>]
+ [-VerifierSessionName <String>] [-Force] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -274,6 +274,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -RunBlock
+{{ Fill RunBlock Description }}
+
+```yaml
+Type: ScriptBlock
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -CustomGenerationInstructions
 Specify this parameter to include additional instructions to the code generator.
 This is useful when processing multiple natural language specifications through the Definition parameter via the pipeline when there is a need to provide consistent generation instructions across multiple definitions (as in the case of reading multiple definitions from files for instance).
@@ -309,6 +324,21 @@ Accept wildcard characters: False
 ### -NoCmdletBinding
 Specifies that the \[CmdletBinding\] attribute should not be automatically added to generated PowerShell script blocks.
 This parameter is ignored for target languages other than PowerShell.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -NoRunBlock
+{{ Fill NoRunBlock Description }}
 
 ```yaml
 Type: SwitchParameter
