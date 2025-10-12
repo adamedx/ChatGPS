@@ -12,7 +12,7 @@
 RootModule = 'src/ChatGPS.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.1.0'
+ModuleVersion = '0.2.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -73,6 +73,7 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Add-ChatPlugin'
     'Add-ChatPluginFunction'
     'Build-ChatCode'
+    'Clear-ChatAgentState'
     'Clear-ChatConversation'
     'Clear-ChatLog'
     'Connect-ChatSession'
@@ -101,7 +102,9 @@ FormatsToProcess = @('src/format/format.ps1xml')
     'Send-ChatMessage'
     'Set-ChatAgentAccess'
     'Set-ChatCurrentVoice'
+    'Start-ChatAgent'
     'Start-ChatShell'
+    'Stop-ChatAgent'
     'Unregister-ChatPlugin'
     'Update-ChatSettings'
 )
@@ -145,11 +148,13 @@ FileList = @(
     'src/addons/Tools.ps1'
     'src/codegen.ps1'
     'src/codegen/CodeGeneration.ps1'
+    'src/codegen/LanguageBinding.ps1'
     'src/codegen/PowerShellCodeGen.ps1'
     'src/commands.ps1'
     'src/commands/Add-ChatPlugin.ps1'
     'src/commands/Add-ChatPluginFunction.ps1'
     'src/commands/Build-ChatCode.ps1'
+    'src/commands/Clear-ChatAgentState.ps1'
     'src/commands/Clear-ChatConversation.ps1'
     'src/commands/Clear-ChatLog.ps1'
     'src/commands/Connect-ChatSession.ps1'
@@ -178,7 +183,9 @@ FileList = @(
     'src/commands/Send-ChatMessage.ps1'
     'src/commands/Set-ChatAgentAccess.ps1'
     'src/commands/Set-ChatCurrentVoice.ps1'
+    'src/commands/Start-ChatAgent.ps1'
     'src/commands/Start-ChatShell.ps1'
+    'src/commands/Stop-ChatAgent.ps1'
     'src/commands/Unregister-ChatPlugin.ps1'
     'src/commands/Update-ChatSettings.ps1'
     'src/config.ps1'
@@ -206,6 +213,7 @@ FileList = @(
     'src/shell.ps1'
     'src/shell/replcommand.ps1'
     'src/shell/ReplState.ps1'
+    'src/shell/ShellAgent.ps1'
     'src/shell/shellux.ps1'
 )
 
@@ -237,37 +245,30 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-## ChatGPS 0.1.0 Release Notes
+## ChatGPS 0.2.0 Release Notes
 
-Initial release of the ChatGPS module for large language model orchestration and integration with PowerShell.
+Adds shell agent support, improve Build-ChatCode with RunBlock support
 
 ### New dependencies
 
-* Microsoft.SemanticKernel 1.59.0
-* PowerShell 7.4.0
+None.
 
 ### Breaking changes
 
-N/A, initial release.
+None.
 
 ### New features
 
-* Commands to send a request for chat completions to a large language model and receive a response
-* Interactive read-eval-print loop (REPL) for interactive chat
-* Support for OpenAI, Azure OpenAI, Anthropic, Google Gemini, Ollama, and Onnx model providers
-* Define functions with natural language and invoke them
-* Bind PowerShell functions to natural language functions
-* Support for plugins for time, file system access, http access, internet search, Word documents
-* Create custom plugins using PowerShell
-* Commands for generating code for multiple programming /scripting langauges from natural language
-* Asynchronous execution for chat completions commands
-* Integration with OpenTelemetry logging, including in Semantic Kernel libraries
-* Settings configuration file for defining access to language models
-* Use multiple language models interactively and / or in scripts
+* Shell Agent: A new shell agent capability is added through the Start-ChatAgent command. When this is invoked for a given session, language model interactions through Send-ChatMessage and Start-ChatShell will have access to your command history as well as terminal output to standard output, allowing the language model to "see" all activity in your terminal. New commands include:
+  * Start-ChatAgent -- enables the agent for a session
+  * Stop-ChatAgent -- disables the agent for a session
+  * Clear-ChatAgentState -- deletes leftover transcript files from Start-Transscript used by the agent to obtain a log of terminal activity.
+
+* Code generation improvements: Build-ChatCode provides runtime language integration when generating code for languages other than PowerShell; this allows you to invoke the generated code from PowerShell itself. Build-ChatCode now supports a 'runblock," which is a script block that wraps generated code so that it can be executed by a runtime appropriate to that code. This optional feature allows you to instruct Build-ChatCode to add a wrapper around the generated code that invokes it so that the output of Build-ChatCode can be executed from PowerShell. This isn't needed of course when generating PowerShell code, but since PowerShell can't execute Python code without a Python interpreter, a Runblock wrapper can be used so that the result of Build-ChatCode is itself a PowerShell script block that passes the generated code to the appropriate language runtime to execute it. Build-ChatCode can automatically generated wrappers for Python and Javascript, and you can also specify a custom RunBlock for other langauges.
 
 ### Fixed defects
 
-* Enforce minimum PowerShell 7.4.0 so that PowerShell 5.1 users get actionable error messages.
+None.
 
 '@
 

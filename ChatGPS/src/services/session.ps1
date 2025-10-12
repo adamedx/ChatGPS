@@ -23,6 +23,8 @@ $InstallAddOnsMessage = @'
 Possible missing dependencies detected. Invoke the Install-ChatAddOn command to install missing dependencies and then retry this operation.
 '@
 
+$__PS_ChatGPS_Session_Id = [Guid]::newguid().ToString()
+
 function GetUserAgent {
     $osversion = [System.Environment]::OSVersion.version.tostring()
     $platform = 'Windows NT'
@@ -86,10 +88,25 @@ function CreateSession {
         (Get-Item $LogDirectory).FullName
     }
 
+    $historyFilePath = if ( $PSVersionTable.Platform -eq 'Win32NT' ) {
+        join-path $env:appdata 'Microsoft/Windows/PowerShell/PSReadLine/ConsoleHost_history.txt'
+    } else {
+        '~/.local/share/powershell/PSReadLine/ConsoleHost_history.txt'
+    }
+
+    $historyFilePathCanonical = if ( test-path $historyFilePath ) {
+        (get-item $historyFilePath).FullName
+    }
+
+    $shellContext = [Modulus.ChatGPS.Plugins.ShellContext]::new()
+
+    $shellContext.Initialize($PSVersionTable.PSVersion, $historyFilePathCanonical)
+
     $context = @{
         SendBlock = $SendBlock
         ReceiveBlock = $ReceiveBlock
         Options = $Options
+        ClientContext = $shellContext
     }
 
     $targetUserAgent = if ( $UserAgent ) {
@@ -98,7 +115,7 @@ function CreateSession {
         GetUserAgent
     }
 
-    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent)
+    $session = [Modulus.ChatGPS.ChatGPS]::CreateSession($Options, $AiProxyHostPath, $Prompt, $TokenStrategy, $targetLogDirectory, $LogLevel, $null, $HistoryContextLimit, $context, $Name, $targetUserAgent, $shellContext)
 
     TestSession $session $Options $NoConnect.IsPresent
 
@@ -203,6 +220,8 @@ function RemoveSession($session, $allowRemoveCurrent) {
         throw [InvalidOperationException]::new("The session with identifier '$($session.Id)' may not be removed because it is the current active session.")
     }
 
+    Stop-ChatAgent -Session $Session
+
     $script:sessions.Remove($session.Id)
 
     if ( $isCurrentSession ) {
@@ -294,6 +313,8 @@ function SendMessage($session, $prompt, $functionDefinition, $allowAgentAccess =
     } else {
         $sendBlock.Invoke($prompt)
     }
+
+    UpdateClientContext $session
 
     $response = try {
         if ( $functionDefinition ) {

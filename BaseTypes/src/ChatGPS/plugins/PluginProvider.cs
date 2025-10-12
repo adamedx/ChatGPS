@@ -44,6 +44,7 @@ public abstract class PluginProvider
                                                                  "Computes the search url for popular websites."));
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Bing, "Bing"));
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Google, "Google"));
+        PluginProvider.RegisterProvider(new LocalContextPluginProvider());
         #pragma warning restore SKEXP0050
     }
 
@@ -96,7 +97,7 @@ public abstract class PluginProvider
         }
     }
 
-    internal abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters);
+    internal abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters, IShellContext? context);
 
     internal virtual void InitializeInstanceFromData(string[] jsonData) { }
 
@@ -110,7 +111,7 @@ public abstract class PluginProvider
         if ( getNativeInstance )
         {
             // Force the initialization, though the result is not needed in this situation
-            provider.GetNativeInstance( instanceParameters );
+            provider.GetNativeInstance( instanceParameters, null );
         }
 
         PluginProvider.providers.Add(provider.Name, provider);

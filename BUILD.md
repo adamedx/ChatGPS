@@ -22,6 +22,8 @@ For troubleshooting build errors, you can append `--verbosity detailed` to the c
 
 This will produce an importable PowerShell module with a relative path to the repository root like `./ChatGPS/bin/Debug/net8.0/Module/ChatGPS`.
 
+Note that docuemntation is also generated as part of the build -- for details on documentatio build see the [documentation README](ChatGPS/docs/README.md).
+
 ## Testing
 
 ### Unit testing

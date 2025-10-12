@@ -15,18 +15,19 @@ Typically accessed through the Generate-ChatCode alias.
 
 ### nofunction (Default)
 ```
-Build-ChatCode [-Definition] <String> [-Language <String>] [-CustomGenerationInstructions <String>]
- [-NoScriptBlock] [-NoCmdletBinding] [-SkipModelSelfAssessment] [-SkipModelErrorDetection]
- [-MaxAttempts <Int32>] [-SessionName <String>] [-VerifierSessionName <String>]
- [-ProgressAction <ActionPreference>] [<CommonParameters>]
+Build-ChatCode [-Definition] <String> [-Language <String>] [-CustomRunBlock <ScriptBlock>]
+ [-CustomGenerationInstructions <String>] [-NoScriptBlock] [-NoCmdletBinding] [-GenerateRunBlock]
+ [-SkipModelSelfAssessment] [-SkipModelErrorDetection] [-MaxAttempts <Int32>] [-SessionName <String>]
+ [-VerifierSessionName <String>] [-ProgressAction <ActionPreference>] [<CommonParameters>]
 ```
 
 ### function
 ```
 Build-ChatCode [-Definition] <String> -FunctionName <String> [-Language <String>]
- [-CustomGenerationInstructions <String>] [-NoScriptBlock] [-NoCmdletBinding] [-SkipModelSelfAssessment]
- [-SkipModelErrorDetection] [-MaxAttempts <Int32>] [-SessionName <String>] [-VerifierSessionName <String>]
- [-Force] [-ProgressAction <ActionPreference>] [<CommonParameters>]
+ [-CustomRunBlock <ScriptBlock>] [-CustomGenerationInstructions <String>] [-NoScriptBlock] [-NoCmdletBinding]
+ [-GenerateRunBlock] [-SkipModelSelfAssessment] [-SkipModelErrorDetection] [-MaxAttempts <Int32>]
+ [-SessionName <String>] [-VerifierSessionName <String>] [-Force] [-ProgressAction <ActionPreference>]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -203,23 +204,22 @@ the exact same natural language prompt used in the previous PowerShell examples.
 
 ### EXAMPLE 7
 ```
-"Generate list of all prime numbers less than a given number N" | Generate-ChatCode -Language python | python3
+"Generate list of all prime numbers less than 20" | Generate-ChatCode -Language python | python3
 [2, 3, 5, 7, 11, 13, 17, 19]
 ```
 
-This example for python is similar to the previous one, except that the generated code is piped to the python3 command which is
-the interpreter for the Python language installed on the current system.
-Note that this generated code is similar to the previous
-example and does not provide a way to send arbitrary input to the Python interpret, but since the code also includes a sample invocation
-of the function it generated with a value of '20', we get the output of all primes less than 20.
-This example demonstrates that
-the command can be used to generate code for arbitrary languages that will execute.
+This example for python is similar to the previous one, except that the generated code is piped to the python3 command which is the interpreter for the Python language installed on the current system.
 
-To solve the parameter passing problem for non-PowerShell languages, workarounds include directing the code generator to create code
-that reads input from environment variables or a file, or generating PowerShell code with code embedded in the non-PowerShell language
-and using the Powershell code generate a string of the target language at runtime that invokes the embedded code with the values of
-parameters passed to the outer PowerShell script block's parameters.Kthat uses the parameters passed in the PowerShell code's
-script block.
+### EXAMPLE 8
+```
+. ("Generate list of all prime numbers less than 20" | Generate-ChatCode -Language python -GenerateRunBlock)
+[2, 3, 5, 7, 11, 13, 17, 19]
+```
+
+This python example is the same as the previous, except that the GenerateRunBlock parameter is used to add a PowerShell wrapper around the generated python ccode in order to execute it; Build-ChatCode generates a wrapper assumes a particular runtime for the target language (Python in this case).
+ 
+Note that this generated code for non-PowerShell languages does not provide a way to send arbitrary input to the target language runtime.
+To solve the parameter passing problem for non-PowerShell languages, workarounds include directing the code generator to create code that reads input from environment variables or a file, or generating PowerShell code with code embedded in the non-PowerShell language and using the Powershell code generate a string of the target language at runtime that invokes the embedded code with the values of parameters passed to the outer PowerShell script block's parameters.Kthat uses the parameters passed in the PowerShell code's script block.
 
 ## PARAMETERS
 
@@ -274,6 +274,24 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -CustomRunBlock
+Specifies that a script block that will be used to wrap the code.
+This script block serves the same purpose as the automatically generated wrapper specified by the RunBlock parameter; see that parameter description for more details about run blocks.
+The wrapper script specified to CsutomRunBlock can be used to provide a PowerShell wrapper that can execute the generated code for languages other than PowerShell.
+The script block must take a single string parameter which will be the code that is generated for the language given by Language; the script block can then pass that code to the appropriate language runtime capable of executing it.
+
+```yaml
+Type: ScriptBlock
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -CustomGenerationInstructions
 Specify this parameter to include additional instructions to the code generator.
 This is useful when processing multiple natural language specifications through the Definition parameter via the pipeline when there is a need to provide consistent generation instructions across multiple definitions (as in the case of reading multiple definitions from files for instance).
@@ -309,6 +327,24 @@ Accept wildcard characters: False
 ### -NoCmdletBinding
 Specifies that the \[CmdletBinding\] attribute should not be automatically added to generated PowerShell script blocks.
 This parameter is ignored for target languages other than PowerShell.
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -GenerateRunBlock
+Specifies that the command should generate a PowerShell script block that wraps the generated code; the script block will attempt to execute the code using a runtime appropriate for the generated language.
+This parameter is currently only supported when the Language parameter specifies the Python or Javascript languages, and requires that the system has the given language runtime installed and accessible from PowerShell; it is not guaranteed to work with all versios of those languages.
+This parameter is ignored when generating PowerShell code since it is unnecessary, and also has no effect if the given language is not supported by GenerateRunBlock.
+To add a wrapper for an unsupported language, see the CustomRunBlock parameter.
 
 ```yaml
 Type: SwitchParameter

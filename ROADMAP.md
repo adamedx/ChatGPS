@@ -1,8 +1,19 @@
  Roadmap for ChatGPS
 ===================
 
+
 ## To-do items
 
+* Add parameter passing support to Build-ChatCode
+* Add "WrapperOnly" to Build-ChatCode
+* Add additional language execution defaults and options to Build-ChatCode
+* Make proxy protocol stateless
+* Remove methods from IPluginContext
+* Troubleshoot previous commands
+* Troubleshoot script execution
+* Generalization of command history and output into scripts
+* Remove-ChatSessionSetting
+* Plugin documentation
 * Add tests to validate native configuration
 * Generalize the use of GetPromptExecutionSettings
 * Use ITokenizer to count tokens
@@ -87,10 +98,7 @@
 * Better error messages for local model platform support, move to chatsession and chat service interface
 * Add types to function parameters
 * Provide a type for function output
-* Normal powershell functions defined by natural language
 * NL chat
-* Non-repl: Include command history in context
-* Non-repl: Include command output in context
 * Support json schema for function output: https://github.com/microsoft/semantic-kernel/blob/main/dotnet/src/SemanticKernel.Abstractions/Functions/KernelJsonSchema.cs
 * Structured output: https://learn.microsoft.com/en-us/dotnet/api/microsoft.semantickernel.connectors.openai.openaipromptexecutionsettings.responseformat?view=semantic-kernel-dotnet#microsoft-semantickernel-connectors-openai-openaipromptexecutionsettings-responseformat
 * Plugin creation
@@ -177,8 +185,13 @@
 * Add Unregister-ChatPlugin
 * Make session listing hide id by default
 * Added AsJob to Send-ChatMessage to support async invocations
+* Normal powershell functions defined by natural language
 * Install Onnx libraries at runtime using a command and remove from published module
 * Separate Get-ChatHistory and Clear-ChatHistory into Get-ChatLog and Clear-ChatLog?
+* PowerShell History Plugin (LocalContext plugin)
+* PS Session / history integration (LocalContext plugin)
+* Non-repl: Include command history in context (LocalContext plugin)
+* Non-repl: Include command output in context (LocalContext plugin)
 
 ### Plugin notes
 
@@ -221,3 +234,31 @@
     * can read command history
     * can read powershell variables
     * uses powershell host
+
+### PS Session / Console integration
+
+* History locations:
+
+- **Windows**: `C:\Users\<YourUsername>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`
+
+- **macOS/Linux**: `~/.local/share/powershell/PSReadLine/ConsoleHost_history.txt`
+
+* Start-Transcript / Stop-Transcript
+
+### MCP Server
+
+* MCPServer
+  * Use SemanticKernel
+  * Use pwsh -Custompipename and pass module path
+  * Use Enter-PSHostProcess to send plugin configuration commands and start the mcp server
+
+* ChatGPSLib
+  * Reuse proxyconnection to send start-mcpserver and of course exit
+  * New MCPServer type
+
+* ChatGPS
+  * Add-ChatPlugin, Remove-ChatPlugin, Get-ChatPlugin should support an MCP server parameter
+  * Start-ChatMCPServer -- contains plugins
+  * Get-ChatMCPServer
+  * Stop-ChatMCPServer
+  * 

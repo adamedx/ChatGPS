@@ -15,14 +15,30 @@
 //
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 
 namespace Modulus.ChatGPS.Plugins;
 
-public interface IPluginTable
+public interface IShellContext
 {
-    void AddPlugin(string name, Dictionary<string,PluginParameterValue>? parameters = null);
-    void RemovePlugin(string name);
-    bool TryGetPlugin(string name, out Plugin? plugin);
-    IEnumerable<Plugin> Plugins {get;}
-    IShellContext? Context {get; set;}
+    public void Update(string currentDirectoryPath);
+
+    public void Update(IShellContext? shellContext);
+
+    public int? ProcessId { get; }
+
+    public string? ProcessName { get; }
+
+    public string? PSVersion { get; }
+
+    public string? UICulture { get; }
+
+    public string? HistoryFilePath { get; }
+
+    public string? CurrentDirectory { get; }
+
+    public string? TranscriptPath { get; }
+
+    public string? OperatingSystem { get; }
 }

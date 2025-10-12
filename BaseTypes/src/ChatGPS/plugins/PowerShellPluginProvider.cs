@@ -77,7 +77,7 @@ public class PowerShellPluginProvider : PluginProvider
         return argumentJson;
     }
 
-    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null)
+    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
     {
         if ( this.kernelPlugin is null )
         {

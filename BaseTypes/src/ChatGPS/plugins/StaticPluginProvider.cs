@@ -26,7 +26,7 @@ public class StaticPluginProvider : PluginProvider
         this.nativeInstance = null;
     }
 
-    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null)
+    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
     {
         if ( this.nativeInstance is null )
         {

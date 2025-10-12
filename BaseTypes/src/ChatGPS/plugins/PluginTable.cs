@@ -61,7 +61,7 @@ public class PluginTable : IPluginTable
 
         if ( this.kernel is not null )
         {
-            var nativePlugin = provider.GetNativeInstance(plugin.Parameters);
+            var nativePlugin = provider.GetNativeInstance(plugin.Parameters, this.Context);
             var kernelPlugin = this.kernel.Plugins.AddFromObject(nativePlugin);
             plugin.BindKernelPlugin(kernelPlugin);
         }
@@ -96,8 +96,26 @@ public class PluginTable : IPluginTable
         }
     }
 
-    public static void SynchronizePlugins(IPluginTable pluginTable, IEnumerable<Plugin>? latestPlugins)
+    public IShellContext? Context { get; set; }
+
+    /*
+    public ShellContext? Context
     {
+        get
+        {
+            return this.context;
+        }
+
+        private set
+        {
+            this.context = value;
+        }
+    }
+    */
+    public static void SynchronizePlugins(IPluginTable pluginTable, IEnumerable<Plugin>? latestPlugins, ShellContext? clientContext)
+    {
+        UpdateContext(pluginTable, clientContext);
+
         if ( latestPlugins is not null )
         {
             var latestPluginMap = ToPluginMap(latestPlugins);
@@ -195,12 +213,29 @@ public class PluginTable : IPluginTable
         return pluginMap;
     }
 
+    private static void UpdateContext(IPluginTable pluginTable, IShellContext? clientContext)
+    {
+        if ( pluginTable.Context is null && clientContext is not null )
+        {
+            pluginTable.Context = new ShellContext(clientContext);
+        }
+        else
+        {
+            pluginTable.Context?.Update(clientContext);
+        }
+    }
+
     private void SynchronizePlugins(IEnumerable<Plugin>? latestPlugins)
     {
-        PluginTable.SynchronizePlugins(this, latestPlugins);
+        PluginTable.SynchronizePlugins(this, latestPlugins, null);
+    }
+
+    private void UpdateContext(IShellContext? clientContext)
+    {
+        this.Context?.Update(clientContext);
     }
 
     private Kernel? kernel;
     private Dictionary<string,Plugin> plugins;
-}
+ }
 
