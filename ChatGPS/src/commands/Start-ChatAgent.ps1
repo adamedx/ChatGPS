@@ -26,13 +26,59 @@ Start-ChatAgent can create text logs of PowerShell session text output; it is no
 
 Note: You can use the Get-ChatSession command to see the location of such state including the transcript path by sending its output to Format-List.
 
-.PARAMETER SessionName
-The name property of an existing session on which to enable to agent.
+.PARAMETER Session
+The session on which to enable to agent. If this parameter is not specified, the agent is enabled for the current session.
+
+.PARAMETER TranscriptDirectory
+By default, the agent stores a PowerShell session transcript created by PowerShell's Start-Transcript comand in the directory ~/.chatgps/session/AgentTrascripts whenever the Start-ChatAgent command is invoked. To override the location specify TranscriptDirectory to utilize a custom location for the transcript. This is useful in cases where you may want to store these logs in a location outside of the user's profile for instance that has additional controls and security restrictions to protect data emitted by commands utilized in the PowerShell session.
+
+.PARAMETER NoTranscript
+Specifies that the agent should not create a transcript (created by Start-Transcript) of the PowerShell session terminal input and output. The agent will still track command history in this case, but output of commands will be invisible to the agent and no persistent records of the terminal output will be produced.
 
 .OUTPUTS
 None.
 
 .EXAMPLE
+Start-ChatAgent
+
+This simple invocation starts the agent on the current session. Subsequent terminal input and output will be captured in a transcript and the agent will be able to consult the transcript to answer questions about any text visible to the terminal.
+
+.EXAMPLE
+Start-ChatAgent
+ 
+PS > dotnet build | out-string
+ 
+ Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Users\ryu\src\sockettest\Program.cs(11,23): warning CS8600: Converting null literal or possible null value to non-nullable type. [C:\Users\ryu\src\sockettest\sockettest.csproj]
+  sockettest -> C:\Users\ryu\src\sockettest\bin\Debug\net8.0\sockettest.dll
+ 
+Build succeeded.
+ 
+C:\Users\ryu\src\sockettest\Program.cs(11,23): warning CS8600: Converting null literal or possible null value to non-nullable type. [C:\Users\ryu\src\sockettest\sockettest.csproj]
+    1 Warning(s)
+    0 Error(s)
+ 
+Time Elapsed 00:00:01.51
+ 
+PS > Send-ChatMessage "Can you look at my terminal output and propose a solution for the compiler warning that shows in the output?
+ 
+Received                 Response
+--------                 --------
+10/11/2025 8:34:49 PM    The output indicates that you have a compiler warning:
+                         ```
+                         warning CS8600: Converting null literal or possible null value to non-nullable
+                         type.
+                         ```
+                         This warning typically occurs in C# when you're trying to assign a value that
+                         could potentially be `null` to a variable that is defined as non-nullable.
+                         Specifically, this warning is located in the file `Program.cs` at line 11,
+                         character 23.
+ 
+                         ### Proposed Solutions:
+...
+
+In this example, the agent is started with Start-ChatAgent, and then the `dotnet build` command is piped to Out-String (more on that later) to compile a C# file, and this results in a warning. Then Send-ChatMessage is used to ask the agent for help regarding the error. The agent has access to the terminal output and can see the error without the user having to paste it and explicitly send it with Send-ChatMessage, and is able to return an answer (not all of which is shown here). Note that Out-String is used because the dotnet command in particular bypasses standard output and writes directly to the terminal, and this is not captured by the agent which is limited by the capbilities of the Powershell Start-Transcript command. By piping the output to Out-String, the command output is explicitly captured and then redirected to standard output where it is then visible to Start-Transcript and thus to the agent. Unlike some custom command-line tools like dotnet, native PowerShell commands emit to standard output and so this Out-String workaround is not needed; and most command-line tools that are not PowerShell-based also write to standard output (or have options to direct them to do so) rendering the workaround unnecessary in most cases.
 
 .LINK
 Stop-ChatAgent

@@ -29,6 +29,7 @@ The name property of an existing session on which to enable to agent.
 None.
 
 .EXAMPLE
+Stop-ChatAgent
 
 .LINK
 Start-ChatAgent
