@@ -9,6 +9,7 @@ ChatGPS Command Reference
 |[Add-ChatPlugin](commands/Add-ChatPlugin.md)|Configures a session to use the specified chat plugin to execute code locally during language model interactions.|
  |[Add-ChatPluginFunction](commands/Add-ChatPluginFunction.md)|Adds a plugin function to an existing collection of plugins sent to the pipeline.|
  |[Build-ChatCode](commands/Build-ChatCode.md)|Generates (builds) programming language code including PowerShell scripts from a natural language specification. Typically accessed through the Generate-ChatCode alias.|
+ |[Clear-ChatAgentState](commands/Clear-ChatAgentState.md)|Clears potentially orphaned system state managed by the shell agent removing sensitive data and freeing system resources.|
  |[Clear-ChatConversation](commands/Clear-ChatConversation.md)|Clears the session's conversation context history.|
  |[Clear-ChatLog](commands/Clear-ChatLog.md)|Clears the log of the messages exchnaged in the session.|
  |[Connect-ChatSession](commands/Connect-ChatSession.md)|Creates a new "chat" session between the user and a supported language model. The model may be hosted locally or accessed remotely through a service provider.|
@@ -37,7 +38,9 @@ ChatGPS Command Reference
  |[Send-ChatMessage](commands/Send-ChatMessage.md)|Sends a message with conversation context to a language model and returns the response from the model.|
  |[Set-ChatAgentAccess](commands/Set-ChatAgentAccess.md)|Configures a chat session to allow or disallow plugin-based interactions between language models including system resources and remote services.|
  |[Set-ChatCurrentVoice](commands/Set-ChatCurrentVoice.md)|Experimental command that creates a new text-to-speech voice.|
+ |[Start-ChatAgent](commands/Start-ChatAgent.md)|Enables an agent that has awareness of the current PowerShell session.|
  |[Start-ChatShell](commands/Start-ChatShell.md)|Sends a message with conversation context to a language model and returns the response from the model.|
+ |[Stop-ChatAgent](commands/Stop-ChatAgent.md)|Stops the shell agent and removes its state.|
  |[Unregister-ChatPlugin](commands/Unregister-ChatPlugin.md)|Unregisters a custom chat plugin created by Register-ChatPlugin.|
  |[Update-ChatSettings](commands/Update-ChatSettings.md)|Applies the latest configuration settings that are specified in the default configuration file or a specified configuration file.|
 
