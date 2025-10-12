@@ -28,6 +28,9 @@ Note: You can use the Get-ChatSession command to see the location of such state 
 None.
 
 .EXAMPLE
+Clear-ChatAgentState
+
+This simple invocation clears any local files on the system related to the chat agent that may include logs of command history or terminal command output.
 
 .LINK
 Start-ChatAgent
