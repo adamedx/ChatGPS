@@ -14,9 +14,13 @@
 // limitations under the License.
 //
 
-namespace Modulus.ChatGPS.Models.Proxy;
+namespace Modulus.ChatGPS.Compatibility;
 
-public class CommandResponse
+public sealed class KernelFunctionAttribute : Attribute
 {
-}
+    public KernelFunctionAttribute() { }
 
+    public KernelFunctionAttribute(string? name) => this.Name = name;
+
+    public string? Name { get; }
+}

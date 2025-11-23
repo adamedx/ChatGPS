@@ -15,10 +15,9 @@
 //
 
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Plugins;
+using Modulus.ChatGPS.Compatibility;
 
 namespace Modulus.ChatGPS.Services;
 

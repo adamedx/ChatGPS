@@ -78,7 +78,8 @@ public class AIServiceException : SerializableException
 
         this.ExceededTokenLimit = serviceException is not null ?
             serviceException.ExceededTokenLimit :
-            IsTokenLimitException(sourceException as Microsoft.SemanticKernel.HttpOperationException );
+            null;
+//            IsTokenLimitException(sourceException as Microsoft.SemanticKernel.HttpOperationException );
     }
 
     private void InitializeThrottleInformation(Exception? sourceException)
@@ -86,10 +87,16 @@ public class AIServiceException : SerializableException
         var serviceException = sourceException is not null ? sourceException as AIServiceException : null;
 
         this.ThrottleRetryMsHint = serviceException is not null ?
-            serviceException.ThrottleRetryMsHint : GetThrottleRetryHint( sourceException as Microsoft.SemanticKernel.HttpOperationException );
+            serviceException.ThrottleRetryMsHint : GetThrottleRetryHint( null ); // ( sourceException as HttpOperationException );
     }
 
-    private bool IsTokenLimitException( Microsoft.SemanticKernel.HttpOperationException? operationException )
+    private bool IsTokenLimitException( Exception? operationException )
+    {
+        return false;
+    }
+
+/*
+    private bool IsTokenLimitException( HttpOperationException? operationException )
     {
         var tokenLimitExceeded = false;
 
@@ -125,8 +132,8 @@ public class AIServiceException : SerializableException
 
         return tokenLimitExceeded;
     }
-
-    private int GetThrottleRetryHint(Microsoft.SemanticKernel.HttpOperationException? operationException)
+*/
+    private int GetThrottleRetryHint(Exception? operationException)
     {
         int retryMsHint = 0;
 

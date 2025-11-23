@@ -14,11 +14,6 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Web;
-using Microsoft.SemanticKernel.Plugins.Web.Bing;
-using Microsoft.SemanticKernel.Plugins.Web.Google;
-
 namespace Modulus.ChatGPS.Plugins;
 
 public class WebSearchPluginProvider : PluginProvider
@@ -47,42 +42,8 @@ public class WebSearchPluginProvider : PluginProvider
 
         if ( this.nativeInstance is null )
         {
-            #pragma warning disable SKEXP0050
-
-            if ( parameters is null )
-            {
-                throw new ArgumentException("Invalid parameters specified -- at least one parameter must be specified, the first must be the API key, the second is optional and may be an API URI");
-            }
-
-            var apiKey = (string?) GetPluginParameter("apiKey", parameters) ?? "";
-
-            IWebSearchEngineConnector connector;
-
-            switch ( source )
-            {
-            case SearchSource.Bing:
-                var apiUriData = (string?) GetPluginParameter("apiUri", parameters);
-
-                var apiUri = apiUriData is not null ? new Uri(apiUriData ?? "" ) : null;
-
-                connector = new BingConnector(apiKey, apiUri);
-                break;
-            case SearchSource.Google:
-                if (  parameters.Count < 2 )
-                {
-                    throw new ArgumentException("Invalid parameters specified -- the first must be the API key, the second parameter must be the search engine Id");
-                }
-
-                var searchEngineId = (string?) GetPluginParameter("searchEngineId", parameters) ?? "";
-                connector = new GoogleConnector(apiKey, searchEngineId);
-                break;
-            default:
-                throw new ArgumentException($"Unsupported search source 'SearchSource'");
-            }
-
-            this.nativeInstance = new WebSearchEnginePlugin(connector);
-
-            #pragma warning restore SKEXP0050
+            this.nativeInstance = null;
+            throw new NotImplementedException("The Web Search plugin provider is not implemented");
         }
 
         return this.nativeInstance;

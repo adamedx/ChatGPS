@@ -19,6 +19,8 @@ using System.Text.Json;
 
 using Microsoft.SemanticKernel;
 
+using Modulus.ChatGPS.Compatibility;
+
 namespace Modulus.ChatGPS.Plugins;
 
 public class PluginTable : IPluginTable

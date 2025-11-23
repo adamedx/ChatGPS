@@ -14,9 +14,6 @@
 // limitations under the License.
 //
 
-namespace Modulus.ChatGPS.Models.Proxy;
-
-public class CommandResponse
+public class KernelFunction
 {
 }
-

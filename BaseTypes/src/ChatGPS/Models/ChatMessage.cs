@@ -19,8 +19,8 @@ namespace Modulus.ChatGPS.Models;
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Agents.AI;
+using Modulus.ChatGPS.Compatibility;
 
 public class ChatMessage
 {

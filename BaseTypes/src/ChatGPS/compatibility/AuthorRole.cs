@@ -14,9 +14,11 @@
 // limitations under the License.
 //
 
-namespace Modulus.ChatGPS.Models.Proxy;
+namespace Modulus.ChatGPS.Compatibility;
 
-public class CommandResponse
+public enum AuthorRole
 {
+    System,
+    User,
+    Assistant
 }
-

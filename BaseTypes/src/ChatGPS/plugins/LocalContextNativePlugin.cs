@@ -14,8 +14,9 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
+using Microsoft.Agents.AI;
 using System.ComponentModel;
+using Modulus.ChatGPS.Compatibility;
 using Modulus.ChatGPS.Utilities;
 
 namespace Modulus.ChatGPS.Plugins;

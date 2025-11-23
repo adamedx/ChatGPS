@@ -20,9 +20,8 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-
+using Microsoft.Agents.AI;
+using Modulus.ChatGPS.Compatibility;
 
 public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
     System.Collections.Generic.ICollection<ChatMessage>,

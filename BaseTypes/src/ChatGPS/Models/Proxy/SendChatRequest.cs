@@ -15,8 +15,9 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Agents.AI;
 using Modulus.ChatGPS.Plugins;
+using Modulus.ChatGPS.Compatibility;
 
 namespace Modulus.ChatGPS.Models.Proxy;
 

@@ -261,4 +261,21 @@
   * Start-ChatMCPServer -- contains plugins
   * Get-ChatMCPServer
   * Stop-ChatMCPServer
-  * 
+  *
+
+### Migration to Agent Framework:
+
+In general use Microsoft.Extensions.AI as the set of types on which to depend, and agent framework itself should just be an implementation.
+
+https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-semantic-kernel/?pivots=programming-language-csharp
+
+1. Namespace changes
+2. Agent replaces kernel: AzureAIAgent.CreateAgentsClient / PersistentAgent / AzureAIAgent::new replaces kernelBuilder / Build pattern
+3. Thread creation: n/a
+4. Thread cleanup: n/a
+5. Tool registration: Non-attributed methods replace KernelFunction attribute
+6. Invocation: RunAgentAsync replaces InvokeChatCompletionAsync
+7. Functions: Methods that return parameterized lambdas replace handlebar templates, or perhaps functions yaml which seems to accept handlebar templates?
+   * https://github.com/microsoft/agent-framework/blob/main/dotnet/samples/GettingStarted/Agents/Agent_Step03_UsingFunctionTools/Program.cs
+   * https://github.com/MicrosoftDocs/semantic-kernel-docs/blob/main/semantic-kernel/support/migration/functions-markdown-migration-guide.md
+   

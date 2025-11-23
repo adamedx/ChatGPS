@@ -9,10 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.59.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Core" Version="1.59.0-preview" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Document" Version="1.59.0-alpha" />
-    <PackageReference Include="Microsoft.SemanticKernel.Plugins.Web" Version="1.59.0-alpha" />
+    <PackageReference Include="Microsoft.Extensions.AI" Version="9.10.2" />
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-preview.251107.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.Abstractions" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />

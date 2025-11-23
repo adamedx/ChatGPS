@@ -14,11 +14,6 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Document;
-using Microsoft.SemanticKernel.Plugins.Document.FileSystem;
-using Microsoft.SemanticKernel.Plugins.Document.OpenXml;
-
 namespace Modulus.ChatGPS.Plugins;
 
 public class DocumentPluginProvider : PluginProvider
@@ -37,14 +32,8 @@ public class DocumentPluginProvider : PluginProvider
 
         if ( this.nativeInstance is null )
         {
-            #pragma warning disable SKEXP0050
-
-            var wordConnector = new WordDocumentConnector();
-            var localFileSystemConnector = new LocalFileSystemConnector();
-
-            this.nativeInstance = new DocumentPlugin(wordConnector, localFileSystemConnector);
-
-            #pragma warning restore SKEXP0050
+            this.nativeInstance = null;
+            throw new NotImplementedException("The document plugin is not yet implemented");
         }
 
         return this.nativeInstance;

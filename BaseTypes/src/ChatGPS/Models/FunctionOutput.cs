@@ -17,7 +17,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 
-using Microsoft.SemanticKernel;
+using Modulus.ChatGPS.Compatibility;
 
 namespace Modulus.ChatGPS.Models;
 
