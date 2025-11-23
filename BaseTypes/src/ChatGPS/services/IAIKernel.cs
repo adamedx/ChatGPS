@@ -14,20 +14,12 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Compatibility;
+namespace Modulus.ChatGPS.Services;
+
 using Modulus.ChatGPS.Models;
 
-namespace Modulus.ChatGPS.Models.Proxy;
-
-public class InvokeFunctionResponse : CommandResponse
+public interface IAIKernel
 {
-    public InvokeFunctionResponse() {}
-
-    public InvokeFunctionResponse( FunctionOutput? output )
-    {
-        this.Output = output;
-    }
-
-    public FunctionOutput? Output { get; set; }
+	Task<ChatMessage> GetNextChatMessageAsync(ChatMessageHistory history, AiOptions options, bool? allowAgentAccess);
+	Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, Dictionary<string,object>? functionArguments, AiOptions options, bool? allowAgentAccess);
 }
-

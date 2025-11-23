@@ -14,20 +14,14 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Compatibility;
-using Modulus.ChatGPS.Models;
+namespace Modulus.ChatGPS.Services;
 
-namespace Modulus.ChatGPS.Models.Proxy;
-
-public class InvokeFunctionResponse : CommandResponse
+public class AIChatFunction
 {
-    public InvokeFunctionResponse() {}
-
-    public InvokeFunctionResponse( FunctionOutput? output )
+	public AIChatFunction(string definitionPrompt)
     {
-        this.Output = output;
-    }
+        this.DefinitionPrompt = definitionPrompt;
+	}
 
-    public FunctionOutput? Output { get; set; }
+    public string DefinitionPrompt { get; private set; }
 }
-

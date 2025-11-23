@@ -14,9 +14,7 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Web;
-
+/*
 namespace Modulus.ChatGPS.Plugins;
 
 public class WebDownloadPluginProvider : PluginProvider
@@ -98,3 +96,4 @@ public class WebDownloadPluginProvider : PluginProvider
 
     #pragma warning restore SKEXP0050
 }
+*/

@@ -14,20 +14,8 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Compatibility;
-using Modulus.ChatGPS.Models;
+namespace Modulus.ChatGPS.Compatibility;
 
-namespace Modulus.ChatGPS.Models.Proxy;
-
-public class InvokeFunctionResponse : CommandResponse
+internal class FunctionOutput
 {
-    public InvokeFunctionResponse() {}
-
-    public InvokeFunctionResponse( FunctionOutput? output )
-    {
-        this.Output = output;
-    }
-
-    public FunctionOutput? Output { get; set; }
 }
-
