@@ -14,19 +14,11 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Models;
+namespace Modulus.ChatGPS.Models;
 
-namespace Modulus.ChatGPS.Models.Proxy;
-
-public class InvokeFunctionResponse : CommandResponse
+public interface IChatMessage
 {
-    public InvokeFunctionResponse() {}
-
-    public InvokeFunctionResponse( FunctionOutput? output )
-    {
-        this.Output = output;
-    }
-
-    public FunctionOutput? Output { get; set; }
+    public SenderRole Role { get; }
+    public string? Content { get; }
+    public System.Collections.Generic.Dictionary<string,string?>? Metadata { get; }
 }
-

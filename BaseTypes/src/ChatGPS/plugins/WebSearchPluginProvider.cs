@@ -14,10 +14,7 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Web;
-using Microsoft.SemanticKernel.Plugins.Web.Bing;
-using Microsoft.SemanticKernel.Plugins.Web.Google;
+/*
 
 namespace Modulus.ChatGPS.Plugins;
 
@@ -92,3 +89,4 @@ public class WebSearchPluginProvider : PluginProvider
     private object? nativeInstance;
 }
 
+*/

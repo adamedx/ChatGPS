@@ -17,11 +17,11 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-using Microsoft.SemanticKernel;
-
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
+
+/*
 
 internal class OnnxDynamicKernelBuilderExtension
 {
@@ -124,4 +124,4 @@ internal class OnnxDynamicKernelBuilderExtension
 
     static MethodInfo? onnxBuilderMethod = null;
 }
-
+*/

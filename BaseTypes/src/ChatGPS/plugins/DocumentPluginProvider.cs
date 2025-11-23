@@ -13,11 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Document;
-using Microsoft.SemanticKernel.Plugins.Document.FileSystem;
-using Microsoft.SemanticKernel.Plugins.Document.OpenXml;
+/*
 
 namespace Modulus.ChatGPS.Plugins;
 
@@ -53,3 +49,4 @@ public class DocumentPluginProvider : PluginProvider
     private object? nativeInstance;
 }
 
+*/

@@ -55,15 +55,19 @@ public class ServiceBuilder
             case ModelProvider.OpenAI:
                 newService = new OpenAIChatService( this.options, this.loggerFactory, this.userAgent );
                 break;
+/*
             case ModelProvider.LocalOnnx:
                 newService = new LocalChatService( this.options, this.loggerFactory );
                 break;
+*/
             case ModelProvider.Ollama:
                 newService = new OllamaChatService( this.options, this.loggerFactory );
                 break;
+/*
             case ModelProvider.Google:
                 newService = new GoogleChatService( this.options, this.loggerFactory );
                 break;
+*/
             case ModelProvider.Anthropic:
                 newService = new AnthropicChatService( this.options, this.loggerFactory );
                 break;

@@ -31,8 +31,8 @@ $LastSettings = $null
 $SettingsInitialized = $false
 
 # Trick to ensure that the attribute 'Microsoft.SemanticKernel.KernelFunctionAttribute' exists during module initialization
-$aiDependencyPath = (get-item (join-path "$psscriptroot/../../lib" 'Microsoft.SemanticKernel.Abstractions.dll')).fullName
-[System.Reflection.Assembly]::LoadFrom($aiDependencyPath) | out-null
+# $aiDependencyPath = (get-item (join-path "$psscriptroot/../../lib" 'Microsoft.SemanticKernel.Abstractions.dll')).fullName
+# [System.Reflection.Assembly]::LoadFrom($aiDependencyPath) | out-null
 
 
 # These class definitions represent the deserialized structure of the
