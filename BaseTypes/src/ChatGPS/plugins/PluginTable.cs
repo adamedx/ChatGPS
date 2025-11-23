@@ -17,24 +17,15 @@
 using System.Collections.Generic;
 using System.Text.Json;
 
-using Microsoft.SemanticKernel;
+using Modulus.ChatGPS.Services;
 
 namespace Modulus.ChatGPS.Plugins;
 
 public class PluginTable : IPluginTable
 {
-    public PluginTable(Kernel kernel, IEnumerable<Plugin>? plugins = null)
-    {
-        this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
-
-        SynchronizePlugins(plugins);
-        this.kernel = kernel;
-    }
-
     public PluginTable(IEnumerable<Plugin>? plugins = null)
     {
         this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
-        this.kernel = null;
     }
 
     public bool TryGetPlugin(string name, out Plugin? plugin)
@@ -59,31 +50,12 @@ public class PluginTable : IPluginTable
 
         var plugin = new Plugin(provider.Name, provider, parameters);
 
-        if ( this.kernel is not null )
-        {
-            var nativePlugin = provider.GetNativeInstance(plugin.Parameters, this.Context);
-            var kernelPlugin = this.kernel.Plugins.AddFromObject(nativePlugin);
-            plugin.BindKernelPlugin(kernelPlugin);
-        }
-
         this.plugins.Add(provider.Name, plugin);
     }
 
     public void RemovePlugin(string name)
     {
         var plugin = this.plugins[name];
-
-        if ( this.kernel is not null )
-        {
-            var kernelPlugin = plugin.GetKernelPlugin();
-
-            if ( kernelPlugin is null )
-            {
-                throw new InvalidOperationException($"The specified plugin {name} was not bound to a native plugin");
-            }
-
-            this.kernel.Plugins.Remove(kernelPlugin);
-        }
 
         this.plugins.Remove(name);
     }
@@ -98,20 +70,6 @@ public class PluginTable : IPluginTable
 
     public IShellContext? Context { get; set; }
 
-    /*
-    public ShellContext? Context
-    {
-        get
-        {
-            return this.context;
-        }
-
-        private set
-        {
-            this.context = value;
-        }
-    }
-    */
     public static void SynchronizePlugins(IPluginTable pluginTable, IEnumerable<Plugin>? latestPlugins, ShellContext? clientContext)
     {
         UpdateContext(pluginTable, clientContext);
@@ -235,7 +193,6 @@ public class PluginTable : IPluginTable
         this.Context?.Update(clientContext);
     }
 
-    private Kernel? kernel;
     private Dictionary<string,Plugin> plugins;
  }
 

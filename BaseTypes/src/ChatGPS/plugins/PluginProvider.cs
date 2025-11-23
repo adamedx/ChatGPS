@@ -16,7 +16,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Microsoft.SemanticKernel;
 using Modulus.ChatGPS.Utilities;
 
 namespace Modulus.ChatGPS.Plugins;
@@ -28,7 +27,9 @@ public abstract class PluginProvider
         PluginProvider.providers = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
         PluginProvider.builtinProviders = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
 
-        #pragma warning disable SKEXP0050
+//        #pragma warning disable SKEXP0050
+
+/*
         PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.ConversationSummaryPlugin),
                                                                  "Summarizes a conversation."));
         PluginProvider.RegisterProvider(new DocumentPluginProvider());
@@ -44,8 +45,9 @@ public abstract class PluginProvider
                                                                  "Computes the search url for popular websites."));
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Bing, "Bing"));
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Google, "Google"));
+*/
         PluginProvider.RegisterProvider(new LocalContextPluginProvider());
-        #pragma warning restore SKEXP0050
+//        #pragma warning restore SKEXP0050
     }
 
     public IEnumerable<PluginParameter> Parameters
@@ -139,7 +141,7 @@ public abstract class PluginProvider
 
     public string Name { get; private set; }
     public string Description { get; protected set; }
-
+ 
     internal virtual string[]? GetProviderDataJson()
     {
         return null;

@@ -61,7 +61,7 @@ function AddMessageToChat{
         [string] $content
     )
 
-    $role = [Modulus.ChatGPS.Models.ChatMessage+SenderRole] $chatRole
+    $role = [Modulus.ChatGPS.Models.SenderRole] $chatRole
 
     $message = [Modulus.ChatGPS.Models.ChatMessage]::new(
         $role,
@@ -111,10 +111,10 @@ function Start-ProxyRepl {
         $script:__TEST_AIPROXY_SESSION_ID = $null
 
         $systemMessage = [Modulus.ChatGPS.Models.ChatMessage]::new(
-            [Modulus.ChatGPS.Models.ChatMessage+SenderRole]::System,
+            [Modulus.ChatGPS.Models.SenderRole]::System,
             $SystemPrompt)
 
-        $newChat = [Modulus.ChatGPS.Models.ChatMessageHistory]::new()
+        $newChat = [System.Collections.Generic.List[Modulus.ChatGPS.Models.ChatMessage]]::new()
         AddMessageToChat $newChat System $SystemPrompt
 
         $script:__SESSION_HISTORY = $newChat
@@ -197,7 +197,7 @@ function Start-ProxyRepl {
 
     function CreateSendChatRequest($message) {
         AddMessageToChat $script:__SESSION_HISTORY User $message
-        $chatRequest = [Modulus.ChatGPS.Models.Proxy.SendChatRequest]::new($script:__SESSION_HISTORY, $null, $false)
+        $chatRequest = [Modulus.ChatGPS.Models.Proxy.SendChatRequest]::new($script:__SESSION_HISTORY, $null, $false, $null)
         [System.Text.Json.JsonSerializer]::Serialize($chatRequest, $chatRequest.GetType(), $jsonOptions)
     }
 

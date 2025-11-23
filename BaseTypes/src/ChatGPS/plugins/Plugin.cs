@@ -14,8 +14,6 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
-
 namespace Modulus.ChatGPS.Plugins;
 
 public class Plugin
@@ -31,27 +29,9 @@ public class Plugin
         this.PluginType = provider.GetType().FullName;
     }
 
-    internal void BindKernelPlugin(KernelPlugin kernelPlugin)
-    {
-        if ( this.kernelPlugin is not null )
-        {
-            throw new InvalidOperationException("The object is already bound to an existing kernel plugin");
-        }
-
-        this.kernelPlugin = kernelPlugin;
-    }
-
-    internal KernelPlugin? GetKernelPlugin()
-    {
-        return this.kernelPlugin;
-    }
-
     public string? Name { get; set; }
     public Dictionary<string,PluginParameterValue>? Parameters { get; set; }
     public Guid? Id { get; set; }
     public string[]? PluginDataJson { get; set; }
     public string? PluginType { get; set ; }
-
-    private KernelPlugin? kernelPlugin;
 }
-

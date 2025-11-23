@@ -14,16 +14,15 @@
 // limitations under the License.
 //
 
-namespace Modulus.ChatGPS.Models;
-
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 
-public class ChatMessage
+namespace Modulus.ChatGPS.Models;
+
+public class ChatMessage : IChatMessage
 {
+    /*
     public enum MetadataKeys
     {
         MessageIndex,
@@ -39,71 +38,65 @@ public class ChatMessage
         User,
         Unknown
     }
+    */
 
-    static ChatMessage()
+    public ChatMessage()
     {
-        ChatMessage.roleMap = new Dictionary<AuthorRole,SenderRole>()
-        {
-            { AuthorRole.Assistant, SenderRole.Assistant },
-            { AuthorRole.System, SenderRole.System },
-            { AuthorRole.Tool, SenderRole.Tool },
-            { AuthorRole.User, SenderRole.User }
-        };
-
-        ChatMessage.reverseRoleMap = new Dictionary<SenderRole,AuthorRole>();
-
-        foreach ( var authorRole in ChatMessage.roleMap.Keys )
-        {
-            ChatMessage.reverseRoleMap.Add(ChatMessage.roleMap[authorRole], authorRole);
-        }
+//        this.sourceMessage2 = null;
+        this.metadata = new Dictionary<string,string?>();
     }
 
-    public ChatMessage(SenderRole role, string content, Dictionary<string,object?>? metadata = null)
+    public ChatMessage(SenderRole role, string content, IReadOnlyDictionary<string,string?>? metadata = null)
     {
-        this.sourceMessage = new ChatMessageContent(ChatMessage.reverseRoleMap[role], content, null, null, null, metadata);
+        this.Role = role;
+        this.Content = content;
+        this.metadata = metadata is not null ? ((Dictionary<string,string?>)metadata) : new Dictionary<string,string?>();
+
+//        this.sourceMessage2 = null;
     }
 
-    public ChatMessage(ChatMessageContent sourceMessage)
+    internal ChatMessage(IChatMessage sourceMessage)
     {
-        this.sourceMessage = sourceMessage;
+        this.Role = sourceMessage.Role;
+        this.Content = sourceMessage.Content;
+        this.metadata = sourceMessage.Metadata is not null ? ((Dictionary<string,string?>) sourceMessage.Metadata) : new Dictionary<string,string?>();
+
+//        this.sourceMessage2 = sourceMessage;
+    }
+/*
+    internal ChatMessage(Microsoft.Extensions.AI.ChatMessage sourceChatMessage)
+    {
+        this.sourceMessage2 = new AIChatMessage(sourceChatMessage);
     }
 
-    public SenderRole Role
+    internal ChatMessage(Microsoft.Extensions.AI.ChatResponse chatResponse)
+    {
+        var firstMessage = chatResponse.Messages.FirstOrDefault();
+
+        this.sourceMessage2 = new AIChatMessage(firstMessage?.Role ?? ChatRole.Assistant, chatResponse.Text ?? "", chatResponse.AdditionalProperties);
+    }
+*/
+    public SenderRole Role { get; set; }
+
+    public string? Content { get; set; }
+
+    public System.Collections.Generic.Dictionary<string,string?>? Metadata
     {
         get
         {
-            SenderRole senderRole;
+            return this.metadata;
+        }
 
-            if ( ! ChatMessage.roleMap.TryGetValue(this.sourceMessage.Role, out senderRole) )
+        set
+        {
+            if ( value is not null )
             {
-                senderRole = SenderRole.Unknown;
+                this.metadata = new Dictionary<string,string?>(value);
             }
-
-            return senderRole;
-        }
-    }
-
-    public string? Content
-    {
-        get
-        {
-            return this.sourceMessage.Content;
-        }
-    }
-
-    private System.Collections.Generic.IReadOnlyDictionary<string,object?>? Metadata
-    {
-        get
-        {
-            return this.sourceMessage.Metadata;
-        }
-    }
-
-    public System.Text.Encoding Encoding
-    {
-        get
-        {
-            return this.sourceMessage.Encoding;
+            else
+            {
+                this.metadata = new Dictionary<string,string?>();
+            }
         }
     }
 
@@ -113,11 +106,11 @@ public class ChatMessage
         {
             TimeSpan? result = null;
 
-            if ( this.sourceMessage.Metadata is not null )
+            if ( this.Metadata is not null )
             {
-                object? duration = null;
+                string? duration = null;
 
-                if ( this.sourceMessage.Metadata.TryGetValue(MetadataKeys.Duration.ToString(), out duration) )
+                if ( this.Metadata.TryGetValue(MetadataKeys.Duration.ToString(), out duration) )
                 {
                     if ( duration is not null )
                     {
@@ -131,16 +124,16 @@ public class ChatMessage
     }
 
     public DateTimeOffset Timestamp
-    {
+     {
         get
         {
             DateTimeOffset result = DateTimeOffset.MinValue;
 
-            if ( this.sourceMessage.Metadata is not null )
+            if ( this.Metadata is not null )
             {
-                object? timestamp = null;
+                string? timestamp = null;
 
-                if ( this.sourceMessage.Metadata.TryGetValue(MetadataKeys.Timestamp.ToString(), out timestamp) )
+                if ( this.Metadata.TryGetValue(MetadataKeys.Timestamp.ToString(), out timestamp) )
                 {
                     if ( timestamp is not null )
                     {
@@ -152,23 +145,20 @@ public class ChatMessage
             return result;
         }
     }
-
-    public object GetSourceChatMessageContent()
+/*
+    public object? GetSourceChatMessageContent()
     {
-        return this.SourceChatMessageContent;
+        return this.SourceChatMessageContent2;
     }
 
-    internal ChatMessageContent SourceChatMessageContent
+    internal IChatMessage? SourceChatMessageContent2
     {
         get
         {
-            return sourceMessage;
+            return this.sourceMessage2;
         }
     }
-
-    private ChatMessageContent sourceMessage;
-
-    private static IDictionary<AuthorRole, SenderRole> roleMap;
-    private static IDictionary<SenderRole, AuthorRole> reverseRoleMap;
+*/
+    private Dictionary<string,string?> metadata;
+//    private IChatMessage? sourceMessage2;
 }
-

@@ -15,18 +15,15 @@
 //
 
 using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
 
-namespace Modulus.ChatGPS.Models.Proxy;
+namespace Modulus.ChatGPS.Services;
 
-public class InvokeFunctionResponse : CommandResponse
+public interface IAIKernel
 {
-    public InvokeFunctionResponse() {}
-
-    public InvokeFunctionResponse( FunctionOutput? output )
-    {
-        this.Output = output;
-    }
-
-    public FunctionOutput? Output { get; set; }
+	Task<ChatMessage> GetNextChatMessageAsync(List<ChatMessage> history, AiOptions options, bool? allowAgentAccess = null);
+	Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object?>? functionArguments = null, bool? allowAgentAccess = null);
+    AIChatFunction CreateFunctionFromPrompt(string definitionPrompt, AiOptions? options = null);
+    void AddPlugin(Plugin plugin);
+    void RemovePlugin(Plugin plugin);
 }
-

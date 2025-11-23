@@ -16,11 +16,9 @@
 
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.Google;
 using Microsoft.Extensions.DependencyInjection;
-
+/*
+using GeminiDotnet.Extensions.AI;
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
@@ -29,7 +27,7 @@ public class GoogleChatService : ChatService
 {
     internal GoogleChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -46,19 +44,15 @@ public class GoogleChatService : ChatService
             throw new ArgumentException("An API key is required for the language model service.");
         }
 
-        var builder = base.GetKernelBuilder();
-
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
-#pragma warning disable SKEXP0070
+        var clientOptions = new GeminiClientOptions { ApiKey = cleartextKey, ModelId = this.options.ModelIdentifier, ServiceId = this.options.ServiceIdentifier };
 
-        builder.AddGoogleAIGeminiChatCompletion(
-            modelId : this.options.ModelIdentifier,
-            serviceId : this.options.ServiceIdentifier,
-            apiKey: cleartextKey);
+        var chatClient = new GeminiChatClient(clientOptions);
 
-#pragma warning restore SKEXP0070
-
+        var newKernel = new AIKernel(chatClient);
+*/
+/*
         // Configure throttling retry behavior
         builder.Services.ConfigureHttpClientDefaults(c =>
         {
@@ -68,17 +62,14 @@ public class GoogleChatService : ChatService
                 o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
             });
         });
+*/
 
-        var newKernel = builder.Build();
 
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
-
+/*
         this.serviceKernel = newKernel;
 
         return newKernel;
     }
 }
 
+*/
