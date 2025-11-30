@@ -15,7 +15,6 @@
 //
 
 using System.Text.Json;
-using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Models.Proxy;
 

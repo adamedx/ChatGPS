@@ -14,12 +14,15 @@
 // limitations under the License.
 //
 
+using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
+
 namespace Modulus.ChatGPS.Services;
 
-using Modulus.ChatGPS.Models;
-
-public interface IAIKernel
+internal interface IAIKernel
 {
 	Task<ChatMessage> GetNextChatMessageAsync(ChatMessageHistory history, AiOptions options, bool? allowAgentAccess);
-	Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, Dictionary<string,object>? functionArguments, AiOptions options, bool? allowAgentAccess);
+	Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object>? functionArguments, bool? allowAgentAccess);
+    void AddPlugin(Plugin plugin);
+    void RemovePlugin(Plugin plugin);
 }

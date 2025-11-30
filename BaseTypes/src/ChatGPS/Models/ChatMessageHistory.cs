@@ -14,15 +14,12 @@
 // limitations under the License.
 //
 
-namespace Modulus.ChatGPS.Models;
-
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 
+namespace Modulus.ChatGPS.Models;
 
 public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
     System.Collections.Generic.ICollection<ChatMessage>,
@@ -30,7 +27,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 {
     public class ChatMessageEnumerator : System.Collections.Generic.IEnumerator<ChatMessage>
     {
-        public ChatMessageEnumerator(System.Collections.Generic.IEnumerator<ChatMessageContent> sourceEnumerator,
+        public ChatMessageEnumerator(System.Collections.Generic.IEnumerator<Microsoft.Extensions.AI.ChatMessage> sourceEnumerator,
                                       ChatMessageHistory history)
         {
             this.sourceEnumerator = sourceEnumerator;
@@ -74,20 +71,20 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
             return history.GetPublicItem(privateItem);
         }
 
-        private System.Collections.Generic.IEnumerator<ChatMessageContent> sourceEnumerator;
+        private System.Collections.Generic.IEnumerator<Microsoft.Extensions.AI.ChatMessage> sourceEnumerator;
         private ChatMessageHistory history;
     }
 
     public ChatMessageHistory()
     {
-        this.sourceHistory = new ChatHistory();
-        this.privateToPublicMap = new System.Collections.Generic.Dictionary<ChatMessageContent, ChatMessage>();
+        this.sourceHistory = new List<Microsoft.Extensions.AI.ChatMessage>();
+        this.privateToPublicMap = new System.Collections.Generic.Dictionary<Microsoft.Extensions.AI.ChatMessage, ChatMessage>();
     }
 
-    public ChatMessageHistory( ChatHistory sourceHistory )
+    public ChatMessageHistory( System.Collections.Generic.IList<Microsoft.Extensions.AI.ChatMessage> sourceHistory )
     {
         this.sourceHistory = sourceHistory;
-        this.privateToPublicMap = new System.Collections.Generic.Dictionary<ChatMessageContent, ChatMessage>();
+        this.privateToPublicMap = new System.Collections.Generic.Dictionary<Microsoft.Extensions.AI.ChatMessage, ChatMessage>();
     }
 
     public ChatMessage this[int index]
@@ -101,12 +98,12 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 
         set
         {
-            var currentIndex = this.sourceHistory.IndexOf(value.SourceChatMessageContent);
+            var currentIndex = this.sourceHistory.IndexOf(value.SourceChatMessageContent2);
 
             if ( currentIndex != -1 )
             {
-                this.sourceHistory[index] = value.SourceChatMessageContent;
-                GetPublicItem(value.SourceChatMessageContent);
+                this.sourceHistory[index] = value.SourceChatMessageContent2;
+                GetPublicItem(value.SourceChatMessageContent2);
             }
             else if ( currentIndex != index )
             {
@@ -117,20 +114,20 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 
     public int IndexOf(ChatMessage chatMessage)
     {
-        return this.sourceHistory.IndexOf(chatMessage.SourceChatMessageContent);
+        return this.sourceHistory.IndexOf(chatMessage.SourceChatMessageContent2);
     }
 
     public void Insert(int index, ChatMessage chatMessage)
     {
-        this.sourceHistory.Insert(index, chatMessage.SourceChatMessageContent);
-        GetPublicItem(chatMessage.SourceChatMessageContent);
+        this.sourceHistory.Insert(index, chatMessage.SourceChatMessageContent2);
+        GetPublicItem(chatMessage.SourceChatMessageContent2);
 }
 
     public void RemoveAt(int index)
     {
         var privateItem = this[index];
         this.sourceHistory.RemoveAt(index);
-        this.privateToPublicMap.Remove(privateItem.SourceChatMessageContent);
+        this.privateToPublicMap.Remove(privateItem.SourceChatMessageContent2);
     }
 
     public int Count
@@ -145,7 +142,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
     {
         get
         {
-            return ((System.Collections.Generic.ICollection<ChatMessageContent>)this.sourceHistory).IsReadOnly;
+            return ((System.Collections.Generic.ICollection<Microsoft.Extensions.AI.ChatMessage>)this.sourceHistory).IsReadOnly;
         }
     }
 
@@ -162,7 +159,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 
     public bool Contains(ChatMessage chatMessage)
     {
-        return this.sourceHistory.Contains(chatMessage.SourceChatMessageContent);
+        return this.sourceHistory.Contains(chatMessage.SourceChatMessageContent2);
     }
 
     public void CopyTo(ChatMessage[] array, int arrayIndex)
@@ -191,7 +188,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 
     public bool Remove(ChatMessage chatMessage)
     {
-        var index = this.sourceHistory.IndexOf(chatMessage.SourceChatMessageContent);
+        var index = this.sourceHistory.IndexOf(chatMessage.SourceChatMessageContent2);
 
         bool existed = index > -1;
 
@@ -205,7 +202,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 
     public IEnumerator<ChatMessage> GetEnumerator()
     {
-        return new ChatMessageEnumerator(((IEnumerable<ChatMessageContent>)this.sourceHistory).GetEnumerator(), this);
+        return new ChatMessageEnumerator(((IEnumerable<Microsoft.Extensions.AI.ChatMessage>)this.sourceHistory).GetEnumerator(), this);
     }
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -213,9 +210,9 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         return ((IEnumerable<ChatMessage>) this).GetEnumerator();
     }
 
-    public ChatMessage GetPublicItem(ChatMessageContent privateObject)
+    public ChatMessage GetPublicItem(Microsoft.Extensions.AI.ChatMessage privateObject)
     {
-        var privateItem = (ChatMessageContent) privateObject;
+        var privateItem = (Microsoft.Extensions.AI.ChatMessage) privateObject;
 
         ChatMessage? publicItem;
 
@@ -235,8 +232,8 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 
     public void Reset()
     {
-        var systemMessage = sourceHistory.Count > 0 ?
-            GetPublicItem(sourceHistory[0]) :
+        var systemMessage = this.sourceHistory.Count > 0 ?
+            GetPublicItem(this.sourceHistory[0]) :
             null;
 
         Clear();
@@ -247,7 +244,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
     }
 
-    internal ChatHistory SourceHistory
+    internal IList<Microsoft.Extensions.AI.ChatMessage> SourceHistory
     {
         get
         {
@@ -255,7 +252,8 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
     }
 
-    private ChatHistory sourceHistory;
-    private System.Collections.Generic.Dictionary<ChatMessageContent, ChatMessage> privateToPublicMap;
+    private System.Collections.Generic.IList<Microsoft.Extensions.AI.ChatMessage> sourceHistory;
+
+    private System.Collections.Generic.Dictionary<Microsoft.Extensions.AI.ChatMessage, ChatMessage> privateToPublicMap;
 }
 

@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Modulus.ChatGPS.Compatibility;
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Models.Proxy;

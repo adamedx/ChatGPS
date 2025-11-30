@@ -17,13 +17,13 @@
 using System.Collections.Generic;
 using System.Text.Json;
 
-using Microsoft.SemanticKernel;
+using Modulus.ChatGPS.Services;
 
 namespace Modulus.ChatGPS.Plugins;
 
 public class PluginTable : IPluginTable
 {
-    public PluginTable(Kernel kernel, IEnumerable<Plugin>? plugins = null)
+    public PluginTable(AIKernel kernel, IEnumerable<Plugin>? plugins = null)
     {
         this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
 
@@ -61,9 +61,7 @@ public class PluginTable : IPluginTable
 
         if ( this.kernel is not null )
         {
-            var nativePlugin = provider.GetNativeInstance(plugin.Parameters, this.Context);
-            var kernelPlugin = this.kernel.Plugins.AddFromObject(nativePlugin);
-            plugin.BindKernelPlugin(kernelPlugin);
+            this.kernel.AddPlugin(plugin);
         }
 
         this.plugins.Add(provider.Name, plugin);
@@ -75,14 +73,7 @@ public class PluginTable : IPluginTable
 
         if ( this.kernel is not null )
         {
-            var kernelPlugin = plugin.GetKernelPlugin();
-
-            if ( kernelPlugin is null )
-            {
-                throw new InvalidOperationException($"The specified plugin {name} was not bound to a native plugin");
-            }
-
-            this.kernel.Plugins.Remove(kernelPlugin);
+            this.kernel.RemovePlugin(plugin);
         }
 
         this.plugins.Remove(name);
@@ -235,7 +226,7 @@ public class PluginTable : IPluginTable
         this.Context?.Update(clientContext);
     }
 
-    private Kernel? kernel;
+    private AIKernel? kernel;
     private Dictionary<string,Plugin> plugins;
  }
 

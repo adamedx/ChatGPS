@@ -14,13 +14,12 @@
 // limitations under the License.
 //
 
-namespace Modulus.ChatGPS.Models;
-
 using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Extensions.AI;
+
+namespace Modulus.ChatGPS.Models;
 
 public class ChatMessage
 {
@@ -42,30 +41,37 @@ public class ChatMessage
 
     static ChatMessage()
     {
-        ChatMessage.roleMap = new Dictionary<AuthorRole,SenderRole>()
+        ChatMessage.roleMap = new Dictionary<ChatRole,SenderRole>()
         {
-            { AuthorRole.Assistant, SenderRole.Assistant },
-            { AuthorRole.System, SenderRole.System },
-            { AuthorRole.Tool, SenderRole.Tool },
-            { AuthorRole.User, SenderRole.User }
+            { ChatRole.Assistant, SenderRole.Assistant },
+            { ChatRole.System, SenderRole.System },
+            { ChatRole.Tool, SenderRole.Tool },
+            { ChatRole.User, SenderRole.User }
         };
 
-        ChatMessage.reverseRoleMap = new Dictionary<SenderRole,AuthorRole>();
+        ChatMessage.reverseRoleMap = new Dictionary<SenderRole,ChatRole>();
 
-        foreach ( var authorRole in ChatMessage.roleMap.Keys )
+        foreach ( var chatRole in ChatMessage.roleMap.Keys )
         {
-            ChatMessage.reverseRoleMap.Add(ChatMessage.roleMap[authorRole], authorRole);
+            ChatMessage.reverseRoleMap.Add(ChatMessage.roleMap[chatRole], chatRole);
         }
     }
 
     public ChatMessage(SenderRole role, string content, Dictionary<string,object?>? metadata = null)
     {
-        this.sourceMessage = new ChatMessageContent(ChatMessage.reverseRoleMap[role], content, null, null, null, metadata);
+        this.sourceMessage2 = new AIChatMessage(ChatMessage.reverseRoleMap[role], content, metadata);
     }
 
-    public ChatMessage(ChatMessageContent sourceMessage)
+    internal ChatMessage(Microsoft.Extensions.AI.ChatMessage sourceChatMessage)
     {
-        this.sourceMessage = sourceMessage;
+        this.sourceMessage2 = new AIChatMessage(sourceChatMessage);
+    }
+
+    internal ChatMessage(Microsoft.Extensions.AI.ChatResponse chatResponse)
+    {
+        var firstMessage = chatResponse.Messages.FirstOrDefault();
+
+        this.sourceMessage2 = new AIChatMessage(firstMessage?.Role ?? ChatRole.Assistant, chatResponse.Text ?? "", chatResponse.AdditionalProperties);
     }
 
     public SenderRole Role
@@ -74,7 +80,7 @@ public class ChatMessage
         {
             SenderRole senderRole;
 
-            if ( ! ChatMessage.roleMap.TryGetValue(this.sourceMessage.Role, out senderRole) )
+            if ( ! ChatMessage.roleMap.TryGetValue(this.sourceMessage2.Role, out senderRole) )
             {
                 senderRole = SenderRole.Unknown;
             }
@@ -87,7 +93,7 @@ public class ChatMessage
     {
         get
         {
-            return this.sourceMessage.Content;
+            return this.sourceMessage2.Content;
         }
     }
 
@@ -95,7 +101,7 @@ public class ChatMessage
     {
         get
         {
-            return this.sourceMessage.Metadata;
+            return this.sourceMessage2.Metadata;
         }
     }
 
@@ -103,7 +109,7 @@ public class ChatMessage
     {
         get
         {
-            return this.sourceMessage.Encoding;
+            return this.sourceMessage2.Encoding;
         }
     }
 
@@ -113,11 +119,11 @@ public class ChatMessage
         {
             TimeSpan? result = null;
 
-            if ( this.sourceMessage.Metadata is not null )
+            if ( this.sourceMessage2.Metadata is not null )
             {
                 object? duration = null;
 
-                if ( this.sourceMessage.Metadata.TryGetValue(MetadataKeys.Duration.ToString(), out duration) )
+                if ( this.sourceMessage2.Metadata.TryGetValue(MetadataKeys.Duration.ToString(), out duration) )
                 {
                     if ( duration is not null )
                     {
@@ -136,11 +142,11 @@ public class ChatMessage
         {
             DateTimeOffset result = DateTimeOffset.MinValue;
 
-            if ( this.sourceMessage.Metadata is not null )
+            if ( this.sourceMessage2.Metadata is not null )
             {
                 object? timestamp = null;
 
-                if ( this.sourceMessage.Metadata.TryGetValue(MetadataKeys.Timestamp.ToString(), out timestamp) )
+                if ( this.sourceMessage2.Metadata.TryGetValue(MetadataKeys.Timestamp.ToString(), out timestamp) )
                 {
                     if ( timestamp is not null )
                     {
@@ -155,20 +161,19 @@ public class ChatMessage
 
     public object GetSourceChatMessageContent()
     {
-        return this.SourceChatMessageContent;
+        return this.SourceChatMessageContent2;
     }
 
-    internal ChatMessageContent SourceChatMessageContent
+    internal Microsoft.Extensions.AI.ChatMessage SourceChatMessageContent2
     {
         get
         {
-            return sourceMessage;
+            return new Microsoft.Extensions.AI.ChatMessage();
         }
     }
 
-    private ChatMessageContent sourceMessage;
+    private AIChatMessage sourceMessage2;
 
-    private static IDictionary<AuthorRole, SenderRole> roleMap;
-    private static IDictionary<SenderRole, AuthorRole> reverseRoleMap;
+    private static IDictionary<ChatRole, SenderRole> roleMap;
+    private static IDictionary<SenderRole, ChatRole> reverseRoleMap;
 }
-

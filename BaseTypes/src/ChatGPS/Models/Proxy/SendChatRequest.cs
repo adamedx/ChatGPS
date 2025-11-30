@@ -15,7 +15,7 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.Extensions.AI;
 using Modulus.ChatGPS.Plugins;
 
 namespace Modulus.ChatGPS.Models.Proxy;
@@ -24,7 +24,7 @@ public class SendChatRequest : CommandRequest
 {
     public SendChatRequest() {}
 
-    // This constructor is used by clients without access to SK types
+    // This constructor is used by clients without access to MAI types
     public SendChatRequest(ChatMessageHistory chatHistory, IEnumerable<Plugin>? plugins, bool? allowFunctionCall, IShellContext? clientContext)
     {
         this.History = chatHistory.SourceHistory;
@@ -33,7 +33,7 @@ public class SendChatRequest : CommandRequest
         this.Context = clientContext is not null ? new ShellContext(clientContext) : null;
     }
 
-    public SendChatRequest(ChatHistory chatHistory, IEnumerable<Plugin>? plugins, bool? allowFunctionCall, IShellContext? clientContext)
+    public SendChatRequest(List<Microsoft.Extensions.AI.ChatMessage> chatHistory, IEnumerable<Plugin>? plugins, bool? allowFunctionCall, IShellContext? clientContext)
     {
         this.History = chatHistory;
         this.AllowFunctionCall = allowFunctionCall;
@@ -41,7 +41,7 @@ public class SendChatRequest : CommandRequest
         this.Context = clientContext is not null ? new ShellContext(clientContext) : null;
     }
 
-    public ChatHistory? History { get; set; }
+    public IList<Microsoft.Extensions.AI.ChatMessage>? History { get; set; }
     public bool? AllowFunctionCall { get; set; }
     public IEnumerable<Plugin>? Plugins { get; set; }
     public ShellContext? Context { get; set; }

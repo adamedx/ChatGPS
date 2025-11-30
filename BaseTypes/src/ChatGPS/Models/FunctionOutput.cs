@@ -17,20 +17,18 @@
 using System.Collections.Generic;
 using System.Globalization;
 
-using Microsoft.SemanticKernel;
-
 namespace Modulus.ChatGPS.Models;
 
 public class FunctionOutput
 {
     public FunctionOutput() {}
 
-    public FunctionOutput(FunctionResult functionResult)
+    public FunctionOutput( AIFunctionResult functionResult )
     {
-        this.CultureName = functionResult.Culture.Name;
-        this.Result = functionResult.GetValue<string>();
+        this.CultureName = functionResult.Culture?.Name;
+        this.Result = functionResult.Content;
         this.Metadata = functionResult.Metadata is not null ?  new Dictionary<string,object?>(functionResult.Metadata) : null;
-        this.ValueTypeName = functionResult.ValueType?.FullName;
+        this.ValueTypeName = functionResult.TypeName;
         this.RenderedPrompt = null;
     }
 
