@@ -17,14 +17,13 @@
 using System.Collections.Generic;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
+
+/*
 public class LocalChatService : ChatService
 {
     internal LocalChatService(AiOptions options, ILoggerFactory? loggerFactory = null) : base(options, loggerFactory) { }
@@ -85,3 +84,4 @@ public class LocalChatService : ChatService
     }
 }
 
+*/

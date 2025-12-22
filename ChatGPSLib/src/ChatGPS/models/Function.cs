@@ -15,8 +15,7 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SemanticKernel;
-using  Modulus.ChatGPS.Services;
+using Modulus.ChatGPS.Services;
 
 namespace Modulus.ChatGPS.Models;
 
@@ -66,8 +65,8 @@ public class Function
         if ( boundParameters is not null )
         {
             foreach ( var parameterName in boundParameters.Keys )
-            {
-                if ( ! this.Parameters.ContainsKey(parameterName) )
+            {  
+             if ( ! this.Parameters.ContainsKey(parameterName) )
                 {
                     throw new ArgumentException($"The specified parameter {parameterName} is not defined for the specified function");
                 }

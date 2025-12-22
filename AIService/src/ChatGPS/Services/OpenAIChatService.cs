@@ -15,13 +15,12 @@
 //
 
 using System.Collections.Generic;
+using System.ClientModel;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.DependencyInjection;
-
 using Modulus.ChatGPS.Models;
+using OpenAI;
 
 namespace Modulus.ChatGPS.Services;
 
@@ -29,7 +28,7 @@ public class OpenAIChatService : ChatService
 {
     internal OpenAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -46,6 +45,20 @@ public class OpenAIChatService : ChatService
             throw new ArgumentException("An API key is required for the language model service.");
         }
 
+        var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
+
+        var clientOptions = new OpenAIClientOptions();
+
+        clientOptions.Endpoint = this.options.ApiEndpoint ?? GetDefaultEndpoint();
+
+        var apiKeyCredential = new ApiKeyCredential(cleartextKey);
+
+        var apiClient = new OpenAIClient(credential : apiKeyCredential, options : clientOptions);
+
+        var chatClient = apiClient.GetChatClient(this.options.ModelIdentifier).AsIChatClient(); // AsIChatClient(modelId : this.options.ModelIdentifier);
+
+        var newKernel = new AIKernel(chatClient);
+/*
         var builder = base.GetKernelBuilder();
 
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
@@ -86,7 +99,7 @@ public class OpenAIChatService : ChatService
         {
             throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
         }
-
+*/
         this.serviceKernel = newKernel;
 
         return newKernel;

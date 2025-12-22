@@ -23,18 +23,9 @@ namespace Modulus.ChatGPS.Plugins;
 
 public class PluginTable : IPluginTable
 {
-    public PluginTable(AIKernel kernel, IEnumerable<Plugin>? plugins = null)
-    {
-        this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
-
-        SynchronizePlugins(plugins);
-        this.kernel = kernel;
-    }
-
     public PluginTable(IEnumerable<Plugin>? plugins = null)
     {
         this.plugins = plugins is not null ? PluginTable.ToPluginMap(plugins) : new Dictionary<string,Plugin>(StringComparer.OrdinalIgnoreCase);
-        this.kernel = null;
     }
 
     public bool TryGetPlugin(string name, out Plugin? plugin)
@@ -59,22 +50,12 @@ public class PluginTable : IPluginTable
 
         var plugin = new Plugin(provider.Name, provider, parameters);
 
-        if ( this.kernel is not null )
-        {
-            this.kernel.AddPlugin(plugin);
-        }
-
         this.plugins.Add(provider.Name, plugin);
     }
 
     public void RemovePlugin(string name)
     {
         var plugin = this.plugins[name];
-
-        if ( this.kernel is not null )
-        {
-            this.kernel.RemovePlugin(plugin);
-        }
 
         this.plugins.Remove(name);
     }
@@ -89,20 +70,6 @@ public class PluginTable : IPluginTable
 
     public IShellContext? Context { get; set; }
 
-    /*
-    public ShellContext? Context
-    {
-        get
-        {
-            return this.context;
-        }
-
-        private set
-        {
-            this.context = value;
-        }
-    }
-    */
     public static void SynchronizePlugins(IPluginTable pluginTable, IEnumerable<Plugin>? latestPlugins, ShellContext? clientContext)
     {
         UpdateContext(pluginTable, clientContext);
@@ -226,7 +193,6 @@ public class PluginTable : IPluginTable
         this.Context?.Update(clientContext);
     }
 
-    private AIKernel? kernel;
     private Dictionary<string,Plugin> plugins;
  }
 

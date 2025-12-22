@@ -20,90 +20,65 @@ using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
 
 namespace Modulus.ChatGPS.Models;
-
-public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
-    System.Collections.Generic.ICollection<ChatMessage>,
-    System.Collections.Generic.IEnumerable<ChatMessage>
+/*
+public class ChatMessageHistory : System.Collections.Generic.IList<IChatMessage>,
+    System.Collections.Generic.ICollection<IChatMessage>,
+    System.Collections.Generic.IEnumerable<IChatMessage>
 {
-    public class ChatMessageEnumerator : System.Collections.Generic.IEnumerator<ChatMessage>
-    {
-        public ChatMessageEnumerator(System.Collections.Generic.IEnumerator<Microsoft.Extensions.AI.ChatMessage> sourceEnumerator,
-                                      ChatMessageHistory history)
-        {
-            this.sourceEnumerator = sourceEnumerator;
-            this.history = history;
-        }
-
-        public ChatMessage Current
-        {
-            get
-            {
-                return GetCurrent();
-            }
-        }
-
-        object System.Collections.IEnumerator.Current
-        {
-            get
-            {
-                return GetCurrent();
-            }
-        }
-
-        public bool MoveNext()
-        {
-            return this.sourceEnumerator.MoveNext();
-        }
-
-        public void Reset()
-        {
-            this.sourceEnumerator.Reset();
-        }
-
-        public void Dispose()
-        {
-            this.sourceEnumerator.Dispose();
-        }
-
-        private ChatMessage GetCurrent()
-        {
-            var privateItem = this.sourceEnumerator.Current;
-            return history.GetPublicItem(privateItem);
-        }
-
-        private System.Collections.Generic.IEnumerator<Microsoft.Extensions.AI.ChatMessage> sourceEnumerator;
-        private ChatMessageHistory history;
-    }
-
     public ChatMessageHistory()
     {
-        this.sourceHistory = new List<Microsoft.Extensions.AI.ChatMessage>();
-        this.privateToPublicMap = new System.Collections.Generic.Dictionary<Microsoft.Extensions.AI.ChatMessage, ChatMessage>();
+        this.sourceHistory = new List<IChatMessage>();
     }
 
-    public ChatMessageHistory( System.Collections.Generic.IList<Microsoft.Extensions.AI.ChatMessage> sourceHistory )
+    public ChatMessageHistory(ChatMessageHistory sourceHistory)
+    {
+        this.sourceHistory = new List<IChatMessage>(sourceHistory.sourceHistory);
+    }
+
+    public ChatMessageHistory( System.Collections.Generic.IList<IChatMessage> sourceHistory )
     {
         this.sourceHistory = sourceHistory;
-        this.privateToPublicMap = new System.Collections.Generic.Dictionary<Microsoft.Extensions.AI.ChatMessage, ChatMessage>();
     }
 
-    public ChatMessage this[int index]
+    public ChatMessageHistory(string systemPrompt)
+    {
+        this.sourceHistory = new List<IChatMessage>();
+
+        var systemMessage = new ChatMessage(SenderRole.System, systemPrompt);
+
+        this.Add(systemMessage);
+    }
+
+    public IChatMessage this[int index]
     {
         get
         {
             var privateItem = this.sourceHistory[index];
 
-            return GetPublicItem(privateItem);
+            var publicItem = GetPublicItem(privateItem);
+
+            if ( publicItem is null )
+            {
+                throw new ArgumentException("Object state is invalid");
+            }
+
+            return publicItem;
         }
 
         set
         {
-            var currentIndex = this.sourceHistory.IndexOf(value.SourceChatMessageContent2);
+            var sourceItem = ((ChatMessage)value).SourceChatMessageContent2;
+
+            if ( sourceItem is null )
+            {
+                throw new ArgumentException("Enumerated item is invalid");
+            }
+
+            var currentIndex = this.sourceHistory.IndexOf(sourceItem);
 
             if ( currentIndex != -1 )
             {
-                this.sourceHistory[index] = value.SourceChatMessageContent2;
-                GetPublicItem(value.SourceChatMessageContent2);
+                this.sourceHistory[index] = sourceItem;
             }
             else if ( currentIndex != index )
             {
@@ -112,22 +87,35 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
     }
 
-    public int IndexOf(ChatMessage chatMessage)
+    public int IndexOf(IChatMessage chatMessage)
     {
-        return this.sourceHistory.IndexOf(chatMessage.SourceChatMessageContent2);
+        var sourceItem = ((ChatMessage)chatMessage).SourceChatMessageContent2;
+
+        if ( sourceItem is null )
+        {
+            throw new ArgumentException("Enumerated item is invalid");
+        }
+
+        return this.sourceHistory.IndexOf(sourceItem);
     }
 
-    public void Insert(int index, ChatMessage chatMessage)
+    public void Insert(int index, IChatMessage chatMessage)
     {
-        this.sourceHistory.Insert(index, chatMessage.SourceChatMessageContent2);
-        GetPublicItem(chatMessage.SourceChatMessageContent2);
-}
+        var sourceItem = ((ChatMessage)chatMessage).SourceChatMessageContent2;
+
+        if ( sourceItem is null )
+        {
+            throw new ArgumentException("Enumerated item is invalid");
+        }
+
+        this.sourceHistory.Insert(index, sourceItem);
+    }
 
     public void RemoveAt(int index)
     {
         var privateItem = this[index];
         this.sourceHistory.RemoveAt(index);
-        this.privateToPublicMap.Remove(privateItem.SourceChatMessageContent2);
+//        this.privateToPublicMap.Remove(privateItem.SourceChatMessageContent2);
     }
 
     public int Count
@@ -142,11 +130,11 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
     {
         get
         {
-            return ((System.Collections.Generic.ICollection<Microsoft.Extensions.AI.ChatMessage>)this.sourceHistory).IsReadOnly;
+            return ((System.Collections.Generic.ICollection<IChatMessage>)this.sourceHistory).IsReadOnly;
         }
     }
 
-    public void Add(ChatMessage chatMessage)
+    public void Add(IChatMessage chatMessage)
     {
         Insert(this.Count, chatMessage);
     }
@@ -154,15 +142,22 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
     public void Clear()
     {
         this.sourceHistory.Clear();
-        this.privateToPublicMap.Clear();
+//        this.privateToPublicMap.Clear();
     }
 
-    public bool Contains(ChatMessage chatMessage)
+    public bool Contains(IChatMessage chatMessage)
     {
-        return this.sourceHistory.Contains(chatMessage.SourceChatMessageContent2);
+        var sourceItem = ((ChatMessage)chatMessage).SourceChatMessageContent2;
+
+        if ( sourceItem is null )
+        {
+            throw new ArgumentException("Enumerated item is invalid");
+        }
+
+        return this.sourceHistory.Contains(sourceItem);
     }
 
-    public void CopyTo(ChatMessage[] array, int arrayIndex)
+    public void CopyTo(IChatMessage[] array, int arrayIndex)
     {
         if ( arrayIndex >= 0 )
         {
@@ -176,8 +171,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
 
             foreach ( var sourceChatMessage in this.sourceHistory )
             {
-                var publicChatMessage = GetPublicItem(sourceChatMessage);
-                array[currentIndex++] = publicChatMessage;
+                array[currentIndex++] = sourceChatMessage;
             }
         }
         else
@@ -186,9 +180,16 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
     }
 
-    public bool Remove(ChatMessage chatMessage)
+    public bool Remove(IChatMessage chatMessage)
     {
-        var index = this.sourceHistory.IndexOf(chatMessage.SourceChatMessageContent2);
+        var sourceItem = ((ChatMessage)chatMessage).SourceChatMessageContent2;
+
+        if ( sourceItem is null )
+        {
+            throw new ArgumentException("Enumerated item is invalid");
+        }
+
+        var index = this.sourceHistory.IndexOf(chatMessage);
 
         bool existed = index > -1;
 
@@ -200,19 +201,21 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         return existed;
     }
 
-    public IEnumerator<ChatMessage> GetEnumerator()
+    public IEnumerator<IChatMessage> GetEnumerator()
     {
-        return new ChatMessageEnumerator(((IEnumerable<Microsoft.Extensions.AI.ChatMessage>)this.sourceHistory).GetEnumerator(), this);
+        return this.sourceHistory.GetEnumerator();
     }
 
     System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
     {
-        return ((IEnumerable<ChatMessage>) this).GetEnumerator();
+        return ((IEnumerable<IChatMessage>) this).GetEnumerator();
     }
 
-    public ChatMessage GetPublicItem(Microsoft.Extensions.AI.ChatMessage privateObject)
+    public IChatMessage? GetPublicItem(IChatMessage? privateObject)
     {
-        var privateItem = (Microsoft.Extensions.AI.ChatMessage) privateObject;
+        return privateObject;
+        /*
+        var privateItem = privateObject;
 
         ChatMessage? publicItem;
 
@@ -228,6 +231,8 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
 
         return publicItem;
+*/
+/*
     }
 
     public void Reset()
@@ -244,7 +249,14 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
     }
 
-    internal IList<Microsoft.Extensions.AI.ChatMessage> SourceHistory
+    public void AddMessage(SenderRole role, string prompt, IReadOnlyDictionary<string,object?>? messageProperties)
+    {
+        var newMessage = new ChatMessage(role, prompt, messageProperties);
+
+        Add(newMessage);
+    }
+
+    internal IList<IChatMessage> SourceHistory
     {
         get
         {
@@ -252,8 +264,7 @@ public class ChatMessageHistory : System.Collections.Generic.IList<ChatMessage>,
         }
     }
 
-    private System.Collections.Generic.IList<Microsoft.Extensions.AI.ChatMessage> sourceHistory;
-
-    private System.Collections.Generic.Dictionary<Microsoft.Extensions.AI.ChatMessage, ChatMessage> privateToPublicMap;
+    private System.Collections.Generic.IList<IChatMessage> sourceHistory;
 }
+*/
 

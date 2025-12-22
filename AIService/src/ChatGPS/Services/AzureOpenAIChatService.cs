@@ -15,14 +15,13 @@
 //
 
 using System.Collections.Generic;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.DependencyInjection;
 using Azure.AI.OpenAI;
 
 using Modulus.ChatGPS.Models;
+
 
 namespace Modulus.ChatGPS.Services;
 
@@ -30,7 +29,7 @@ public class AzureOpenAIChatService : ChatService
 {
     internal AzureOpenAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -41,8 +40,6 @@ public class AzureOpenAIChatService : ChatService
         {
             throw new ArgumentException("A deployment name for the language model must be specified.");
         }
-
-        var builder = base.GetKernelBuilder();
 
         if ( this.options.ApiEndpoint == null )
         {
@@ -80,11 +77,17 @@ public class AzureOpenAIChatService : ChatService
                 clientOptions);
         }
 
-        builder.AddAzureOpenAIChatCompletion(
+        var chatClient = apiClient.GetChatClient(this.options.DeploymentName).AsIChatClient();
+
+//        var builder = new ChatClientBuilder(chatClient);
+
+/*        builder.AddAzureOpenAIChatCompletion(
             deploymentName: this.options.DeploymentName,
             azureOpenAIClient: apiClient);
+*/
 
         // Configure throttling retry behavior
+/*
         builder.Services.ConfigureHttpClientDefaults(c =>
         {
             c.AddStandardResilienceHandler(o =>
@@ -93,14 +96,16 @@ public class AzureOpenAIChatService : ChatService
                 o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
             });
         });
+*/
+//        var chatClient = builder.Build();
 
-        var newKernel = builder.Build();
-
+        var newKernel = new AIKernel(chatClient);
+/*
         if ( newKernel == null )
         {
             throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
         }
-
+*/
         this.serviceKernel = newKernel;
 
         return newKernel;

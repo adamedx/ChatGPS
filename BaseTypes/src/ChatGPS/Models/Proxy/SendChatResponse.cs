@@ -14,19 +14,17 @@
 // limitations under the License.
 //
 
-using Microsoft.Extensions.AI;
-
 namespace Modulus.ChatGPS.Models.Proxy;
 
 public class SendChatResponse : CommandResponse
 {
     public SendChatResponse() {}
 
-    public SendChatResponse( string? responseMessage = null, ChatMessage.SenderRole? role = null )
+    public SendChatResponse( string? responseMessage = null, SenderRole? role = null )
     {
         if ( responseMessage is not null )
         {
-            this.ChatResponse = new ChatMessage( role ?? ChatMessage.SenderRole.Assistant, responseMessage );
+            this.ChatResponse = new ChatMessage( role ?? SenderRole.Assistant, responseMessage );
         }
     }
 

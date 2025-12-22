@@ -17,9 +17,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
@@ -31,7 +28,7 @@ public class AnthropicChatService : ChatService
 {
     internal AnthropicChatService(AiOptions options, ILoggerFactory? loggerFactory = null) : base(options, loggerFactory) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -51,7 +48,7 @@ public class AnthropicChatService : ChatService
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
         var apiKey = new APIAuthentication( cleartextKey );
-
+/*
         this.initialPromptSettings = new OpenAIPromptExecutionSettings()
         {
             ModelId = this.options.ModelIdentifier,
@@ -59,7 +56,8 @@ public class AnthropicChatService : ChatService
         };
 
         var builder = base.GetKernelBuilder();
-
+*/
+/*
         // Configure throttling retry behavior
         builder.Services.ConfigureHttpClientDefaults(c =>
         {
@@ -80,9 +78,16 @@ public class AnthropicChatService : ChatService
         {
             throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
         }
+*/
+
+        var chatClient = (IChatClient) new AnthropicClient(apiKey).Messages;
+
+        var newKernel = new AIKernel(chatClient);
 
         this.serviceKernel = newKernel;
 
         return newKernel;
     }
 }
+
+

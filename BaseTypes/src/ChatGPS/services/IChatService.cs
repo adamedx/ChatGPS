@@ -22,8 +22,8 @@ namespace Modulus.ChatGPS.Services;
 
 public interface IChatService
 {
-    public ChatMessageHistory CreateChat(string prompt);
-    public Task<IReadOnlyList<ChatMessage>> GetChatCompletionAsync(ChatMessageHistory history, bool? allowAgentAccess = null);
+    public List<ChatMessage> CreateChat(string prompt);
+    public Task<IReadOnlyList<ChatMessage>> GetChatCompletionAsync(List<ChatMessage> history, bool? allowAgentAccess = null);
     public Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string, object?>? parameters, bool? allowFunctionCall);
     public AiOptions ServiceOptions { get; }
     public IPluginTable Plugins { get; }

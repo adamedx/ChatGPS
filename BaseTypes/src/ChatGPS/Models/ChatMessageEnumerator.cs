@@ -17,7 +17,7 @@
 using System.Collections.ObjectModel;
 
 namespace Modulus.ChatGPS.Models;
-
+/*
 internal class ChatMessageEnumerator : System.Collections.Generic.IEnumerator<ChatMessage>
 {
     public ChatMessageEnumerator(System.Collections.Generic.IEnumerator<Microsoft.Extensions.AI.ChatMessage> sourceEnumerator,
@@ -67,3 +67,4 @@ internal class ChatMessageEnumerator : System.Collections.Generic.IEnumerator<Ch
     private System.Collections.Generic.IEnumerator<Microsoft.Extensions.AI.ChatMessage> sourceEnumerator;
     private ChatMessageHistory history;
 }
+*/

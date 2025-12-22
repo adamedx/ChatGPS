@@ -21,8 +21,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Modulus.ChatGPS.Services;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
+
 
 internal class ConversationBuilder
 {
@@ -31,7 +30,7 @@ internal class ConversationBuilder
         this.chatService = chatService;
     }
 
-    internal ChatHistory CreateConversationHistory(string systemPrompt)
+    internal List<ChatMessage> CreateConversationHistory(string systemPrompt)
     {
         var history = this.chatService.CreateChat(systemPrompt);
 
@@ -48,7 +47,7 @@ internal class ConversationBuilder
         }
     }
 
-    internal async Task<string> SendMessageAsync(ChatHistory chatHistory, bool? allowAgentAccess = null)
+    internal async Task<string> SendMessageAsync(List<ChatMessage> chatHistory, bool? allowAgentAccess = null)
     {
         var stopWatch = new Stopwatch();
 
@@ -72,13 +71,13 @@ internal class ConversationBuilder
         return results;
     }
 
-    internal async Task<string> InvokeFunctionAsync(ChatHistory chatHistory, Function chatFunction, string? prompt = null, bool? allowAgentAccess = null)
+    internal async Task<string> InvokeFunctionAsync(List<ChatMessage> chatHistory, Function chatFunction, string? prompt = null, bool? allowAgentAccess = null)
     {
         var targetPrompt = prompt is not null ? prompt : chatHistory[chatHistory.Count - 1].Content;
 
         if ( prompt is not null )
         {
-            AddMessageToConversation(chatHistory, AuthorRole.User, prompt, new TimeSpan(0));
+            AddMessageToConversation(chatHistory, SenderRole.User, prompt, new TimeSpan(0));
         }
 
         var stopWatch = new Stopwatch();
@@ -96,20 +95,20 @@ internal class ConversationBuilder
         return targetResult;
     }
 
-    internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, TimeSpan duration)
+    internal void AddMessageToConversation(List<ChatMessage> chatHistory, SenderRole role, string prompt, TimeSpan duration)
     {
         var targetProperties = CreateMessageProperties(duration);
 
-        chatHistory.AddMessage(role, prompt, null, targetProperties);
+        chatHistory.Add(new ChatMessage(role, prompt, targetProperties));
     }
 
-    internal void AddMessageToConversation(ChatHistory chatHistory, AuthorRole role, string prompt, IReadOnlyDictionary<string,object?>? messageProperties = null)
+    internal void AddMessageToConversation(List<ChatMessage> chatHistory, SenderRole role, string prompt, IReadOnlyDictionary<string,string?>? messageProperties = null)
     {
         var targetProperties = messageProperties is not null ? messageProperties : CreateMessageProperties();
-        chatHistory.AddMessage(role, prompt, null, targetProperties);
+        chatHistory.Add(new ChatMessage(role, prompt, targetProperties));
     }
 
-    static internal void CopyMessageToConversation(ChatHistory destinationHistory, ChatHistory sourceHistory, int messageIndex)
+    static internal void CopyMessageToConversation(List<ChatMessage> destinationHistory, List<ChatMessage> sourceHistory, int messageIndex)
     {
         if ( sourceHistory[messageIndex].Role == destinationHistory[destinationHistory.Count - 1].Role )
         {
@@ -127,29 +126,29 @@ internal class ConversationBuilder
             throw new ArgumentException("Unexpected null content in message");
         }
 
-        destinationHistory.AddMessage(sourceHistory[messageIndex].Role, content, null, sourceHistory[messageIndex].Metadata);
+        destinationHistory.Add(new ChatMessage(sourceHistory[messageIndex].Role, content, sourceHistory[messageIndex].Metadata));
     }
 
-    internal void UpdateHistoryWithResponse(ChatHistory chatHistory, string response, TimeSpan duration)
+    internal void UpdateHistoryWithResponse(List<ChatMessage> chatHistory, string response, TimeSpan duration)
     {
-        AddMessageToConversation(chatHistory, AuthorRole.Assistant, response, duration);
+        AddMessageToConversation(chatHistory, SenderRole.Assistant, response, duration);
     }
 
-    internal void UpdateHistoryWithResponse(ChatHistory chatHistory, string response)
+    internal void UpdateHistoryWithResponse(List<ChatMessage> chatHistory, string response)
     {
-        AddMessageToConversation(chatHistory, AuthorRole.Assistant, response);
+        AddMessageToConversation(chatHistory, SenderRole.Assistant, response);
     }
 
-    private ReadOnlyDictionary<string,object?>? CreateMessageProperties(TimeSpan? duration = null)
+    private Dictionary<string,string?>? CreateMessageProperties(TimeSpan? duration = null)
     {
-        var dictionary = new Dictionary<string,object?>
+        var dictionary = new Dictionary<string,string?>
         {
-            { ChatMessage.MetadataKeys.Timestamp.ToString(), JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
-            { ChatMessage.MetadataKeys.MessageIndex.ToString(), JsonSerializer.Serialize<int>(this.messageIndex++) },
-            { ChatMessage.MetadataKeys.Duration.ToString(), JsonSerializer.Serialize<TimeSpan?>(duration) }
+            { MetadataKeys.Timestamp.ToString(), JsonSerializer.Serialize<DateTimeOffset>(DateTimeOffset.Now) },
+            { MetadataKeys.MessageIndex.ToString(), JsonSerializer.Serialize<int>(this.messageIndex++) },
+            { MetadataKeys.Duration.ToString(), JsonSerializer.Serialize<TimeSpan?>(duration) }
         };
 
-        return new ReadOnlyDictionary<string,object?>(dictionary);
+        return new Dictionary<string,string?>(dictionary);
     }
 
     private IChatService chatService;

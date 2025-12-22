@@ -20,11 +20,6 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Core;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Plugins;
 using Modulus.ChatGPS.Utilities;
@@ -40,9 +35,15 @@ public abstract class ChatService : IChatService
         this.userAgent = userAgent;
     }
 
-    public ChatHistory CreateChat(string prompt)
+    public List<ChatMessage> CreateChat(string prompt)
     {
-        return new ChatHistory(prompt);
+        var result = new List<ChatMessage>();
+
+        var systemMessage = new ChatMessage(SenderRole.System, prompt);
+
+        result.Add(systemMessage);
+
+        return result;
     }
 
     public AiOptions ServiceOptions
@@ -53,23 +54,13 @@ public abstract class ChatService : IChatService
         }
     }
 
-    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
+    public async Task<IReadOnlyList<ChatMessage>> GetChatCompletionAsync(List<ChatMessage> history, bool? allowAgentAccess)
     {
-        IReadOnlyList<ChatMessageContent> result;
-
-        var requestSettings = GetPromptExecutionSettings(this.options);
-
-        var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
-            ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
-
-        if ( allowFunctionCall )
-        {
-            requestSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
-        }
+        ChatMessage nextMessage;
 
         try
         {
-            result = await GetChatCompletionService().GetChatMessageContentsAsync(history, requestSettings, GetKernelWithState()).ConfigureAwait(false);
+            nextMessage = await GetChatCompletionService().GetNextChatMessageAsync(history, this.options, allowAgentAccess).ConfigureAwait(false);
             this.HasSucceeded = true;
         }
         catch (Exception exception)
@@ -77,35 +68,22 @@ public abstract class ChatService : IChatService
             throw new AIServiceException(exception);
         }
 
+        var result = new List<ChatMessage>();
+
+        result.Add(nextMessage);
+
         return result;
     }
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)
     {
-        var requestSettings = GetPromptExecutionSettings(this.options);
-
-        var allowFunctionCall = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
-            ( this.options.AllowAgentAccess is not null ? (bool) this.options.AllowAgentAccess : false );
-
-        if ( allowFunctionCall )
-        {
-            requestSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto();
-        }
-
-        var executionSettings = new Dictionary<string,PromptExecutionSettings>
-        {
-            { PromptExecutionSettings.DefaultServiceId, requestSettings }
-        };
-
         var kernelFunction = GetKernelWithState().CreateFunctionFromPrompt(definitionPrompt);
 
-        var kernelArguments = new KernelArguments(parameters ?? new Dictionary<string,object?>(), executionSettings);
-
-        var result = await GetKernelWithState().InvokeAsync(kernelFunction, kernelArguments).ConfigureAwait(false);
+        var result = await GetKernelWithState().InvokeFunctionAsync(kernelFunction, this.options, parameters, allowAgentAccess).ConfigureAwait(false);
 
         this.HasSucceeded = true;
 
-        return new FunctionOutput(result);
+        return result;
     }
 
     public IPluginTable Plugins
@@ -134,17 +112,15 @@ public abstract class ChatService : IChatService
 
     protected bool HasSucceeded { get; private set; }
 
-    private KernelFunction CreateFunction(string definitionPrompt)
+    private AIChatFunction CreateFunction(string definitionPrompt)
     {
         var kernel = GetKernelWithState();
 
-        var requestSettings = new OpenAIPromptExecutionSettings();
-
-        KernelFunction result;
+        AIChatFunction result;
 
         try
         {
-            result = kernel.CreateFunctionFromPrompt(definitionPrompt, executionSettings: requestSettings);
+            result = kernel.CreateFunctionFromPrompt(definitionPrompt);
         }
         catch ( Exception exception )
         {
@@ -154,110 +130,34 @@ public abstract class ChatService : IChatService
         return result;
     }
 
-    protected abstract Kernel GetKernel();
+    protected abstract IAIKernel GetKernel();
 
-    protected IKernelBuilder GetKernelBuilder()
+    protected virtual Uri? GetDefaultEndpoint()
     {
-        var builder = Kernel.CreateBuilder();
-
-        if ( this.loggerFactory is not null )
-        {
-            // May need to find a way to clear existing log providers
-            builder.Services.AddSingleton<ILoggerFactory>(this.loggerFactory);
-        }
-
-        return builder;
+        return null;
     }
 
-    protected Kernel GetKernelWithState()
+    protected IAIKernel GetKernelWithState()
     {
         var kernel = GetKernel();
 
         if ( this.pluginTable is null )
         {
-            this.pluginTable = new PluginTable(kernel);
+            this.pluginTable = new PluginTable();
         }
 
         return kernel;
     }
 
-    protected OpenAIPromptExecutionSettings GetPromptExecutionSettings(AiOptions options)
+    private IAIKernel GetChatCompletionService()
     {
-        // We explicitly use OpenAIPromptExecutionSettings for now because it seems to be compatible
-        // with all of the models -- for example, token limit is not part of PromptExecutionSettings,
-        // but it is part of OpenAIPromptExecutionSettings, and setting it here works even for models
-        // that don't let you specify the token limit during kernelBuilder build time. This may use
-        // the ExtensionData property of PromptExecutionSettings in some way when transmitting to
-        // models that don't use a more derived type, i.e. any properties in OpenAIPromptExecutionSettings
-        // may be expressed via the ExtensionData property, which is itself a dictionary of properties.
-        OpenAIPromptExecutionSettings result;
-
-        if ( this.initialPromptSettings is null )
-        {
-            result = new OpenAIPromptExecutionSettings();
-        }
-        else
-        {
-            // This supports providers that don't have a KernelBuilder extension that supports
-            // parameters that other more "native" SK providers configure via the builder. Some
-            // providers require parameters such as the modelId (!) to be configured through
-            // PromptExecutionSettings.
-            result = (OpenAIPromptExecutionSettings) this.initialPromptSettings.Clone();
-        }
-
-        if ( this.options.TokenLimit is not null )
-        {
-            var tokenLimit = this.options.TokenLimit > 0 ? this.options.TokenLimit : tokenLimitDefault;
-            Logger.Log(string.Format("Setting token limit to {0}", tokenLimit));
-            result.MaxTokens = tokenLimit;
-        }
-        else
-        {
-            Logger.Log("No token limit");
-        }
-
-        return result;
+        return GetKernelWithState();
     }
 
-    private IChatCompletionService GetChatCompletionService()
-    {
-        if ( this.chatCompletionService is null )
-        {
-            Kernel kernel;
-
-            try
-            {
-                kernel = GetKernelWithState();
-            }
-            catch (Exception exception)
-            {
-                throw new AIServiceException(exception);
-            }
-
-            try
-            {
-                this.chatCompletionService = kernel.GetAllServices<IChatCompletionService>().FirstOrDefault();
-            }
-            catch (Exception exception)
-            {
-                throw new AIServiceException(exception);
-            }
-        }
-
-        if ( this.chatCompletionService is null )
-        {
-            throw new InvalidOperationException("A null result was obtained for the chat completion service");
-        }
-
-        return this.chatCompletionService;
-    }
-
-    protected Kernel? serviceKernel;
-    protected IChatCompletionService? chatCompletionService;
+    protected IAIKernel? serviceKernel;
     protected AiOptions options;
     protected string? userAgent;
     protected PluginTable? pluginTable;
-    protected OpenAIPromptExecutionSettings? initialPromptSettings = null;
 
     protected const int tokenLimitDefault = 16384;
 
