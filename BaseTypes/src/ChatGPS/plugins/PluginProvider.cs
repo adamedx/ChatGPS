@@ -47,6 +47,7 @@ public abstract class PluginProvider
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Google, "Google"));
 */
         PluginProvider.RegisterProvider(new LocalContextPluginProvider());
+        PluginProvider.RegisterProvider(new StaticPluginProvider("TimePlugin", typeof(TimeNativePlugin), "Uses the local computer to obtain the current time.", null));
 //        #pragma warning restore SKEXP0050
     }
 

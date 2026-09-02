@@ -15,7 +15,7 @@ versions aligned is important: the agent and function-invocation middleware use 
 
 ## Plugin support
 
-`LocalContext` was the first plugin implemented in this port. Its native plugin instance is created from the registered `LocalContextPluginProvider`. Public instance methods on `LocalContextNativePlugin` are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their existing method
+`LocalContext` and `TimePlugin` are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin` and `TimeNativePlugin` are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their method
 descriptions are therefore exposed to the model without changing the plugin command interface.
 
 Other plugin names are rejected with `NotImplementedException` rather than being silently ignored. This makes the current scope explicit and avoids
@@ -46,7 +46,8 @@ existing proxy/session ownership model.
 With agent access enabled, the proxy request carries the synchronized plugin definitions and shell context to the AI service:
 
 1. `ChatService.GetKernelWithState()` supplies its `PluginTable` to `AIKernel`.
-2. `AIKernel.CreateAgent()` creates `LocalContext` tools from that table.
+2. `AIKernel.CreateAgent()` creates tools for the registered `LocalContext` and
+   `TimePlugin` plugins from that table.
 3. `ChatOptions.ToolMode` is set to `Auto`.
 4. The model may select a tool, such as `get_process_id`.
 5. `FunctionInvokingChatClient` invokes the native method with the session's shell context.

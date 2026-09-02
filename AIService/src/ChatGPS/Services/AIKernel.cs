@@ -99,7 +99,9 @@ public class AIKernel : IAIKernel
 
     public void RemovePlugin(Plugin plugin)
     {
-        if ( plugin.Name is not null && ! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) )
+        if ( plugin.Name is not null &&
+             ! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) &&
+             ! string.Equals(plugin.Name, "TimePlugin", StringComparison.OrdinalIgnoreCase) )
         {
             throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
         }
@@ -136,7 +138,9 @@ public class AIKernel : IAIKernel
 
         foreach ( var plugin in plugins )
         {
-            if ( plugin.Name is null || ! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) )
+            if ( plugin.Name is null ||
+                 (! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) &&
+                  ! string.Equals(plugin.Name, "TimePlugin", StringComparison.OrdinalIgnoreCase)) )
             {
                 throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
             }
