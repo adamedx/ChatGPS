@@ -129,7 +129,8 @@ public class AIKernel : IAIKernel
     {
         return string.Equals(name, "LocalContext", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(name, "TimePlugin", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "FileIOPlugin", StringComparison.OrdinalIgnoreCase);
+               string.Equals(name, "FileIOPlugin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "DocumentPlugin", StringComparison.OrdinalIgnoreCase);
     }
 
     private List<AITool> CreateTools(IEnumerable<Plugin>? plugins)
