@@ -49,6 +49,7 @@ public abstract class PluginProvider
         PluginProvider.RegisterProvider(new LocalContextPluginProvider());
         PluginProvider.RegisterProvider(new StaticPluginProvider("TimePlugin", typeof(TimeNativePlugin), "Uses the local computer to obtain the current time.", null));
         PluginProvider.RegisterProvider(new StaticPluginProvider("FileIOPlugin", typeof(FileIONativePlugin), "Enables read and write access to the local file system.", null));
+        PluginProvider.RegisterProvider(new StaticPluginProvider("DocumentPlugin", typeof(DocumentNativePlugin), "Enables the ability to read the contents of Microsoft Word documents in the local file system.", null));
 //        #pragma warning restore SKEXP0050
     }
 
