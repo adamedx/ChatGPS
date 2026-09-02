@@ -14,7 +14,8 @@
 // limitations under the License.
 //
 
-
+using System.Reflection;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,24 +39,40 @@ public class AIKernel : IAIKernel
 
         var chatOptions = GetPromptExecutionSettings(options, allowAgentAccess);
 
-        var response = await chatClient.GetResponseAsync(
-            nativeHistory, chatOptions);
+        var response = await CreateAgent(allowAgentAccess).RunAsync(
+            nativeHistory,
+            null,
+            new ChatClientAgentRunOptions(chatOptions)).ConfigureAwait(false);
 
-        var nativeMessage = response.Messages.FirstOrDefault();
-
-        var result = nativeMessage is not null ? new AIChatMessage(nativeMessage) : new AIChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant, "Unknown response");
+        var result = new AIChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant, response.Text ?? "Unknown response");
 
         return result.ToChatMessage();
     }
 
-	public Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object?>? functionArguments, bool? allowAgentAccess)
+    public async Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object?>? functionArguments, bool? allowAgentAccess)
     {
-        throw new NotImplementedException("Chat functions are not yet implemented");
+        var renderedPrompt = chatFunction.RenderPrompt(functionArguments);
+
+        var history = new List<Modulus.ChatGPS.Models.ChatMessage>
+        {
+            new Modulus.ChatGPS.Models.ChatMessage(SenderRole.User, renderedPrompt)
+        };
+
+        var chatOptions = GetPromptExecutionSettings(options, allowAgentAccess);
+
+        var nativeHistory = GetNativeHistory(history);
+
+        var response = await CreateAgent(allowAgentAccess).RunAsync(
+            nativeHistory,
+            null,
+            new ChatClientAgentRunOptions(chatOptions)).ConfigureAwait(false);
+
+        return new FunctionOutput(new AIFunctionResult(response.Text ?? "", typeof(string), null, null));
     }
 
     public AIChatFunction CreateFunctionFromPrompt(string definitionPrompt, AiOptions? options = null)
     {
-        throw new NotImplementedException("Chat functions are not yet implemented");
+        return new AIChatFunction(definitionPrompt);
     }
 
     public void AddLogger(ILoggerFactory? loggerFactory)
@@ -77,12 +94,68 @@ public class AIKernel : IAIKernel
 
     public void AddPlugin(Plugin plugin)
     {
-        throw new NotImplementedException("Plugins are not yet implemented");
+        _ = CreateTools(new[] { plugin });
     }
 
     public void RemovePlugin(Plugin plugin)
     {
-        throw new NotImplementedException("Plugins are not yet implemented");
+        if ( plugin.Name is not null && ! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) )
+        {
+            throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+        }
+    }
+
+    public void SetPluginTable(IPluginTable pluginTable)
+    {
+        this.pluginTable = pluginTable;
+    }
+
+    private ChatClientAgent CreateAgent(bool? allowAgentAccess)
+    {
+        var tools = allowAgentAccess == false ? new List<AITool>() : CreateTools(this.pluginTable?.Plugins);
+        var functionInvokingClient = new FunctionInvokingChatClient(this.chatClient);
+
+        return new ChatClientAgent(
+            functionInvokingClient,
+            null,
+            "ChatGPS",
+            null,
+            tools,
+            null,
+            null);
+    }
+
+    private List<AITool> CreateTools(IEnumerable<Plugin>? plugins)
+    {
+        var tools = new List<AITool>();
+
+        if ( plugins is null )
+        {
+            return tools;
+        }
+
+        foreach ( var plugin in plugins )
+        {
+            if ( plugin.Name is null || ! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) )
+            {
+                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+            }
+
+            var provider = PluginProvider.GetProviderByName(plugin.Name);
+            var nativePlugin = provider.GetNativeInstance(plugin.Parameters, this.pluginTable?.Context);
+
+            foreach ( var method in nativePlugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public) )
+            {
+                if ( method.DeclaringType == typeof(object) || method.IsSpecialName )
+                {
+                    continue;
+                }
+
+                tools.Add(AIFunctionFactory.Create(method, nativePlugin, new AIFunctionFactoryOptions()));
+            }
+        }
+
+        return tools;
     }
 
 
@@ -179,7 +252,7 @@ public class AIKernel : IAIKernel
 
     private Microsoft.Extensions.AI.IChatClient chatClient;
     private Microsoft.Extensions.AI.ChatOptions? initialChatOptions = null;
+    private IPluginTable? pluginTable;
     private int tokenLimitDefault = 4096;
     private bool hasLogger = false;
 }
-

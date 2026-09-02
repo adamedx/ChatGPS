@@ -26,4 +26,5 @@ public interface IAIKernel
     AIChatFunction CreateFunctionFromPrompt(string definitionPrompt, AiOptions? options = null);
     void AddPlugin(Plugin plugin);
     void RemovePlugin(Plugin plugin);
+    void SetPluginTable(IPluginTable pluginTable);
 }
