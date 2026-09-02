@@ -99,9 +99,7 @@ public class AIKernel : IAIKernel
 
     public void RemovePlugin(Plugin plugin)
     {
-        if ( plugin.Name is not null &&
-             ! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) &&
-             ! string.Equals(plugin.Name, "TimePlugin", StringComparison.OrdinalIgnoreCase) )
+        if ( plugin.Name is not null && ! IsSupportedPlugin(plugin.Name) )
         {
             throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
         }
@@ -127,6 +125,13 @@ public class AIKernel : IAIKernel
             null);
     }
 
+    private static bool IsSupportedPlugin(string name)
+    {
+        return string.Equals(name, "LocalContext", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "TimePlugin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "FileIOPlugin", StringComparison.OrdinalIgnoreCase);
+    }
+
     private List<AITool> CreateTools(IEnumerable<Plugin>? plugins)
     {
         var tools = new List<AITool>();
@@ -138,9 +143,7 @@ public class AIKernel : IAIKernel
 
         foreach ( var plugin in plugins )
         {
-            if ( plugin.Name is null ||
-                 (! string.Equals(plugin.Name, "LocalContext", StringComparison.OrdinalIgnoreCase) &&
-                  ! string.Equals(plugin.Name, "TimePlugin", StringComparison.OrdinalIgnoreCase)) )
+            if ( plugin.Name is null || ! IsSupportedPlugin(plugin.Name) )
             {
                 throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
             }
