@@ -146,6 +146,8 @@ public abstract class ChatService : IChatService
             this.pluginTable = new PluginTable();
         }
 
+        kernel.SetPluginTable(this.pluginTable);
+
         return kernel;
     }
 
@@ -163,4 +165,3 @@ public abstract class ChatService : IChatService
 
     private ILoggerFactory? loggerFactory;
 }
-

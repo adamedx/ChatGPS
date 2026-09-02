@@ -99,7 +99,7 @@ public abstract class PluginProvider
         }
     }
 
-    internal abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters, IShellContext? context);
+    public abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters, IShellContext? context);
 
     internal virtual void InitializeInstanceFromData(string[] jsonData) { }
 
@@ -214,4 +214,3 @@ public abstract class PluginProvider
 
     private Dictionary<string, PluginParameter> parameterSpec;
 }
-
