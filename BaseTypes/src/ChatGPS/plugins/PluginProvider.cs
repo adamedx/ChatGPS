@@ -47,6 +47,10 @@ public abstract class PluginProvider
         PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Google, "Google"));
 */
         PluginProvider.RegisterProvider(new LocalContextPluginProvider());
+        PluginProvider.RegisterProvider(new StaticPluginProvider("TimePlugin", typeof(TimeNativePlugin), "Uses the local computer to obtain the current time.", null));
+        PluginProvider.RegisterProvider(new StaticPluginProvider("FileIOPlugin", typeof(FileIONativePlugin), "Enables read and write access to the local file system.", null));
+        PluginProvider.RegisterProvider(new StaticPluginProvider("DocumentPlugin", typeof(DocumentNativePlugin), "Enables the ability to read the contents of Microsoft Word documents in the local file system.", null));
+        PluginProvider.RegisterProvider(new GooglePluginProvider());
 //        #pragma warning restore SKEXP0050
     }
 
@@ -99,7 +103,7 @@ public abstract class PluginProvider
         }
     }
 
-    internal abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters, IShellContext? context);
+    public abstract object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters, IShellContext? context);
 
     internal virtual void InitializeInstanceFromData(string[] jsonData) { }
 
@@ -214,4 +218,3 @@ public abstract class PluginProvider
 
     private Dictionary<string, PluginParameter> parameterSpec;
 }
-

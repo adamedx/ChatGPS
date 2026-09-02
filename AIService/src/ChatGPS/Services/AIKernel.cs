@@ -14,7 +14,8 @@
 // limitations under the License.
 //
 
-
+using System.Reflection;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,12 +39,12 @@ public class AIKernel : IAIKernel
 
         var chatOptions = GetPromptExecutionSettings(options, allowAgentAccess);
 
-        var response = await chatClient.GetResponseAsync(
-            nativeHistory, chatOptions);
+        var response = await CreateAgent(allowAgentAccess).RunAsync(
+            nativeHistory,
+            null,
+            new ChatClientAgentRunOptions(chatOptions)).ConfigureAwait(false);
 
-        var nativeMessage = response.Messages.FirstOrDefault();
-
-        var result = nativeMessage is not null ? new AIChatMessage(nativeMessage) : new AIChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant, "Unknown response");
+        var result = new AIChatMessage(Microsoft.Extensions.AI.ChatRole.Assistant, response.Text ?? "Unknown response");
 
         return result.ToChatMessage();
     }
@@ -61,14 +62,12 @@ public class AIKernel : IAIKernel
 
         var nativeHistory = GetNativeHistory(history);
 
-        var response = await this.chatClient.GetResponseAsync(
-            nativeHistory, chatOptions).ConfigureAwait(false);
+        var response = await CreateAgent(allowAgentAccess).RunAsync(
+            nativeHistory,
+            null,
+            new ChatClientAgentRunOptions(chatOptions)).ConfigureAwait(false);
 
-        var nativeMessage = response.Messages.FirstOrDefault();
-
-        var resultText = nativeMessage is not null ? (nativeMessage.Text ?? "") : "";
-
-        return new FunctionOutput(new AIFunctionResult(resultText, typeof(string), null, null));
+        return new FunctionOutput(new AIFunctionResult(response.Text ?? "", typeof(string), null, null));
     }
 
     public AIChatFunction CreateFunctionFromPrompt(string definitionPrompt, AiOptions? options = null)
@@ -95,12 +94,93 @@ public class AIKernel : IAIKernel
 
     public void AddPlugin(Plugin plugin)
     {
-        throw new NotImplementedException("Plugins are not yet implemented");
+        _ = CreateTools(new[] { plugin });
     }
 
     public void RemovePlugin(Plugin plugin)
     {
-        throw new NotImplementedException("Plugins are not yet implemented");
+        if ( plugin.Name is not null )
+        {
+            var provider = PluginProvider.GetProviderByName(plugin.Name);
+
+            if ( ! IsSupportedPlugin(plugin.Name) && ! IsPowerShellPlugin(provider) )
+            {
+                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+            }
+        }
+    }
+
+    public void SetPluginTable(IPluginTable pluginTable)
+    {
+        this.pluginTable = pluginTable;
+    }
+
+    private ChatClientAgent CreateAgent(bool? allowAgentAccess)
+    {
+        var tools = allowAgentAccess == false ? new List<AITool>() : CreateTools(this.pluginTable?.Plugins);
+        var functionInvokingClient = new FunctionInvokingChatClient(this.chatClient);
+
+        return new ChatClientAgent(
+            functionInvokingClient,
+            null,
+            "ChatGPS",
+            null,
+            tools,
+            null,
+            null);
+    }
+
+    private static bool IsSupportedPlugin(string name)
+    {
+        return string.Equals(name, "LocalContext", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "TimePlugin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "FileIOPlugin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "DocumentPlugin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "Google", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsPowerShellPlugin(PluginProvider provider)
+    {
+        return provider is PowerShellPluginProvider;
+    }
+
+    private List<AITool> CreateTools(IEnumerable<Plugin>? plugins)
+    {
+        var tools = new List<AITool>();
+
+        if ( plugins is null )
+        {
+            return tools;
+        }
+
+        foreach ( var plugin in plugins )
+        {
+            if ( plugin.Name is null )
+            {
+                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+            }
+
+            var provider = PluginProvider.GetProviderByName(plugin.Name);
+
+            if ( ! IsSupportedPlugin(plugin.Name) && ! IsPowerShellPlugin(provider) )
+            {
+                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+            }
+
+            var nativePlugin = provider.GetNativeInstance(plugin.Parameters, this.pluginTable?.Context);
+
+            foreach ( var method in nativePlugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public) )
+            {
+                if ( method.DeclaringType == typeof(object) || method.IsSpecialName )
+                {
+                    continue;
+                }
+
+                tools.Add(AIFunctionFactory.Create(method, nativePlugin, new AIFunctionFactoryOptions()));
+            }
+        }
+
+        return tools;
     }
 
 
@@ -197,7 +277,7 @@ public class AIKernel : IAIKernel
 
     private Microsoft.Extensions.AI.IChatClient chatClient;
     private Microsoft.Extensions.AI.ChatOptions? initialChatOptions = null;
+    private IPluginTable? pluginTable;
     private int tokenLimitDefault = 4096;
     private bool hasLogger = false;
 }
-
