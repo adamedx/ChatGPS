@@ -48,14 +48,32 @@ public class AIKernel : IAIKernel
         return result.ToChatMessage();
     }
 
-	public Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object?>? functionArguments, bool? allowAgentAccess)
+    public async Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object?>? functionArguments, bool? allowAgentAccess)
     {
-        throw new NotImplementedException("Chat functions are not yet implemented");
+        var renderedPrompt = chatFunction.RenderPrompt(functionArguments);
+
+        var history = new List<Modulus.ChatGPS.Models.ChatMessage>
+        {
+            new Modulus.ChatGPS.Models.ChatMessage(SenderRole.User, renderedPrompt)
+        };
+
+        var chatOptions = GetPromptExecutionSettings(options, allowAgentAccess);
+
+        var nativeHistory = GetNativeHistory(history);
+
+        var response = await this.chatClient.GetResponseAsync(
+            nativeHistory, chatOptions).ConfigureAwait(false);
+
+        var nativeMessage = response.Messages.FirstOrDefault();
+
+        var resultText = nativeMessage is not null ? (nativeMessage.Text ?? "") : "";
+
+        return new FunctionOutput(new AIFunctionResult(resultText, typeof(string), null, null));
     }
 
     public AIChatFunction CreateFunctionFromPrompt(string definitionPrompt, AiOptions? options = null)
     {
-        throw new NotImplementedException("Chat functions are not yet implemented");
+        return new AIChatFunction(definitionPrompt);
     }
 
     public void AddLogger(ILoggerFactory? loggerFactory)

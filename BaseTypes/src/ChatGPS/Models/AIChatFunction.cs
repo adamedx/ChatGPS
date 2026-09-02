@@ -14,6 +14,9 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
 namespace Modulus.ChatGPS.Services;
 
 public class AIChatFunction
@@ -21,7 +24,47 @@ public class AIChatFunction
 	public AIChatFunction(string definitionPrompt)
     {
         this.DefinitionPrompt = definitionPrompt;
+        this.Parameters = AIChatFunction.GetParametersFromDefinition(definitionPrompt);
 	}
 
     public string DefinitionPrompt { get; private set; }
+
+    public IReadOnlyList<string> Parameters { get; private set; }
+
+    public string RenderPrompt(Dictionary<string,object?>? parameters)
+    {
+        string result = this.DefinitionPrompt;
+
+        if ( parameters is not null )
+        {
+            foreach ( var parameter in this.Parameters )
+            {
+                if ( parameters.TryGetValue(parameter, out var value) )
+                {
+                    result = result.Replace("{{$" + parameter + "}}", value?.ToString() ?? "");
+                }
+            }
+        }
+
+        return result;
+    }
+
+    internal static List<string> GetParametersFromDefinition(string definition)
+    {
+        var result = new List<string>();
+
+        foreach ( Match match in AIChatFunction.parameterMatcher.Matches(definition) )
+        {
+            var parameterName = match.Groups["param"].Value;
+
+            if ( ! result.Contains(parameterName) )
+            {
+                result.Add(parameterName);
+            }
+        }
+
+        return result;
+    }
+
+    private static readonly Regex parameterMatcher = new Regex("\\{\\{\\$(?<param>[a-zA-Z0-9_]+)\\}\\}", RegexOptions.Compiled);
 }
