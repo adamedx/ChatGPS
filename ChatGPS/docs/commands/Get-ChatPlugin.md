@@ -87,8 +87,8 @@ Subsequent commands that interact with langauge models will use this session unl
 ```
 Get-ChatPlugin -ListAvailable
  
-Name                     Desciption                               Parameters
-----                     ----------                               ----------
+Name                     Description                              Parameters
+----                     -----------                              ----------
 Bing                     Enables access to search the web using   {apiKey, apiUri, searchEngineId}
                          the following search engine source: Bing
 FileIOPlugin             Enables read and write access to the

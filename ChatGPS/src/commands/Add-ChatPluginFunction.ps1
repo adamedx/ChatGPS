@@ -48,8 +48,8 @@ A collection of plugin functions that includes all plugin functions specified to
 Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the uptime of the operating system' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                           Desciption                                           Parameters
-----                           ----------                                           ----------
+Name                           Description                                           Parameters
+----                           -----------                                           ----------
 system_basic_information       Returns basic information about the operating system
 
 In this example, Add-ChatPluginFunction defines a function with a PowerShell script block that simply consists of an invocation of the Get-Uptime command to return the system uptime, and the Description parameter is used to indicate that returning the system uptime is indeed the function's purpose. The outpout of the command is piped to Register-ChatPlugin to create the new plugin which consists solely of this one function.
@@ -63,8 +63,8 @@ Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the u
     } -Description 'Returns the amount of free disk space in bytes for the drive that hosts the operating system.' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                           Desciption                                           Parameters
-----                           ----------                                           ----------
+Name                           Description                                          Parameters
+----                           -----------                                          ----------
 system_basic_information       Returns basic information about the operating system
 
 This example shows how the pipeline can be used with Add-ChatPluginFunction to create multiple functions for a plugin and chain them together in sequence by piping the output of each invocation to the next. The final output is then piped to Register-ChatPlugin which creates a plugin from all of those functions.

@@ -32,8 +32,8 @@ Register-ChatPlugin can accept any number of plugin functions created by the Add
 Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the uptime of the operating system' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                           Desciption                                           Parameters
-----                           ----------                                           ----------
+Name                           Description                                          Parameters
+----                           -----------                                          ----------
 system_basic_information       Returns basic information about the operating system
 ```
 
@@ -50,9 +50,9 @@ Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the u
     } -Description 'Returns the amount of free disk space in bytes for the drive that hosts the operating system.' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                           Desciption                                           Parameters
-----                           ----------                                           ----------
-system_basic_information       Returns basic information about the operating system
+Name                          Description                                           Parameters
+----                          -----------                                           ----------
+system_basic_information      Returns basic information about the operating system
 ```
 
 This example shows how the pipeline can be used with Add-ChatPluginFunction to create multiple functions for a plugin and chain them together in sequence by piping the output of each invocation to the next.

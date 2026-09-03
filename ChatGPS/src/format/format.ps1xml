@@ -388,7 +388,7 @@ All Rights Reserved.
             <Label>Name</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Desciption</Label>
+            <Label>Description</Label>
             <Width>40</Width>
           </TableColumnHeader>
           <TableColumnHeader>
