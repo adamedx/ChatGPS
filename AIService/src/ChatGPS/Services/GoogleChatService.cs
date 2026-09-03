@@ -17,7 +17,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-/*
+using GeminiDotnet;
 using GeminiDotnet.Extensions.AI;
 using Modulus.ChatGPS.Models;
 
@@ -46,30 +46,14 @@ public class GoogleChatService : ChatService
 
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
-        var clientOptions = new GeminiClientOptions { ApiKey = cleartextKey, ModelId = this.options.ModelIdentifier, ServiceId = this.options.ServiceIdentifier };
+        var clientOptions = new GeminiClientOptions { ApiKey = cleartextKey, ModelId = this.options.ModelIdentifier };
 
         var chatClient = new GeminiChatClient(clientOptions);
 
         var newKernel = new AIKernel(chatClient);
-*/
-/*
-        // Configure throttling retry behavior
-        builder.Services.ConfigureHttpClientDefaults(c =>
-        {
-            c.AddStandardResilienceHandler(o =>
-            {
-                o.Retry.ShouldRetryAfterHeader = true;
-                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
-            });
-        });
-*/
 
-
-/*
         this.serviceKernel = newKernel;
 
         return newKernel;
     }
 }
-
-*/
