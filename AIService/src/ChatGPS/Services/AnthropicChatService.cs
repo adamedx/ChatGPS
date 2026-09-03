@@ -48,37 +48,6 @@ public class AnthropicChatService : ChatService
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
         var apiKey = new APIAuthentication( cleartextKey );
-/*
-        this.initialPromptSettings = new OpenAIPromptExecutionSettings()
-        {
-            ModelId = this.options.ModelIdentifier,
-            MaxTokens = this.options.TokenLimit ?? tokenLimitDefault
-        };
-
-        var builder = base.GetKernelBuilder();
-*/
-/*
-        // Configure throttling retry behavior
-        builder.Services.ConfigureHttpClientDefaults(c =>
-        {
-            c.AddStandardResilienceHandler(o =>
-            {
-                o.Retry.ShouldRetryAfterHeader = true;
-                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
-            });
-        });
-
-#pragma warning disable SKEXP0001
-        builder.Services.AddSingleton<IChatCompletionService>((serviceProvider) => new AnthropicClient(apiKey).Messages.AsChatCompletionService());
-#pragma warning restore SKEXP0001
-
-        var newKernel = builder.Build();
-
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
-*/
 
         var httpClient = new HttpClient(new AnthropicRetryHandler())
         {

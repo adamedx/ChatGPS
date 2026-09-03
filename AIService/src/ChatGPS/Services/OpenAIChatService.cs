@@ -61,48 +61,7 @@ public class OpenAIChatService : ChatService
         var chatClient = apiClient.GetChatClient(this.options.ModelIdentifier).AsIChatClient(); // AsIChatClient(modelId : this.options.ModelIdentifier);
 
         var newKernel = new AIKernel(chatClient);
-/*
-        var builder = base.GetKernelBuilder();
 
-        var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
-
-        if ( this.options.ApiEndpoint is null )
-        {
-            builder.AddOpenAIChatCompletion(
-                modelId: this.options.ModelIdentifier,
-                apiKey: cleartextKey);
-        }
-        else
-        {
-            builder.AddOpenAIChatCompletion(
-                modelId: this.options.ModelIdentifier,
-                endpoint : this.options.ApiEndpoint,
-                apiKey: cleartextKey);
-        }
-
-        builder.Services.ConfigureHttpClientDefaults(c =>
-        {
-            // Configure throttling retry behavior
-            c.AddStandardResilienceHandler(o =>
-            {
-                o.Retry.ShouldRetryAfterHeader = true;
-                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
-            });
-
-            // Set network timeout
-            c.ConfigureHttpClient(httpClient =>
-            {
-                httpClient.Timeout = TimeSpan.FromMinutes(2);
-            });
-         });
-
-        var newKernel = builder.Build();
-
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
-*/
         this.serviceKernel = newKernel;
 
         return newKernel;

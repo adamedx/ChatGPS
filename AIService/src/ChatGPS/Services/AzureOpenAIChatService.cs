@@ -81,33 +81,8 @@ public class AzureOpenAIChatService : ChatService
 
         var chatClient = apiClient.GetChatClient(this.options.DeploymentName).AsIChatClient();
 
-//        var builder = new ChatClientBuilder(chatClient);
-
-/*        builder.AddAzureOpenAIChatCompletion(
-            deploymentName: this.options.DeploymentName,
-            azureOpenAIClient: apiClient);
-*/
-
-        // Configure throttling retry behavior
-/*
-        builder.Services.ConfigureHttpClientDefaults(c =>
-        {
-            c.AddStandardResilienceHandler(o =>
-            {
-                o.Retry.ShouldRetryAfterHeader = true;
-                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
-            });
-        });
-*/
-//        var chatClient = builder.Build();
-
         var newKernel = new AIKernel(chatClient);
-/*
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
-*/
+
         this.serviceKernel = newKernel;
 
         return newKernel;
