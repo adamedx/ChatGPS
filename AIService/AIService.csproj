@@ -24,7 +24,7 @@
     <PackageReference Include="Azure.Core" Version="1.50.0" />
     <PackageReference Include="Azure.Identity" Version="1.14.1" />
     <PackageReference Include="OpenAI" Version="2.7.0" />
-    <!--PackageReference Include="GeminiDotNet.Extensions.AI" Version="0.17.2" /-->
+    <PackageReference Include="GeminiDotnet.Extensions.AI" Version="0.18.0" />
     <PackageReference Include="System.Text.Json" Version="10.0.4" />
   </ItemGroup>
 
