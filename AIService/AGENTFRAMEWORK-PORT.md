@@ -15,7 +15,7 @@ versions aligned is important: the agent and function-invocation middleware use 
 
 ## Plugin support
 
-`LocalContext`, `TimePlugin`, `FileIOPlugin`, `DocumentPlugin`, `Google`, and PowerShell-defined custom plugins are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin`, `TimeNativePlugin`, `FileIONativePlugin`, `DocumentNativePlugin`, and `GoogleNativePlugin`, as well as generated methods on PowerShell plugin types, are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their method
+`LocalContext`, `TimePlugin`, `FileIOPlugin`, `DocumentPlugin`, `BraveSearch`, `Google`, and PowerShell-defined custom plugins are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin`, `TimeNativePlugin`, `FileIONativePlugin`, `DocumentNativePlugin`, `BraveNativePlugin`, and `GoogleNativePlugin`, as well as generated methods on PowerShell plugin types, are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their method
 descriptions are therefore exposed to the model without changing the plugin command interface.
 
 Other plugin names are rejected with `NotImplementedException` rather than being silently ignored. This makes the current scope explicit and avoids
@@ -51,7 +51,7 @@ With agent access enabled, the proxy request carries the synchronized plugin def
 
 1. `ChatService.GetKernelWithState()` supplies its `PluginTable` to `AIKernel`.
 2. `AIKernel.CreateAgent()` creates tools for the registered `LocalContext`,
-   `TimePlugin`, `FileIOPlugin`, and `DocumentPlugin` plugins from that table.
+   `TimePlugin`, `FileIOPlugin`, `DocumentPlugin`, `BraveSearch`, and `Google` plugins from that table.
 3. `ChatOptions.ToolMode` is set to `Auto`.
 4. The model may select a tool, such as `get_process_id`.
 5. `FunctionInvokingChatClient` invokes the native method with the session's shell context.
