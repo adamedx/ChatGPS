@@ -50,6 +50,7 @@ public abstract class PluginProvider
         PluginProvider.RegisterProvider(new StaticPluginProvider("TimePlugin", typeof(TimeNativePlugin), "Uses the local computer to obtain the current time.", null));
         PluginProvider.RegisterProvider(new StaticPluginProvider("FileIOPlugin", typeof(FileIONativePlugin), "Enables read and write access to the local file system.", null));
         PluginProvider.RegisterProvider(new StaticPluginProvider("DocumentPlugin", typeof(DocumentNativePlugin), "Enables the ability to read the contents of Microsoft Word documents in the local file system.", null));
+        PluginProvider.RegisterProvider(new HttpPluginProvider());
         PluginProvider.RegisterProvider(new BravePluginProvider());
         PluginProvider.RegisterProvider(new GooglePluginProvider());
 //        #pragma warning restore SKEXP0050
