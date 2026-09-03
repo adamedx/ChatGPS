@@ -84,7 +84,7 @@ function RenderMethod(
 
     $methodParameterList = RenderMethodParameterList $scriptBlock.GetParameterTable()
 
-    RenderResolvedMethod $scriptBlock.Name $targetPluginMethodName $targetDescription $scriptBlock.OutputType $targetOutputDescription $methodParameterList $methodTable[$methodName].ScriptBlock
+    RenderResolvedMethod $scriptBlock.Name $targetPluginMethodName $targetDescription $scriptBlock.OutputType $targetOutputDescription $methodParameterList $scriptBlock.ScriptBlock
 }
 
 function RenderResolvedMethod(
@@ -100,20 +100,17 @@ function RenderResolvedMethod(
 
     $descriptionAttribute = "[System.ComponentModel.Description('$descriptionAttributeText')]"
 
-    $kernelAttribute = "[Microsoft.SemanticKernel.KernelFunctionAttribute('$pluginMethodName')]"
-
-    $resolvedMethod =
+        $resolvedMethod =
     @"
-    $descriptionAttribute
-    $kernelAttribute
-    [$outputType] $nativeMethodName( $methodParameterList ) {
+        $descriptionAttribute
+        [$outputType] $nativeMethodName( $methodParameterList ) {
         `$parameterList= [System.Collections.Generic.Dictionary[string,object]]::new()
          foreach ( `$parameterName in `$PSBoundParameters.Keys ) {
             `$parameterList.Add(`$parameterName, `$PSBoundParameters[`$parameterName])
          }
         `$scriptBlock = `$this.scriptBlocks['$nativeMethodName']
         `$result = try {
-            new-item -Path function:Invoke-PowerShellScript -Value `$this.InvokeBlock | out-null
+            set-item -Path function:Invoke-PowerShellScript -Value `$this.InvokeBlock
             Invoke-PowerShellScript `$scriptBlock.ScriptBlock `$parameterList
         } catch {
             throw
@@ -198,4 +195,3 @@ function NewPowerShellPluginFunction([string] $methodName, [ScriptBlock] $script
 
     [Modulus.ChatGPS.Plugins.PowerShellPluginFunction]::new($methodName, $scriptBlock, $parameterInfo, $description, $OutputType, $outputDescription)
 }
-

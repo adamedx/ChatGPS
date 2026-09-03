@@ -99,9 +99,14 @@ public class AIKernel : IAIKernel
 
     public void RemovePlugin(Plugin plugin)
     {
-        if ( plugin.Name is not null && ! IsSupportedPlugin(plugin.Name) )
+        if ( plugin.Name is not null )
         {
-            throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+            var provider = PluginProvider.GetProviderByName(plugin.Name);
+
+            if ( ! IsSupportedPlugin(plugin.Name) && ! IsPowerShellPlugin(provider) )
+            {
+                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+            }
         }
     }
 
@@ -134,6 +139,11 @@ public class AIKernel : IAIKernel
                string.Equals(name, "Google", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsPowerShellPlugin(PluginProvider provider)
+    {
+        return provider is PowerShellPluginProvider;
+    }
+
     private List<AITool> CreateTools(IEnumerable<Plugin>? plugins)
     {
         var tools = new List<AITool>();
@@ -145,12 +155,18 @@ public class AIKernel : IAIKernel
 
         foreach ( var plugin in plugins )
         {
-            if ( plugin.Name is null || ! IsSupportedPlugin(plugin.Name) )
+            if ( plugin.Name is null )
             {
                 throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
             }
 
             var provider = PluginProvider.GetProviderByName(plugin.Name);
+
+            if ( ! IsSupportedPlugin(plugin.Name) && ! IsPowerShellPlugin(provider) )
+            {
+                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
+            }
+
             var nativePlugin = provider.GetNativeInstance(plugin.Parameters, this.pluginTable?.Context);
 
             foreach ( var method in nativePlugin.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public) )
