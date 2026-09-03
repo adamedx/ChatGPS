@@ -15,7 +15,7 @@ versions aligned is important: the agent and function-invocation middleware use 
 
 ## Plugin support
 
-`LocalContext`, `TimePlugin`, `FileIOPlugin`, and `DocumentPlugin` are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin`, `TimeNativePlugin`, `FileIONativePlugin`, and `DocumentNativePlugin` are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their method
+`LocalContext`, `TimePlugin`, `FileIOPlugin`, `DocumentPlugin`, and `Google` are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin`, `TimeNativePlugin`, `FileIONativePlugin`, `DocumentNativePlugin`, and `GoogleNativePlugin` are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their method
 descriptions are therefore exposed to the model without changing the plugin command interface.
 
 Other plugin names are rejected with `NotImplementedException` rather than being silently ignored. This makes the current scope explicit and avoids
