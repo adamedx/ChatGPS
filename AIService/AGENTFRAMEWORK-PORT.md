@@ -15,11 +15,15 @@ versions aligned is important: the agent and function-invocation middleware use 
 
 ## Plugin support
 
-`LocalContext`, `TimePlugin`, `FileIOPlugin`, `DocumentPlugin`, and `Google` are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin`, `TimeNativePlugin`, `FileIONativePlugin`, `DocumentNativePlugin`, and `GoogleNativePlugin` are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their method
+`LocalContext`, `TimePlugin`, `FileIOPlugin`, `DocumentPlugin`, `Google`, and PowerShell-defined custom plugins are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin`, `TimeNativePlugin`, `FileIONativePlugin`, `DocumentNativePlugin`, and `GoogleNativePlugin`, as well as generated methods on PowerShell plugin types, are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. Their method
 descriptions are therefore exposed to the model without changing the plugin command interface.
 
 Other plugin names are rejected with `NotImplementedException` rather than being silently ignored. This makes the current scope explicit and avoids
 advertising tools that do not yet have Agent Framework implementations.
+
+PowerShell-defined plugins retain their existing serialized `PowerShellPluginFunction` data and generated .NET types. The generated methods no longer
+depend on Semantic Kernel attributes; Agent Framework uses their public method signatures and `Description` attributes when creating `AITool` instances.
+The generated methods continue to invoke the supplied scriptblocks through the existing isolated PowerShell process mechanism.
 
 ## Why `ChatService` and `AIKernel` both have a plugin table reference
 
