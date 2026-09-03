@@ -80,7 +80,12 @@ public class AnthropicChatService : ChatService
         }
 */
 
-        var chatClient = (IChatClient) new AnthropicClient(apiKey).Messages;
+        var httpClient = new HttpClient(new AnthropicRetryHandler())
+        {
+            Timeout = TimeSpan.FromMinutes(2)
+        };
+
+        var chatClient = (IChatClient) new AnthropicClient(apiKey, httpClient).Messages;
 
         var newKernel = new AIKernel(chatClient);
 
@@ -89,5 +94,4 @@ public class AnthropicChatService : ChatService
         return newKernel;
     }
 }
-
 

@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.ClientModel;
+using System.ClientModel.Primitives;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,6 +51,8 @@ public class OpenAIChatService : ChatService
         var clientOptions = new OpenAIClientOptions();
 
         clientOptions.Endpoint = this.options.ApiEndpoint ?? GetDefaultEndpoint();
+        clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
+        clientOptions.RetryPolicy = new ClientRetryPolicy(3);
 
         var apiKeyCredential = new ApiKeyCredential(cleartextKey);
 
@@ -105,4 +108,3 @@ public class OpenAIChatService : ChatService
         return newKernel;
     }
 }
-

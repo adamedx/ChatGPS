@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using System.ClientModel.Primitives;
 using Azure.AI.OpenAI;
 
 using Modulus.ChatGPS.Models;
@@ -52,6 +53,7 @@ public class AzureOpenAIChatService : ChatService
         var clientOptions = new AzureOpenAIClientOptions();
 
         clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
+        clientOptions.RetryPolicy = new ClientRetryPolicy(3);
 
         AzureOpenAIClient apiClient;
 
@@ -111,4 +113,3 @@ public class AzureOpenAIChatService : ChatService
         return newKernel;
     }
 }
-

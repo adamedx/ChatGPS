@@ -65,22 +65,19 @@ public class ChatSession
 
         temporaryConversation.AddMessageToConversation(history, SenderRole.User, prompt);
 
-        Task<string> messageTask;
-
         try
         {
-            messageTask = temporaryConversation.SendMessageAsync(history, allowAgentAccess);
-            messageTask.Wait();
+            var response = temporaryConversation.SendMessageAsync(history, allowAgentAccess).GetAwaiter().GetResult();
+
+            UpdateStateWithLatestResponse(null, true);
+
+            return response;
         }
         catch (Exception e)
         {
             UpdateStateWithLatestResponse(e, true);
             throw;
         }
-
-        UpdateStateWithLatestResponse(null, true);
-
-        return messageTask.Result;
     }
 
     public string GenerateMessage(string prompt, bool? allowAgentAccess = null)
@@ -479,4 +476,3 @@ public class ChatSession
     private IChatService chatService;
     private int latestContextLimit;
 }
-
