@@ -39,10 +39,10 @@ The optional name property of an existing session for which information should b
 The optional identifier of the session for which information should be returned. Unlike the name property, the Id property of Session is always present, so the Id can always be used as the way to select the session. Use the Get-ChatSession command with no parameters to enumerate existing sessions and their Id properties required for this parameter.
 
 .PARAMETER Current
-This optional parameter specifies that only information for the current session should be returned. The current session is the session used by default for commands that interact with language models such as Send-ChatMessage, Start-ChatShell, or Invoke-ChatFunction. For more information about the current session, see the Select-ChatSession command.
+This optional parameter specifies that only information for the current session should be returned. The current session is the session used by default for commands that interact with language models such as Send-ChatMessage, Start-ChatShell, or Invoke-ChatFunction. For more information about the current session, see the Select-ChatSession command. If there is no current session, the command will fail.
 
 .OUTPUTS
-Detailed information about the specified defined sessions, including all information used to create the session other than credentials as well as state information about the session's connectivity to remote models and the session's conversation history.
+Detailed information about the specified defined sessions, including all information used to create the session other than credentials as well as state information about the session's connectivity to remote models and the session's conversation history. Note that if a nonexistent session is specified an error occurs.
 
 .EXAMPLE
 PS > Get-ChatSession
@@ -103,7 +103,7 @@ function Get-ChatSession {
     )
 
     if ( $Current.IsPresent ) {
-        GetCurrentSession
+        GetCurrentSession $true
     } else {
         $sessions = GetChatSessions | where {
             ( $null -eq $Id -and $null -eq $SessionName ) -or
