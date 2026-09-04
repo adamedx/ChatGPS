@@ -103,10 +103,10 @@ internal class Listener
 
             Logger.Log($"Listener event exited with:{exitRequested}, wait again set to {this.waitAgain}");
 
-            // If we haven't been told we're finished but we've been instructed to wait again,
-            // then do so
             if ( exitRequested )
             {
+                // If we haven't been told we're finished but we've been instructed to wait again,
+                // then do so
                 if ( this.waitAgain )
                 {
                     this.waitAgain = false;
@@ -115,7 +115,14 @@ internal class Listener
                 }
                 else
                 {
-                    finishedWaiting = true;
+                    if ( ! this.requestInProgress )
+                    {
+                        finishedWaiting = true;
+                    }
+                    else
+                    {
+                        Logger.Log("Finish waiting event was signaled, but the wait timed out while a request was still being processed, continuing wait");
+                    }
                 }
             }
             else
@@ -171,13 +178,24 @@ internal class Listener
                     this.waitAgain = true;
                     this.finishedEvent.Set();
 
-                    var response = responder.Invoke(request ?? "");
+                    this.requestInProgress = true;
 
-                    finished = response.finished;
-
-                    if ( finished )
+                    try
                     {
-                        Logger.Log("The input stream contained an instruction to stop listening, will stop listening");
+                        var response = responder.Invoke(request ?? "");
+
+                        finished = response.finished;
+
+                        if ( finished )
+                        {
+                            Logger.Log("The input stream contained an instruction to stop listening, will stop listening");
+                        }
+                    }
+                    finally
+                    {
+                        this.requestInProgress = false;
+                        this.waitAgain = true;
+                        this.finishedEvent.Set();
                     }
                 }
                 else
@@ -196,11 +214,6 @@ internal class Listener
                 finished = true;
             }
 
-            if ( this.finishedEvent.WaitOne(0) )
-            {
-                Logger.Log("The listener received a request to cancel listening, will stop listening");
-                finished = true;
-            }
         }
 
         this.finishedEvent.Set();
@@ -221,7 +234,6 @@ internal class Listener
     private StreamReader reader;
     private ManualResetEvent finishedEvent;
     private bool waitAgain = false;
+    private volatile bool requestInProgress = false;
     private CancellationTokenSource? cancellationTokenSource;
 }
-
-
