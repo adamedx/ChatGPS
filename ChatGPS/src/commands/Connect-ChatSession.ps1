@@ -517,7 +517,7 @@ function Connect-ChatSession {
     $isLocal = !  ( ! $options.LocalModelPath )
 
     if ( $Provider ) {
-        $options.Provider = $Provider
+        $options.Provider = ( [Modulus.ChatGPS.Models.ModelProvider] $Provider ).ToString()
     } else {
         if ( ! $isLocal ) {
             $options.Provider = if ( $options.ApiEndpoint ) {
