@@ -13,6 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="install/**/*.cs" />
   </ItemGroup>
 
   <Target Name="AnyTargetDependencies">
@@ -99,4 +100,3 @@
   </Target>
 
 </Project>
-

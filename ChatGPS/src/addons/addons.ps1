@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Onnx" Version="1.59.0-alpha" />
+    <PackageReference Include="Microsoft.Extensions.AI" Version="10.5.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.11.4" />
   </ItemGroup>
 
   <Target Name="AnyTargetDependencies">
@@ -20,7 +21,7 @@
   <Target Name="DevModule" AfterTargets="Build" DependsOnTargets="Build;AnyTargetDependencies">
     <MakeDir Directories="$(DevLibDirectory)" />
     <ItemGroup>
-      <AssemblyDependencies Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.runtimeconfig.json;$(TargetDir)*.deps.json" Exclude="$(TargetDir)$(ProjectName).dll;$(TargetDir)/ChatGPS.exe;$(TargetDir)/ChatGPS.*.json"/>
+      <AssemblyDependencies Include="$(TargetDir)*.dll;$(TargetDir)*.exe;$(TargetDir)*.runtimeconfig.json;$(TargetDir)*.deps.json" Exclude="$(TargetDir)/ChatGPS.exe;$(TargetDir)/ChatGPS.*.json"/>
       <AssemblyIndirectDependencies Include="$(TargetDir)/runtimes/**/*" Exclude="$(TargetDir)/runtimes/android/**/*;$(TargetDir)/runtimes/ios/**/*;$(TargetDir)/runtimes/osx-x64/**/*;$(TargetDir)/runtimes/win-x86/**/*;"/>
     </ItemGroup>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DevLibDirectory)"/>
