@@ -105,10 +105,7 @@ public abstract class ChatService : IChatService
     {
         string apiKey;
 
-        bool noAuthentication = ( this.options.NoAuthentication is not null ) &&
-            (bool) this.options.NoAuthentication;
-
-        if ( noAuthentication )
+        if ( this.options.NoAuthentication ?? false )
         {
             apiKey = "anonymous";
         }

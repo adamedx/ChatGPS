@@ -57,9 +57,7 @@ public class AzureOpenAIChatService : ChatService
 
         AzureOpenAIClient apiClient;
 
-        var noAuthentication = ( this.options.NoAuthentication is not null ) && (bool) this.options.NoAuthentication;
-
-        if ( ! noAuthentication &&
+        if ( ! ( this.options.NoAuthentication ?? false ) &&
              ( this.options.ApiKey is not null ) &&
              ( this.options.ApiKey.Length > 0 ) )
         {
