@@ -57,7 +57,11 @@ public class AzureOpenAIChatService : ChatService
 
         AzureOpenAIClient apiClient;
 
-        if ( this.options.ApiKey is not null && this.options.ApiKey.Length > 0 )
+        var noAuthentication = ( this.options.NoAuthentication is not null ) && (bool) this.options.NoAuthentication;
+
+        if ( ! noAuthentication &&
+             ( this.options.ApiKey is not null ) &&
+             ( this.options.ApiKey.Length > 0 ) )
         {
             var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 

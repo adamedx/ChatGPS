@@ -103,11 +103,25 @@ public abstract class ChatService : IChatService
 
     protected string GetCompatibleApiKey(string encryptedString, bool? isUnencrypted)
     {
-        // Encryption is only supported on Windows -- assume the string is already decrypted
-        // when not on Windows or if the isUnencrypted flag is true.
-        return ! OperatingSystem.IsWindows() || ( isUnencrypted ?? false ) ?
-            encryptedString :
-            PSDecryptor.GetDecryptedStringFromEncryptedUnicodeHexBytes(encryptedString);
+        string apiKey;
+
+        bool noAuthentication = ( this.options.NoAuthentication is not null ) &&
+            (bool) this.options.NoAuthentication;
+
+        if ( noAuthentication )
+        {
+            apiKey = "anonymous";
+        }
+        else
+        {
+            // Encryption is only supported on Windows -- assume the string is already decrypted
+            // when not on Windows or if the isUnencrypted flag is true.
+            apiKey = ! OperatingSystem.IsWindows() || ( isUnencrypted ?? false ) ?
+                encryptedString :
+                PSDecryptor.GetDecryptedStringFromEncryptedUnicodeHexBytes(encryptedString);
+        }
+
+        return apiKey;
     }
 
     protected bool HasSucceeded { get; private set; }
