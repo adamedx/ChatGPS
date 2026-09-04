@@ -63,6 +63,12 @@ For use with remote models only, specify AllowInteractiveSignin to allow this co
 .PARAMETER LocalModelPath
 For local models such as those supported by the LocalOnnx provider this is the path to the local model in the executing device's file system.
 
+.PARAMETER LocalModelProvider
+Optionally Specifies arbitrary provider-specific configuration options for a local model, where provider in this case refers to the locally used inferencing mechanism such as CPU-based inferencing (typically the default) or GPU-based inferencing through DirectML or CUDA. If you're using Onnx libraries for example you can use DirectML by specifying "dml" for this parameter, or use CUDA by specifying "cuda".Other values may be available depending on the particular model and the version of the local inferencing libraries used by ChatGPS and generally installed transparently by Install-ChatAddOn. These providers may need additional configuration, which can be specified through the additional LocalModelProviderOptions parameter. Note that because these providers are specific to a version of the inferencing library, ChatGPS is not able to validate the values you specify, they are simply passed through to the inferencing library; consult the library's documentation (e.g. .NET Onnx library for instance) to idetify valid provider values that will work with your chosen model. Note that this value is optional -- a safe default likely to work on your system will be used when this is not specified, so specify this only when you need to get features or performance not available by default (e.g. GPU acceleration to greatly speed up inferencing).
+
+.PARAMETER LocalModelProviderOptions
+Specifies a hash table of key-value pairs for configuration values specific to the provider specified by the LocalModelProvider. These options are specific to the library used for inferencing for the given provider, so consult documentation if needed for more information.
+
 .PARAMETER ModelIdentifier
 This parameter may be required for certain providers, particularly for local models.
 
@@ -183,7 +189,7 @@ Id                                   Provider    Name ModelIdentifier
 This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatShell command is used to start an interactive conversation.
 
 .EXAMPLE
-Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5
+Connect-Chatsession -LocalModelPath '/models/gpu/gpu-int4-rtn-block-32' -ModelIdentifier phi-4-gpu-int4-rtn-128 -LocalModelProvider dml
  
 PS > Start-ChatShell
  
@@ -203,7 +209,7 @@ Received                 Response
 12/30/2024 11:15:06 PM   Hello! I'm Phi, an AI language model here to assist you with any questions or tasks you have.
                          How can I help you today?
 
-In this case, a connection was created to a local Onnx model. Then when a prompt was submitted using the Start-ChatShell interactive loop, the command encountered an error caused by missing dependencies for Onnx. These library dependencies are not installed with the ChatGPS module due to their size, but as the warning message suggests, running the Install-ChatAddOn command can address this by installing such missing components. The user follows this suggestion and invokes Install-ChatAddOn, the retries submitting a prompt with Start-ChatShell and this successfully returns a response from the local model.
+In this case, a connection was created to a local Onnx model that supports DirectML acceleration, and the value "dml" was passed through the LocalModelProvider parameter to override the default CPU inferencing implementation; this "dml" value to enable DirectML is specific to recent versions of the Onnx libraries. When a prompt was submitted using the Start-ChatShell interactive loop, the command encountered an error caused by missing dependencies for Onnx. These library dependencies are not installed with the ChatGPS module due to their size, but as the warning message suggests, running the Install-ChatAddOn command can address this by installing such missing components. The user follows this suggestion and invokes Install-ChatAddOn, the retries submitting a prompt with Start-ChatShell and this successfully returns a response from the local model. The user can also verify that the GPU acceleration is being used by monitoring GPU activity through tools such as nvtop or Windows Task Manager during model interactions from ChatGPS.
 
 .EXAMPLE
 Connect-ChatSession -Provider Anthropic -ModelIdentifier claude-sonnet-4-20250514 -ReadApiKey
@@ -436,7 +442,7 @@ function Connect-ChatSession {
         [string] $LocalModelProvider,
 
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true)]
-        [hashtable] $LocalModelProviderOptions,
+        [Hashtable] $LocalModelProviderOptions,
 
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
@@ -517,6 +523,11 @@ function Connect-ChatSession {
     $options.LocalModelPath = $LocalModelPath
     $options.LocalModelProvider = $LocalModelProvider
     if ( $LocalModelProviderOptions ) {
+
+        if ( ! $LocalModelProvider ) {
+            throw [ArgumentException]::new("The LocaModelProviderOptions parameter may not be specified when the LocalModelProvider parameter is unspecified.")
+        }
+
         $options.LocalModelProviderOptions = [System.Collections.Generic.Dictionary[string,string]]::new()
         foreach ( $entry in $LocalModelProviderOptions.GetEnumerator() ) {
             $options.LocalModelProviderOptions[[string] $entry.Key] = [string] $entry.Value
