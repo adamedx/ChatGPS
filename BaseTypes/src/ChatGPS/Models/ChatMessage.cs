@@ -22,27 +22,8 @@ namespace Modulus.ChatGPS.Models;
 
 public class ChatMessage : IChatMessage
 {
-    /*
-    public enum MetadataKeys
-    {
-        MessageIndex,
-        Timestamp,
-        Duration
-    }
-
-    public enum SenderRole
-    {
-        Assistant,
-        System,
-        Tool,
-        User,
-        Unknown
-    }
-    */
-
     public ChatMessage()
     {
-//        this.sourceMessage2 = null;
         this.metadata = new Dictionary<string,string?>();
     }
 
@@ -51,8 +32,6 @@ public class ChatMessage : IChatMessage
         this.Role = role;
         this.Content = content;
         this.metadata = metadata is not null ? ((Dictionary<string,string?>)metadata) : new Dictionary<string,string?>();
-
-//        this.sourceMessage2 = null;
     }
 
     internal ChatMessage(IChatMessage sourceMessage)
@@ -60,22 +39,8 @@ public class ChatMessage : IChatMessage
         this.Role = sourceMessage.Role;
         this.Content = sourceMessage.Content;
         this.metadata = sourceMessage.Metadata is not null ? ((Dictionary<string,string?>) sourceMessage.Metadata) : new Dictionary<string,string?>();
-
-//        this.sourceMessage2 = sourceMessage;
-    }
-/*
-    internal ChatMessage(Microsoft.Extensions.AI.ChatMessage sourceChatMessage)
-    {
-        this.sourceMessage2 = new AIChatMessage(sourceChatMessage);
     }
 
-    internal ChatMessage(Microsoft.Extensions.AI.ChatResponse chatResponse)
-    {
-        var firstMessage = chatResponse.Messages.FirstOrDefault();
-
-        this.sourceMessage2 = new AIChatMessage(firstMessage?.Role ?? ChatRole.Assistant, chatResponse.Text ?? "", chatResponse.AdditionalProperties);
-    }
-*/
     public SenderRole Role { get; set; }
 
     public string? Content { get; set; }
@@ -145,20 +110,6 @@ public class ChatMessage : IChatMessage
             return result;
         }
     }
-/*
-    public object? GetSourceChatMessageContent()
-    {
-        return this.SourceChatMessageContent2;
-    }
 
-    internal IChatMessage? SourceChatMessageContent2
-    {
-        get
-        {
-            return this.sourceMessage2;
-        }
-    }
-*/
     private Dictionary<string,string?> metadata;
-//    private IChatMessage? sourceMessage2;
 }
