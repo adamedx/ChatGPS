@@ -91,6 +91,31 @@ function GetNativeLibrarySourceDirectory {
     }
 }
 
+function GetNativeLibraryNames {
+    if ( [OperatingSystem]::IsLinux() ) {
+        @(
+            'libonnxruntime_providers_shared.so'
+            'libonnxruntime-genai.so'
+            'libonnxruntime.so')
+    } elseif ( [OperatingSystem]::IsMacOS() ) {
+        @(
+            'libonnxruntime-genai.dylib'
+            'libonnxruntime.dylib')
+    } elseif ( [OperatingSystem]::IsWindows() ) {
+        @(
+            'onnxruntime_providers_shared.dll'
+            'onnxruntime-genai.dll'
+            'onnxruntime.dll')
+    } else {
+        @()
+    }
+}
+
+function GetAddOnAssemblyNames {
+    @(
+        'addons.dll')
+}
+
 function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningActionValue = 'Continue') {
     $nativeLibrarySource = GetNativeLibrarySourceDirectory
     $nativeLibraryDestination = join-path (CurrentScriptDirectory) lib
@@ -101,22 +126,7 @@ function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningAc
         write-warning "Native library source directory '$nativeLibrarySource' does not exist -- native operations will not be supported" -warningaction $warningActionValue
     } else {
         if ( test-path $nativeLibraryDestination ) {
-            $nativeLibraries = if ( [OperatingSystem]::IsLinux() ) {
-            } elseif ( [OperatingSystem]::IsLinux() ) {
-                @(
-                    'libonnxruntime_providers_shared.so'
-                    'libonnxruntime-genai.so'
-                    'libonnxruntime.so')
-            } elseif ( [OperatingSystem]::IsMacOS() ) {
-                @(
-                    'libonnxruntime-genai.dylib'
-                    'libonnxruntime.dylib')
-            } elseif ( [OperatingSystem]::IsWindows() ) {
-                @(
-                    'onnxruntime_providers_shared.dll'
-                    'onnxruntime-genai.dll'
-                    'onnxruntime.dll')
-            }
+            $nativeLibraries = GetNativeLibraryNames
 
             foreach ( $library in $nativeLibraries ) {
                 $sourceLibraryPath = join-path $nativeLibrarySource $library
@@ -131,9 +141,18 @@ function ConfigureNativeLibraries([bool] $skipCopy = $false, [string] $warningAc
                                 throw 'Native library not not found'
                             }
                         }
+
                     } else {
                         write-warning "Unable to find native library '$sourceLibraryPath'; native operations may not be supported for the current platform" -warningaction $warningActionValue
                     }
+                }
+            }
+
+            foreach ( $assembly in (GetAddOnAssemblyNames) ) {
+                $addOnAssemblyPath = Join-Path $nativeLibraryDestination $assembly
+
+                if ( ! ( test-path $addOnAssemblyPath ) ) {
+                    write-verbose "The LocalOnnx add-on assembly was not found at '$addOnAssemblyPath'; install it with Install-ChatAddOn."
                 }
             }
         } else {
@@ -183,5 +202,3 @@ if ( ! $skipVariable -or ! ( $skipVariable.value -eq $true ) ) {
     write-verbose "Skipping native configuration because this is not runtime mode."
     ConfigureNativeLibraries $true -warningactionvalue SilentlyContinue
 }
-
-

@@ -43,15 +43,25 @@ function InstallLibs([bool] $forcePrivateDotNet, [bool] $forceOverWriteFiles = $
     # we need here, a .cs file and a .csproj file, are published as .ps1 files
     # (at least those are allowed :)), and we then rename the to the correct types
     # when we copy them. Wow.
-    copy-item $psscriptroot/addons.ps1 "$installDirectory/addons.csproj"
-    copy-item $psscriptroot/Program.ps1 "$installDirectory/Program.cs"
+    Remove-Item "$installDirectory/Program.cs" -Force -ErrorAction Ignore
+    Remove-Item "$installDirectory/OnnxChatClientFactory.cs" -Force -ErrorAction Ignore
+    copy-item $psscriptroot/addons.ps1 "$installDirectory/addons.csproj" -Force
+    copy-item $psscriptroot/OnnxChatClientFactory.ps1 "$installDirectory/OnnxChatClientFactory.cs" -Force
 
     # Use of -force with get-item is useful on Linux where dot files / dirs are only
     # accessible if you use -force -- if the install directory happens to have
     # a dot named directory in the path.
     $projectFilePath = (get-item $installDirectory/addons.csproj -force).fullname
+    $tempLibrarySource = GetTempLibrarySourceDirectory $installDirectory
+    Remove-Item $tempLibrarySource -Recurse -Force -ErrorAction Ignore
 
-    $buildCommand = "'$dotNetToolPath' build $projectFilePath --configuration release"
+    $runtimeIdentifier = GetCurrentPlatformIdentifier
+
+    if ( ! $runtimeIdentifier ) {
+        throw "The LocalOnnx add-on is not supported on the current operating system or processor architecture."
+    }
+
+    $buildCommand = "'$dotNetToolPath' publish $projectFilePath --configuration release --runtime $runtimeIdentifier --self-contained false --output '$tempLibrarySource'"
 
     $buildCommand | write-debug
 
@@ -74,10 +84,12 @@ function InstallLibs([bool] $forcePrivateDotNet, [bool] $forceOverWriteFiles = $
 
     $output | write-debug
 
+    if ( $LASTEXITCODE -ne 0 ) {
+        throw "Unable to build the LocalOnnx add-on. The dotnet build command exited with code $LASTEXITCODE."
+    }
+
     # Now that the build is done, it has downloaded the libraries and placed them in a
     # temporary directory of our choosing.
-    $tempLibrarySource = GetTempLibrarySourceDirectory $installDirectory
-
     # Copy the libraries from the temporary directory into the actual module where they can
     # be used.
     Write-Progress -id 1 -Activity 'Copying libraries to ChatGPS' -percentcomplete 90
@@ -86,7 +98,11 @@ function InstallLibs([bool] $forcePrivateDotNet, [bool] $forceOverWriteFiles = $
     # This last step moves some additional files in the module to the correct location. This
     # was required even when we pre-packaged the libraries.
     Write-Progress -id 1 -Activity 'Configuring ChatGPS to use libraries' -percentcomplete 100
-    ConfigureNativeLibraries -WarningActionValue Stop
+    $nativeLibrarySource = Join-Path $tempLibrarySource "runtimes/$runtimeIdentifier/native"
+
+    if ( Test-Path $nativeLibrarySource ) {
+        ConfigureNativeLibraries -WarningActionValue Stop
+    }
 
     Write-Progress -Id 1 -Activity 'Installation compete' -Completed
 

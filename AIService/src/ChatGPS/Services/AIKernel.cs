@@ -81,32 +81,7 @@ public class AIKernel : IAIKernel
         {
             // May need to find a way to clear existing log providers
             this.chatClient = new ChatClientBuilder(this.chatClient).UseOpenTelemetry(loggerFactory).Build();
-/*            var serviceCollection = new ServiceCollection();
-
-            serviceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
-
-            serviceCollection.AddChatClient(this.chatClient);
- */
-//            chatClient.Services.AddSingleton<ILoggerFactory>(loggerFactory);
             this.hasLogger = true;
-        }
-    }
-
-    public void AddPlugin(Plugin plugin)
-    {
-        _ = CreateTools(new[] { plugin });
-    }
-
-    public void RemovePlugin(Plugin plugin)
-    {
-        if ( plugin.Name is not null )
-        {
-            var provider = PluginProvider.GetProviderByName(plugin.Name);
-
-            if ( ! IsSupportedPlugin(plugin.Name) && ! IsPowerShellPlugin(provider) )
-            {
-                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
-            }
         }
     }
 
@@ -128,20 +103,6 @@ public class AIKernel : IAIKernel
             tools,
             null,
             null);
-    }
-
-    private static bool IsSupportedPlugin(string name)
-    {
-        return string.Equals(name, "LocalContext", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "TimePlugin", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "FileIOPlugin", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "TextPlugin", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "SearchUrlPlugin", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "DocumentPlugin", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "HttpPlugin", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "BraveSearch", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "DuckDuckGo", StringComparison.OrdinalIgnoreCase) ||
-               string.Equals(name, "Google", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool IsPowerShellPlugin(PluginProvider provider)
@@ -166,11 +127,6 @@ public class AIKernel : IAIKernel
             }
 
             var provider = PluginProvider.GetProviderByName(plugin.Name);
-
-            if ( ! IsSupportedPlugin(plugin.Name) && ! IsPowerShellPlugin(provider) )
-            {
-                throw new NotImplementedException($"Function calling for plugin '{plugin.Name}' is not yet implemented.");
-            }
 
             var nativePlugin = provider.GetNativeInstance(plugin.Parameters, this.pluginTable?.Context);
 
@@ -215,40 +171,6 @@ public class AIKernel : IAIKernel
 
         return result;
     }
-
-/*
-    private Microsoft.Extensions.AI.ChatOptions GetPromptExecutionSettings(AiOptions options)
-    {
-        result = options.GetRequestOptions( options )
-        OpenAIPromptExecutionSettings result;
-
-        if ( this.initialPromptSettings is null )
-        {
-            result = new OpenAIPromptExecutionSettings();
-        }
-        else
-        {
-            // This supports providers that don't have a KernelBuilder extension that supports
-            // parameters that other more "native" SK providers configure via the builder. Some
-            // providers require parameters such as the modelId (!) to be configured through
-            // PromptExecutionSettings.
-            result = (OpenAIPromptExecutionSettings) this.initialPromptSettings.Clone();
-        }
-
-        if ( this.options.TokenLimit is not null )
-        {
-            var tokenLimit = this.options.TokenLimit > 0 ? this.options.TokenLimit : tokenLimitDefault;
-            Logger.Log(string.Format("Setting token limit to {0}", tokenLimit));
-            result.MaxTokens = tokenLimit;
-        }
-        else
-        {
-            Logger.Log("No token limit");
-        }
-
-        return result;
-    }
-*/
 
     private static List<Microsoft.Extensions.AI.ChatMessage> GetNativeHistory(List<Modulus.ChatGPS.Models.ChatMessage> sourceHistory)
     {

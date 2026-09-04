@@ -26,26 +26,6 @@ public abstract class PluginProvider
     {
         PluginProvider.providers = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
         PluginProvider.builtinProviders = new Dictionary<string, PluginProvider>(StringComparer.OrdinalIgnoreCase);
-
-//        #pragma warning disable SKEXP0050
-
-/*
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.ConversationSummaryPlugin),
-                                                                 "Summarizes a conversation."));
-        PluginProvider.RegisterProvider(new DocumentPluginProvider());
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.FileIOPlugin),
-                                                                 "Enables read and write access to the local file system."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TextPlugin),
-                                                                 "Allows the local computer to perform string manipulations."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.HttpPlugin),
-                                                                 "Enables the local computer to access local and remote resources via http protocol requests."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Core.TimePlugin),
-                                                                 "Uses the local computer to obtain the current time."));
-        PluginProvider.RegisterProvider(new StaticPluginProvider(typeof(Microsoft.SemanticKernel.Plugins.Web.SearchUrlPlugin),
-                                                                 "Computes the search url for popular websites."));
-        PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Bing, "Bing"));
-        PluginProvider.RegisterProvider(new WebSearchPluginProvider(WebSearchPluginProvider.SearchSource.Google, "Google"));
-*/
         PluginProvider.RegisterProvider(new LocalContextPluginProvider());
         PluginProvider.RegisterProvider(new StaticPluginProvider("TimePlugin", typeof(TimeNativePlugin), "Uses the local computer to obtain the current time.", null));
         PluginProvider.RegisterProvider(new StaticPluginProvider("FileIOPlugin", typeof(FileIONativePlugin), "Enables read and write access to the local file system.", null));
@@ -56,7 +36,6 @@ public abstract class PluginProvider
         PluginProvider.RegisterProvider(new BravePluginProvider());
         PluginProvider.RegisterProvider(new StaticPluginProvider("DuckDuckGo", typeof(DuckDuckGoNativePlugin), "Enables access to DuckDuckGo's Instant Answer API.", null));
         PluginProvider.RegisterProvider(new GooglePluginProvider());
-//        #pragma warning restore SKEXP0050
     }
 
     public IEnumerable<PluginParameter> Parameters
