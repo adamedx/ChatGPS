@@ -35,9 +35,6 @@ public static class OnnxChatClientFactory
         public OnnxChatClient(string modelIdentifier, string modelPath)
         {
             using var config = new Config(modelPath);
-            config.ClearProviders();
-            config.AppendProvider("dml");
-            config.SetProviderOption("dml", "device_id", "0");
 
             this.model = new Model(config);
             this.tokenizer = new Tokenizer(this.model);
