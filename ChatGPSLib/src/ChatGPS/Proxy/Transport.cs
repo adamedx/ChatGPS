@@ -60,6 +60,8 @@ internal class Transport
             }
             catch
             {
+                connection.ResetTargetServiceBinding();
+
                 if ( attempt == maxAttempts - 1 )
                 {
                     throw;
