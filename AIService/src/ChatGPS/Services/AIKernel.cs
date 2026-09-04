@@ -136,6 +136,7 @@ public class AIKernel : IAIKernel
                string.Equals(name, "TimePlugin", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(name, "FileIOPlugin", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(name, "TextPlugin", StringComparison.OrdinalIgnoreCase) ||
+               string.Equals(name, "SearchUrlPlugin", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(name, "DocumentPlugin", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(name, "HttpPlugin", StringComparison.OrdinalIgnoreCase) ||
                string.Equals(name, "BraveSearch", StringComparison.OrdinalIgnoreCase) ||
