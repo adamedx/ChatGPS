@@ -56,7 +56,9 @@ public class LocalChatService : ChatService
 
         var chatClient = onnxBuilderExtension.CreateChatClient(
             this.options.ModelIdentifier,
-            this.options.LocalModelPath);
+            this.options.LocalModelPath,
+            this.options.LocalModelProvider,
+            this.options.LocalModelProviderOptions);
         var newKernel = new AIKernel(chatClient);
 
         this.serviceKernel = newKernel;
