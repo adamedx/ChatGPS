@@ -27,7 +27,7 @@ Currently the only supported add-on is LocalOnnx, which enables the use of local
 
 Because the functionality is not distributed through a PowerShell repository, the Install-ChatAddOn command will use other tools such as dotnet to obtain the required files from sources such as a nuget repository. If the tool required to download the capabilities is not available, the command attempts to install that tool as well.
 
-Add-ons only need to be installed once to enable the functionality. If a failure is encountered during the execution of the command it is typically safe to re-invoke the command to retry. If the command is successful and the command is invoked again, the command will result in no operation unless the Force parameter is specified.
+Add-ons only need to be installed once to enable the functionality. If a failure is encountered during the execution of the command it is typically safe to re-invoke the command to retry. Specify the Force parameter when reinstalling an add-on to ensure any out of date files are forcibly replaced.
 
 .PARAMETER AddOns
 The add-ons to install. Currently the only supported add-on is LocalOnnx.

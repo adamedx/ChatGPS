@@ -55,11 +55,9 @@ public class ServiceBuilder
             case ModelProvider.OpenAI:
                 newService = new OpenAIChatService( this.options, this.loggerFactory, this.userAgent );
                 break;
-/*
             case ModelProvider.LocalOnnx:
                 newService = new LocalChatService( this.options, this.loggerFactory );
                 break;
-*/
             case ModelProvider.Ollama:
                 newService = new OllamaChatService( this.options, this.loggerFactory );
                 break;
@@ -120,4 +118,3 @@ public class ServiceBuilder
     private string? userAgent;
     private ILoggerFactory? loggerFactory;
 }
-
