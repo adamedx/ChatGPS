@@ -120,9 +120,7 @@ public class ChatSession
 
         this.chatHistory.RemoveAt(this.chatHistory.Count - 1);
         this.totalChatMessageHistory.RemoveAt(this.totalChatMessageHistory.Count - 1);
-/*
-        var sourceChatMessageContent = (ChatMessage) lastMessage.GetSourceChatMessageContent();
-*/
+
         var updatedMessage = new ChatMessage(lastMessage.Role, updatedResponse, lastMessage.Metadata);
 
         this.chatHistory.Add(updatedMessage);

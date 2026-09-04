@@ -216,40 +216,6 @@ public class AIKernel : IAIKernel
         return result;
     }
 
-/*
-    private Microsoft.Extensions.AI.ChatOptions GetPromptExecutionSettings(AiOptions options)
-    {
-        result = options.GetRequestOptions( options )
-        OpenAIPromptExecutionSettings result;
-
-        if ( this.initialPromptSettings is null )
-        {
-            result = new OpenAIPromptExecutionSettings();
-        }
-        else
-        {
-            // This supports providers that don't have a KernelBuilder extension that supports
-            // parameters that other more "native" SK providers configure via the builder. Some
-            // providers require parameters such as the modelId (!) to be configured through
-            // PromptExecutionSettings.
-            result = (OpenAIPromptExecutionSettings) this.initialPromptSettings.Clone();
-        }
-
-        if ( this.options.TokenLimit is not null )
-        {
-            var tokenLimit = this.options.TokenLimit > 0 ? this.options.TokenLimit : tokenLimitDefault;
-            Logger.Log(string.Format("Setting token limit to {0}", tokenLimit));
-            result.MaxTokens = tokenLimit;
-        }
-        else
-        {
-            Logger.Log("No token limit");
-        }
-
-        return result;
-    }
-*/
-
     private static List<Microsoft.Extensions.AI.ChatMessage> GetNativeHistory(List<Modulus.ChatGPS.Models.ChatMessage> sourceHistory)
     {
         var result = new List<Microsoft.Extensions.AI.ChatMessage>();
