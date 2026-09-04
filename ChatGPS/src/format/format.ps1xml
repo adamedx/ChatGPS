@@ -232,6 +232,14 @@ All Rights Reserved.
                 <PropertyName>AllowInteractiveSignin</PropertyName>
               </ListItem>
               <ListItem>
+                <Label>PlainTextApiKey</Label>
+                <PropertyName>PlainTextApiKey</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>NoAuthentication</Label>
+                <PropertyName>NoAuthentication</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>AccessValidated</Label>
                 <PropertyName>AccessValidated</PropertyName>
               </ListItem>

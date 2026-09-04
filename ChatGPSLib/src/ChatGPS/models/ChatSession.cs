@@ -282,6 +282,9 @@ public class ChatSession
         }
     }
 
+    public bool PlainTextApiKey { get => this.AiOptions.PlainTextApiKey ?? false; }
+    public bool NoAuthentication { get => this.AiOptions.NoAuthentication ?? false; }
+
     private string GenerateMessageInternal(string prompt, bool? allowAgentAccess, string? functionDefinition = null)
     {
         var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
