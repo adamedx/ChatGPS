@@ -54,6 +54,9 @@ Specify the ReadApiKey parameter to supply secure, interactive input for the API
 .PARAMETER PlainTextApiKey
 Specify this if the ApiKey parameter being specified uses plaintext. This parameter should only be used for troubleshooting such as confirming that the actual value of the API key is correct before using encryption.
 
+.PARAMETER NoAuthentication
+Specifies that this model does not require authentication, e.g. no OAuth or API key is required, the API can be accessed anonymously. This is useful when accessing a locally hosted model over http protocol for instance.
+
 .PARAMETER AllowInteractiveSignin
 For use with remote models only, specify AllowInteractiveSignin to allow this command or subsequent commands that access the model to invoke a user interface for authentication. This is only applicable when the ApiKey parameter or other non-interactive sign-in mechanisms are not configured for the session. For some model services such as Azure OpenAI this option can be useful if sign-in tools such as the "Az.Accounts" module with its "Login-AzAccount" and "Logout-AzAccount" commands is unavailable, however it may have some side effects including multiple sign-in prompts.
 
@@ -373,6 +376,12 @@ Received                 Response
 
 In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatShell command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatShell is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatShell as it still shows the last response from the previous Start-ChatShell usage on that session as the latest response.
 
+.EXAMPLE
+PS > Connect-ChatSession -Provider OpenAI -ApiEndpoint http://localhost:8080/v1 -ModelIdentifier qwen3-8-27b-q4 -NoAuthentication
+ 
+Here the model is being served via the OpenAI provider from an API endpoint on the local host. In this case the local model server does not require authentication, so the NoAuthentication parameter is used to avoid the need to specify a needless API key. This can be done for any API endpoint, not just those on local host, though the hoster must of course ensure that the lack of authentication does not enable security exploits; under no circumstances should a hoster allow unauthenticated access on an internet exposed endpoint.
+
+
 .LINK
 Get-ChatSession
 Select-ChatSession
@@ -415,6 +424,9 @@ function Connect-ChatSession {
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [switch] $PlainTextApiKey,
+
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
+        [switch] $NoAuthentication,
 
         [switch] $AllowInteractiveSignin,
 
@@ -500,6 +512,7 @@ function Connect-ChatSession {
     $options.LocalModelPath = $LocalModelPath
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
     $options.PlainTextApiKey = $PlainTextApiKey.IsPresent
+    $options.NoAuthentication = $NoAuthentication.IsPresent
     $options.AllowAgentAccess = $AllowAgentAccess.IsPresent
 
     $isLocal = !  ( ! $options.LocalModelPath )
