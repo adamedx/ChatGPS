@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
+
 namespace Modulus.ChatGPS.Models;
 
 public enum OutputType
@@ -45,6 +47,8 @@ public class AiProviderOptions
     public string? Provider {get; set;}
     public Uri? ApiEndpoint { get; set; }
     public string? LocalModelPath { get; set; }
+    public string? LocalModelProvider { get; set; }
+    public Dictionary<string, string>? LocalModelProviderOptions { get; set; }
     public string? ModelIdentifier { get; set; }
     public string? DeploymentName { get; set; }
     public string? ServiceIdentifier { get; set; }
@@ -61,6 +65,9 @@ public class AiProviderOptions
         this.Provider = options.Provider;
         this.ApiEndpoint = options.ApiEndpoint;
         this.LocalModelPath = options.LocalModelPath;
+        this.LocalModelProvider = options.LocalModelProvider;
+        this.LocalModelProviderOptions = options.LocalModelProviderOptions is null ?
+            null : new Dictionary<string, string>(options.LocalModelProviderOptions);
         this.ModelIdentifier = options.ModelIdentifier;
         this.DeploymentName = options.DeploymentName;
         this.ServiceIdentifier = options.ServiceIdentifier;
@@ -104,4 +111,3 @@ public sealed class AiOptions : AiProviderOptions
         target.CopyOptions(source);
     }
 }
-

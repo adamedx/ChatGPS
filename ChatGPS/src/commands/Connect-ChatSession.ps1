@@ -432,6 +432,12 @@ function Connect-ChatSession {
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [string] $LocalModelPath,
 
+        [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true)]
+        [string] $LocalModelProvider,
+
+        [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true)]
+        [hashtable] $LocalModelProviderOptions,
+
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $ModelIdentifier,
@@ -509,6 +515,13 @@ function Connect-ChatSession {
     $options.ApiKey = $targetApiKey
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
+    $options.LocalModelProvider = $LocalModelProvider
+    if ( $LocalModelProviderOptions ) {
+        $options.LocalModelProviderOptions = [System.Collections.Generic.Dictionary[string,string]]::new()
+        foreach ( $entry in $LocalModelProviderOptions.GetEnumerator() ) {
+            $options.LocalModelProviderOptions[[string] $entry.Key] = [string] $entry.Value
+        }
+    }
     $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
     $options.PlainTextApiKey = $PlainTextApiKey.IsPresent
     $options.NoAuthentication = $NoAuthentication.IsPresent
@@ -614,4 +627,3 @@ function Connect-ChatSession {
 }
 
 RegisterPluginCompleter Connect-ChatSession Plugins
-

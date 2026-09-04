@@ -16,6 +16,7 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 using Microsoft.Extensions.AI;
 
@@ -39,7 +40,11 @@ internal class OnnxDynamicKernelBuilderExtension
 
     internal string? PlatformString { get; private set; }
 
-    internal IChatClient CreateChatClient(string modelIdentifier, string modelPath)
+    internal IChatClient CreateChatClient(
+        string modelIdentifier,
+        string modelPath,
+        string? localModelProvider,
+        Dictionary<string, string>? localModelProviderOptions)
     {
         var assemblyPath = Path.Combine(
             Path.GetDirectoryName(typeof(OnnxDynamicKernelBuilderExtension).Assembly.Location) ?? string.Empty,
@@ -72,7 +77,15 @@ internal class OnnxDynamicKernelBuilderExtension
 
         try
         {
-            return (IChatClient)(factoryMethod.Invoke(null, new object[] { modelIdentifier, modelPath })
+            return (IChatClient)(factoryMethod.Invoke(
+                    null,
+                    new object?[]
+                    {
+                        modelIdentifier,
+                        modelPath,
+                        localModelProvider,
+                        localModelProviderOptions
+                    })
                 ?? throw new TypeLoadException("The LocalOnnx add-on returned no chat client."));
         }
         catch (TargetInvocationException exception) when (exception.InnerException is not null)

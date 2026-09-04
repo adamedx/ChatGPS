@@ -26,16 +26,43 @@ namespace Modulus.ChatGPS.Addons;
 
 public static class OnnxChatClientFactory
 {
-    public static IChatClient Create(string modelIdentifier, string modelPath)
+    public static IChatClient Create(
+        string modelIdentifier,
+        string modelPath,
+        string? localModelProvider,
+        Dictionary<string, string>? localModelProviderOptions)
     {
-        return new OnnxChatClient(modelIdentifier, modelPath);
+        return new OnnxChatClient(
+            modelIdentifier,
+            modelPath,
+            localModelProvider,
+            localModelProviderOptions);
     }
 
     private sealed class OnnxChatClient : IChatClient
     {
-        public OnnxChatClient(string modelIdentifier, string modelPath)
+        public OnnxChatClient(
+            string modelIdentifier,
+            string modelPath,
+            string? localModelProvider,
+            Dictionary<string, string>? localModelProviderOptions)
         {
             using var config = new Config(modelPath);
+
+            if (!string.IsNullOrWhiteSpace(localModelProvider))
+            {
+                config.ClearProviders();
+                config.AppendProvider(localModelProvider);
+
+                if (localModelProviderOptions is not null &&
+                    localModelProviderOptions.ContainsKey("Provider"))
+                {
+                    foreach (var option in localModelProviderOptions)
+                    {
+                        config.SetProviderOption(localModelProvider, option.Key, option.Value);
+                    }
+                }
+            }
 
             this.model = new Model(config);
             this.tokenizer = new Tokenizer(this.model);
