@@ -381,7 +381,6 @@ PS > Connect-ChatSession -Provider OpenAI -ApiEndpoint http://localhost:8080/v1 
  
 Here the model is being served via the OpenAI provider from an API endpoint on the local host. In this case the local model server does not require authentication, so the NoAuthentication parameter is used to avoid the need to specify a needless API key. This can be done for any API endpoint, not just those on local host, though the hoster must of course ensure that the lack of authentication does not enable security exploits; under no circumstances should a hoster allow unauthenticated access on an internet exposed endpoint.
 
-
 .LINK
 Get-ChatSession
 Select-ChatSession
