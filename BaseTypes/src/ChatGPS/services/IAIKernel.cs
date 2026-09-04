@@ -24,7 +24,5 @@ public interface IAIKernel
 	Task<ChatMessage> GetNextChatMessageAsync(List<ChatMessage> history, AiOptions options, bool? allowAgentAccess = null);
 	Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object?>? functionArguments = null, bool? allowAgentAccess = null);
     AIChatFunction CreateFunctionFromPrompt(string definitionPrompt, AiOptions? options = null);
-    void AddPlugin(Plugin plugin);
-    void RemovePlugin(Plugin plugin);
     void SetPluginTable(IPluginTable pluginTable);
 }
