@@ -21,7 +21,7 @@ Azure OpenAI supports the use of both Entra ID for authentication as well as a s
 # You only need to do Login-AzAccount once. The credential usually persists even across
 # reboots unless you sign out.
 Login-AzAccount
-Connect-ChatSession -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini
+Connect-ChatSession -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini
 ```
 
 It should be noted that this Entra ID approach works on all platforms supported by ChatGPS including Windows, MacOS, and Linux.
@@ -33,14 +33,14 @@ Almost all providers, including Azure OpenAI, allow the use of a symmetric key c
 **Azure OpenAI:**
 
 ```powershell
-Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ReadApiKey
+Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini -ReadApiKey
 ```
 
 The `ReadApiKey` parameter allows you to securely enter the key so that it is not present in your terminal's command history and is also encrypted in memory. Use of the `ReadApiKey` parameter is equivalent to using the command `Get-ChatEncryptedUnicodeKeyCredential` command to read the key, and then specifying that value to `Connect-ChatSession` explicitly:
 
 ```powershell
 $encryptedKey = Get-ChatEncryptedUnicodeKeyCredential
-Connect-ChatSession -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ApiKey $encryptedKey
+Connect-ChatSession -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini -ApiKey $encryptedKey
 ```
 
 Currently the `ReadApiKey` parameter and `Get-ChatEncryptedUnicodeKeyCredential` command are only supported on the Windows operating system. For other operating systems such as Linux and MacOS, you will need to specify a plain text key which you can configure through environment variables, possibly sourced by a script that reads the plan text key from a secure location. Use the `ApiKey` parameter to specify the plain text key along with the `PlainTextApiKey` parameter in such cases.
@@ -57,14 +57,14 @@ The use of Azure Key Vault is given here as an example:
 
 ```powershell
 $encryptedApiKey = Get-AzKeyVaultSecret -VaultName AIVault -Name AzureOpenAIApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
-Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ApiKey $encryptedApiKey
+Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini -ApiKey $encryptedApiKey
 ```
 
 That same example will need a change on non-Windows platforms since `Get-ChatEncryptedUnicodeKeyCredential` is not available:
 
 ```
 $unencryptedApiKey = Get-AzKeyVaultSecret -VaultName AIVault -Name AzureOpenAIApiKey -AsPlainText
-Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ApiKey $unencryptedApiKey -PlainTextApiKey
+Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini -ApiKey $unencryptedApiKey -PlainTextApiKey
 ```
 
 #### Saving the key into a file
@@ -118,12 +118,12 @@ Connect-ChatSession -Provider Google -ModelIdentifier gemini-2.0-flash-001 -Read
 
 ```powershell
 # Using Entra ID
-Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini # Use Login-AzAccount first
+Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini # Use Login-AzAccount first
 
 # OR
 
 # Use an API key
-Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ReadApiKey
+Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini -ReadApiKey
 ```
 
 **Anthropic:**
