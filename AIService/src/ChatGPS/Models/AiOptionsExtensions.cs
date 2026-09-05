@@ -35,7 +35,7 @@ public static class AiOptionsExtensions
             result = new ChatOptions();
         }
 
-        result.ModelId = options.ModelIdentifier?.Length > 0 ? options.ModelIdentifier : options.DeploymentName;
+        result.ModelId = options.ModelIdentifier;
         result.MaxOutputTokens = options.TokenLimit;
         result.ToolMode = ( options.AllowAgentAccess ?? false ) ? ChatToolMode.Auto : ChatToolMode.None;
 

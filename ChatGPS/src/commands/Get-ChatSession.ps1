@@ -71,7 +71,6 @@ AccessValidated        : False
 AllowAgentAccess       : True
 TokenLimit             : 16384
 ModelIdentifier        : gpt-4o-mini
-DeploymentName         : gpt-4o-mini
 TotalMessageCount      : 28
 CurrentMessageCount    : 21
 HistoryContextLimit    : -1
