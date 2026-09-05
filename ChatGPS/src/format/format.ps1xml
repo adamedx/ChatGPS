@@ -255,6 +255,13 @@ All Rights Reserved.
                 <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
               </ListItem>
               <ListItem>
+                <Label>LocalModelProvider</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.AiOptions.LocalModelProvider</ScriptBlock>
+              </ListItem>
+              <ListItem>
                 <Label>TokenLimit</Label>
                 <ScriptBlock>$_.AiOptions.TokenLimit</ScriptBlock>
               </ListItem>

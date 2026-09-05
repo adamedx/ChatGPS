@@ -29,6 +29,8 @@ Because the functionality is not distributed through a PowerShell repository, th
 
 Add-ons only need to be installed once to enable the functionality. If a failure is encountered during the execution of the command it is typically safe to re-invoke the command to retry. Specify the Force parameter when reinstalling an add-on to ensure any out of date files are forcibly replaced.
 
+NOTE: If this command fails, you can re-run it with -Debug for troubleshooting.
+
 .PARAMETER AddOns
 The add-ons to install. Currently the only supported add-on is LocalOnnx.
 
