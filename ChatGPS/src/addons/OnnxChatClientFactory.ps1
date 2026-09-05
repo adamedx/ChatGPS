@@ -164,15 +164,41 @@ public static class OnnxChatClientFactory
 
             using var document = System.Text.Json.JsonDocument.Parse(File.ReadAllText(tokenizerConfigPath));
 
-            if (!document.RootElement.TryGetProperty("chat_template", out var chatTemplate) ||
-                chatTemplate.ValueKind != System.Text.Json.JsonValueKind.String ||
-                string.IsNullOrWhiteSpace(chatTemplate.GetString()))
+            string? chatTemplateContent = null;
+
+            // Look for the JSON element in the config that contains the chat template
+            if ( document.RootElement.TryGetProperty("chat_template", out var chatTemplateJson) &&
+                chatTemplateJson.ValueKind == System.Text.Json.JsonValueKind.String &&
+                ! string.IsNullOrWhiteSpace(chatTemplateJson.GetString()))
             {
-                throw new InvalidOperationException(
-                    $"The ONNX model tokenizer configuration '{tokenizerConfigPath}' does not define a chat_template.");
+                chatTemplateContent = chatTemplateJson.GetString();
+            }
+            else
+            {
+                // So anecdotally there are some models that do not explicitly include the template in the
+                // JSON config, but they do include the chat template as a file with a well-known name. We
+                // will look for that file as the backup when there is no template in the config
+                string templateFilePath = Path.Combine(modelPath, "chat_template.jinja");
+
+                try
+                {
+                    // Note that this can return null
+                    chatTemplateContent = File.ReadAllText(templateFilePath);
+                }
+                catch (Exception e)
+                {
+                    throw new InvalidOperationException(
+                        $"The ONNX model tokenizer configuration '{tokenizerConfigPath}' does not define a chat_template and the file {templateFilePath} does not exist in the model file system directory.", e);
+                }
             }
 
-            return chatTemplate.GetString()!;
+            // Deal with overactive nullable compiler warnings here
+            if ( chatTemplateContent is null )
+            {
+                throw new InvalidOperationException("A chat template was found but was empty.");
+            }
+
+            return chatTemplateContent;
         }
 
         private readonly Model model;
