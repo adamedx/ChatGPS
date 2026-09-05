@@ -37,9 +37,9 @@ public class AzureOpenAIChatService : ChatService
             return this.serviceKernel;
         }
 
-        if ( this.options.DeploymentName == null )
+        if ( this.options.ModelIdentifier == null )
         {
-            throw new ArgumentException("A deployment name for the language model must be specified.");
+            throw new ArgumentException("A model identifier for the language model must be specified.");
         }
 
         if ( this.options.ApiEndpoint == null )
@@ -81,7 +81,7 @@ public class AzureOpenAIChatService : ChatService
                 clientOptions);
         }
 
-        var chatClient = apiClient.GetChatClient(this.options.DeploymentName).AsIChatClient();
+        var chatClient = apiClient.GetChatClient(this.options.ModelIdentifier).AsIChatClient();
 
         var newKernel = new AIKernel(chatClient);
 
