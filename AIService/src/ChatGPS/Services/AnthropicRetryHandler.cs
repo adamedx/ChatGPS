@@ -14,6 +14,10 @@ internal sealed class AnthropicRetryHandler : DelegatingHandler
     private const int MaxRetries = 3;
     private static readonly TimeSpan DefaultRetryDelay = TimeSpan.FromSeconds(1);
 
+    public AnthropicRetryHandler(HttpMessageHandler innerHandler) : base(innerHandler)
+    {
+    }
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var content = request.Content is not null ?

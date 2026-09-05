@@ -177,8 +177,6 @@ function ConfigureSessionPlugins($session, [HashTable] $parametersByPlugin) {
 }
 
 function AddPluginToSession([Modulus.ChatGPS.Models.ChatSession] $session, [string] $pluginName, $parameterInfo) {
-    WarnPluginCompatibility $session $pluginName
-
     $session.AddPlugin($pluginName, $parameterInfo)
 }
 
