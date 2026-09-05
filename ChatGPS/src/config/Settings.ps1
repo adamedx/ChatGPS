@@ -551,7 +551,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     }
 
     if ( $isValidSetting ) {
-        'systemPromptId', 'customSystemPrompt', 'logLevel', 'logDirectory', 'historyContextLimit', 'apiKey', 'tokenLimit' | foreach {
+        'systemPromptId', 'customSystemPrompt', 'logLevel', 'logDirectory', 'historyContextLimit', 'apiKey', 'tokenLimit', 'noAuthentication' | foreach {
             # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
             $value = '' -ne $sourceSetting.$_ ? $sourceSetting.$_ : $null
 

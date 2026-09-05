@@ -424,7 +424,7 @@ function Connect-ChatSession {
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [switch] $PlainTextApiKey,
 
-        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
+        [parameter(valuefrompipelinebypropertyname=$true)]
         [switch] $NoAuthentication,
 
         [switch] $AllowInteractiveSignin,
