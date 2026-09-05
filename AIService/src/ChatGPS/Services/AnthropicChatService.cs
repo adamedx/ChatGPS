@@ -49,7 +49,7 @@ public class AnthropicChatService : ChatService
 
         var apiKey = new APIAuthentication( cleartextKey );
 
-        var httpClient = new HttpClient(new AnthropicRetryHandler())
+        var httpClient = new HttpClient(new AnthropicRetryHandler(new HttpClientHandler()))
         {
             Timeout = TimeSpan.FromMinutes(2)
         };
