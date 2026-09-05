@@ -131,7 +131,7 @@ Received                 Response
 This example is the same as the previous case, but the AsJob parameter is used to create a job. Receive-Job is used to wait for the job to finish and return the output, which is identical to the default case where AsJob is not specified.
 
 .EXAMPLE
-Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini
 PS > Send-ChatMessage 'What attribute do I use to define a specific set of values for the parameter of a Powershell function?'
  
 Received                 Response

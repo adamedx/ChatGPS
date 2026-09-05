@@ -48,13 +48,13 @@ A string of characters representing the data provided to the command in an encry
 PS > $encryptedApiKey = Get-ChatEncryptedUnicodeKeyCredential
 ChatGPS: Enter secret key / password>: *****************************
  
-PS > Connect-ChatSession -Apiendpoint 'https://ryu-2025-07.openai.azure.com' -DeploymentName gpt4-1  -ApiKey $encryptedApiKey
+PS > Connect-ChatSession -Apiendpoint 'https://ryu-2025-07.openai.azure.com' -ModelIdentifier gpt4-1  -ApiKey $encryptedApiKey
 
 In this example, Get-ChatEncryptedUnicodeKeyCredential is used to obtain an encrypted API key value by reading securely from the terminal. The encrypted value is then provided to the Connect-ChatSession command executing on the same computer with the same user account, and therefore it can decrypt the value and use it to access the language model.
 
 .EXAMPLE
 PS > $encryptedApiKey = Get-AzKeyVaultSecret -VaultName LLMVault -Name gpt41-ryu -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
-PS > Connect-ChatSession -Apiendpoint 'https://ryu-2025-07.openai.azure.com' -DeploymentName gpt4-1  -ApiKey $encryptedApiKey
+PS > Connect-ChatSession -Apiendpoint 'https://ryu-2025-07.openai.azure.com' -ModelIdentifier gpt4-1  -ApiKey $encryptedApiKey
 
 In this example, the plaintext value of a API key is read from its secure storage location in an Azure KeyVault resource using the Get-AzKeyuVaultSecret command. The value is piped to Get-ChatEncryptedUnicodeKeyCredential, which re-encrypts the value which is then assigned to a variable. The variable is then used with the ApiKey parameter of the Connect-ChatSession command to securely connect to the language model.
 

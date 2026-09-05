@@ -72,7 +72,7 @@ You can continue to invoke `Send-ChatSession` and it will send a new message usi
 You can use models from other providers as well, though some models may require a different set of parameters to be specified to `Connect-ChatSession`. If you're using Azure OpenAI, you'll need to supply the API endpoint of your Azure OpenAI resource and specify a deployment name instead of a model identifier, so you can replace the use of `Connect-ChatSession` above with this version and follow it up with `Send-ChatMessage`:
 
 ```powershell
-Connect-ChatSession -DeploymentName gpt-4o-mini -ApiEndpoint https://your-openai-resource.openai.azure.com -ReadApiKey
+Connect-ChatSession -ModelIdentifier gpt-4o-mini -ApiEndpoint https://your-openai-resource.openai.azure.com -ReadApiKey
 ```
 
 The Azure OpenAI provider also supports authentication through an OAuth2 client identifier used by Azure's `Az` PowerShell module and also the `az cli` tool, and this allows you to avoid the less secure use of an API key if you're able to sign in to those tools using Entra ID accounts that you've configured for access on your Azure OpenAI resource:
@@ -384,8 +384,8 @@ Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the u
     } -Description "Returns the amount of free disk space in bytes for the drive that hosts the operating system.' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
 
-Name                           Desciption                                           Parameters
-----                           ----------                                           ----------
+Name                           Description                                          Parameters
+----                           -----------                                          ----------
 system_basic_information       Returns basic information about the operating system
 ```
 

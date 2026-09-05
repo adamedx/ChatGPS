@@ -23,7 +23,7 @@ public class LocalContextPluginProvider : PluginProvider
         this.Description = "Enables the ability to read information about the operating system environment of the user or system accessing this application.";
     }
 
-    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
+    public override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
     {
         if ( parameters is not null && parameters.Count > 0 )
         {

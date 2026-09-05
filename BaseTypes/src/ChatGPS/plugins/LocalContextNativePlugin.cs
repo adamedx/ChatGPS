@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using Modulus.ChatGPS.Utilities;
 
@@ -30,50 +29,50 @@ public sealed class LocalContextNativePlugin
         this.context = context;
     }
 
-    [KernelFunction, Description("Gets the process id of the user's application process.")]
+    [Description("Gets the process id of the user's application process.")]
     public int? get_process_id()
     {
         return this.context?.ProcessId;
     }
 
-    [KernelFunction, Description("Gets the friendly name of the user's application process.")]
+    [Description("Gets the friendly name of the user's application process.")]
     public string? get_process_name()
     {
         return this.context?.ProcessName;
     }
 
-    [KernelFunction, Description("Gets the version number of the PowerShell instance that the user is using in accessing this application.")]
+    [Description("Gets the version number of the PowerShell instance that the user is using in accessing this application.")]
     public string? get_process_powershell_version()
     {
         return this.context?.PSVersion;
     }
 
-    [KernelFunction, Description("Gets the version number and name of the operating system hosting the PowerShell instance that the user is using to accessing this application.")]
+    [Description("Gets the version number and name of the operating system hosting the PowerShell instance that the user is using to accessing this application.")]
     public string? get_operating_system()
     {
         return this.context?.OperatingSystem;
     }
 
-    [KernelFunction, Description("Returns the current working directory of the process that the user is using to access this application")]
+    [Description("Returns the current working directory of the process that the user is using to access this application")]
     public string? get_current_directory()
     {
         return context?.CurrentDirectory;
     }
 
-    [KernelFunction, Description("Returns the path to the PowerShell command history file")]
+    [Description("Returns the path to the PowerShell command history file")]
     public string? get_command_history_file_path()
     {
         return context?.HistoryFilePath;
     }
 
-    [KernelFunction, Description("Returns a path that contains the terminal output of the user's PowerShell session, including all user input and command output, both success output and error output as text.")]
+    [Description("Returns a path that contains the terminal output of the user's PowerShell session, including all user input and command output, both success output and error output as text.")]
     public string? get_command_transcript_file_path()
     {
         return context?.TranscriptPath;
     }
 
 
-    [KernelFunction, Description("Returns the most recent N lines of commands executed with PowerShell")]
+    [Description("Returns the most recent N lines of commands executed with PowerShell")]
     public string? get_most_recent_commands_from_history(int count_of_commands)
     {
         string? result = null;
@@ -88,7 +87,7 @@ public sealed class LocalContextNativePlugin
         return result;
     }
 
-    [KernelFunction, Description("Returns the most recent N lines of the user's PowerShell session terminal output as it was rendered, including both the user's input command text and the resulting output of those commands, both success and error output. It is best to read at least a screenful of lines, for example 50 lines or so at least (50 is a good default), but it is also good to read more if you want to look further into previous command output to help the user.")]
+    [Description("Returns the most recent N lines of the user's PowerShell session terminal output as it was rendered, including both the user's input command text and the resulting output of those commands, both success and error output. It is best to read at least a screenful of lines, for example 50 lines or so at least (50 is a good default), but it is also good to read more if you want to look further into previous command output to help the user.")]
     public string? get_latest_terminal_output(int count_of_lines)
     {
         string? result = null;

@@ -14,7 +14,6 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel.ChatCompletion;
 using Modulus.ChatGPS.Services;
 
 internal class Connection

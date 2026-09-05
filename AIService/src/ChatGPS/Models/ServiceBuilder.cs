@@ -61,9 +61,11 @@ public class ServiceBuilder
             case ModelProvider.Ollama:
                 newService = new OllamaChatService( this.options, this.loggerFactory );
                 break;
+
             case ModelProvider.Google:
                 newService = new GoogleChatService( this.options, this.loggerFactory );
                 break;
+
             case ModelProvider.Anthropic:
                 newService = new AnthropicChatService( this.options, this.loggerFactory );
                 break;
@@ -116,4 +118,3 @@ public class ServiceBuilder
     private string? userAgent;
     private ILoggerFactory? loggerFactory;
 }
-

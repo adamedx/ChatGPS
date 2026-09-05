@@ -77,7 +77,7 @@ public class PowerShellPluginProvider : PluginProvider
         return argumentJson;
     }
 
-    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
+    public override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
     {
         if ( this.kernelPlugin is null )
         {
@@ -140,4 +140,3 @@ public class PowerShellPluginProvider : PluginProvider
 
     string? generationScriptPath;
 }
-

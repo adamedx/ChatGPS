@@ -20,8 +20,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 using Modulus.ChatGPS.Services;
 using Modulus.ChatGPS.Plugins;
 
@@ -34,10 +32,10 @@ public class ChatSession
         this.conversationBuilder = new ConversationBuilder(chatService);
 
         this.chatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
-        this.totalChatHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
+        this.totalChatMessageHistory = conversationBuilder.CreateConversationHistory(systemPrompt);
 
-        this.publicChatHistory = new ChatMessageHistory(this.chatHistory);
-        this.publicTotalChatHistory = new ChatMessageHistory(this.totalChatHistory);
+        this.publicChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.chatHistory);
+        this.publicTotalChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.totalChatMessageHistory);
 
         this.tokenReducer = new TokenReducer(conversationBuilder, tokenStrategy, tokenReductionParameters);
 
@@ -65,24 +63,21 @@ public class ChatSession
 
         var history = conversationBuilder.CreateConversationHistory(temporarySystemPrompt);
 
-        temporaryConversation.AddMessageToConversation(history, AuthorRole.User, prompt);
-
-        Task<string> messageTask;
+        temporaryConversation.AddMessageToConversation(history, SenderRole.User, prompt);
 
         try
         {
-            messageTask = temporaryConversation.SendMessageAsync(history, allowAgentAccess);
-            messageTask.Wait();
+            var response = temporaryConversation.SendMessageAsync(history, allowAgentAccess).GetAwaiter().GetResult();
+
+            UpdateStateWithLatestResponse(null, true);
+
+            return response;
         }
         catch (Exception e)
         {
             UpdateStateWithLatestResponse(e, true);
             throw;
         }
-
-        UpdateStateWithLatestResponse(null, true);
-
-        return messageTask.Result;
     }
 
     public string GenerateMessage(string prompt, bool? allowAgentAccess = null)
@@ -116,22 +111,24 @@ public class ChatSession
 
     public void UpdateLastResponse(string updatedResponse)
     {
-        if ( this.History[this.History.Count - 1].Role != ChatMessage.SenderRole.Assistant )
+        if ( this.History[this.History.Count - 1].Role != SenderRole.Assistant )
         {
             throw new InvalidOperationException("There is no last response from the assistant to update");
         }
 
         var lastMessage = this.History[this.History.Count - 1];
 
-        this.History.RemoveAt(this.History.Count - 1);
-        this.CurrentHistory.RemoveAt(this.CurrentHistory.Count - 1);
+        this.chatHistory.RemoveAt(this.chatHistory.Count - 1);
+        this.totalChatMessageHistory.RemoveAt(this.totalChatMessageHistory.Count - 1);
 
-        var sourceChatMessageContent = (ChatMessageContent) lastMessage.GetSourceChatMessageContent();
+        var updatedMessage = new ChatMessage(lastMessage.Role, updatedResponse, lastMessage.Metadata);
 
-        var updatedMessage = new ChatMessage(new ChatMessageContent(sourceChatMessageContent.Role, updatedResponse, sourceChatMessageContent.ModelId, sourceChatMessageContent.InnerContent, sourceChatMessageContent.Encoding, sourceChatMessageContent.Metadata));
+        this.chatHistory.Add(updatedMessage);
+        this.totalChatMessageHistory.Add(updatedMessage);
 
-        this.History.Add(updatedMessage);
-        this.CurrentHistory.Add(updatedMessage);
+        // Update read-only views
+        this.publicChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.chatHistory);
+        this.publicTotalChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.totalChatMessageHistory);
     }
 
     public IEnumerable<Plugin> Plugins
@@ -164,19 +161,19 @@ public class ChatSession
         return result;
     }
 
-    public ChatMessageHistory History
+    public IReadOnlyList<ChatMessage> History
     {
         get
         {
-            return this.publicTotalChatHistory;
+            return this.publicTotalChatMessageHistory;
         }
     }
 
-    public ChatMessageHistory CurrentHistory
+    public IReadOnlyList<ChatMessage> CurrentHistory
     {
         get
         {
-            return this.publicChatHistory;
+            return this.publicChatMessageHistory;
         }
     }
 
@@ -199,12 +196,20 @@ public class ChatSession
     public void ResetHistory(bool currentOnly)
     {
         // Reset preserves the system prompt
-        this.publicChatHistory.Reset();
+        var systemMessage = this.chatHistory[0];
+        this.chatHistory.Clear();
+        this.chatHistory.Add(systemMessage);
 
         if ( ! currentOnly )
         {
-            this.publicTotalChatHistory.Reset();
+            var systemMessageTotal = this.totalChatMessageHistory[0];
+            this.totalChatMessageHistory.Clear();
+            this.totalChatMessageHistory.Add(systemMessageTotal);
         }
+
+        // Update read-only views
+        this.publicChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.chatHistory);
+        this.publicTotalChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.totalChatMessageHistory);
     }
 
     public Guid Id { get; private set; }
@@ -277,15 +282,18 @@ public class ChatSession
         }
     }
 
+    public bool PlainTextApiKey { get => this.AiOptions.PlainTextApiKey ?? false; }
+    public bool NoAuthentication { get => this.AiOptions.NoAuthentication ?? false; }
+
     private string GenerateMessageInternal(string prompt, bool? allowAgentAccess, string? functionDefinition = null)
     {
         var allowAgentAccessParameter = ( allowAgentAccess is not null ) ? (bool) allowAgentAccess :
             ( this.AiOptions.AllowAgentAccess is not null ? (bool) this.AiOptions.AllowAgentAccess : false );
 
-        var newMessageRole = AuthorRole.User;
+        var newMessageRole = SenderRole.User;
 
-        this.conversationBuilder.AddMessageToConversation(this.totalChatHistory, newMessageRole, prompt, new TimeSpan(0));
-        ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatHistory, this.totalChatHistory.Count - 1);
+        this.conversationBuilder.AddMessageToConversation(this.totalChatMessageHistory, newMessageRole, prompt, new TimeSpan(0));
+        ConversationBuilder.CopyMessageToConversation(this.chatHistory, this.totalChatMessageHistory, this.totalChatMessageHistory.Count - 1);
 
         string? response = null;
 
@@ -356,7 +364,7 @@ public class ChatSession
 
         if ( tokenException != null || response == null )
         {
-            this.conversationBuilder.AddMessageToConversation(this.chatHistory, AuthorRole.Assistant, "My apologies, I was unable to respond to your last message.");
+            this.conversationBuilder.AddMessageToConversation(this.chatHistory, SenderRole.Assistant, "My apologies, I was unable to respond to your last message.");
         }
 
         var responseException = tokenException ?? lastException;
@@ -391,7 +399,7 @@ public class ChatSession
     {
         if ( this.latestContextLimit != -1 )
         {
-            ChatHistory? targetHistory = null;
+            List<ChatMessage>? targetHistory = null;
 
             if ( this.chatHistory.Count > 1 && ( this.chatHistory.Count % 2 ) == 0 )
             {
@@ -451,18 +459,21 @@ public class ChatSession
 
             if ( ! noHistory )
             {
-                ConversationBuilder.CopyMessageToConversation(this.totalChatHistory, this.chatHistory, this.chatHistory.Count - 1);
+                ConversationBuilder.CopyMessageToConversation(this.totalChatMessageHistory, this.chatHistory, this.chatHistory.Count - 1);
             }
         }
+
+        // Update read-only views whenever state changes
+        this.publicChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.chatHistory);
+        this.publicTotalChatMessageHistory = new ReadOnlyCollection<ChatMessage>(this.totalChatMessageHistory);
     }
 
     private ConversationBuilder conversationBuilder;
-    private ChatHistory chatHistory;
-    private ChatHistory totalChatHistory;
-    private ChatMessageHistory publicChatHistory;
-    private ChatMessageHistory publicTotalChatHistory;
+    private List<ChatMessage> chatHistory;
+    private List<ChatMessage> totalChatMessageHistory;
+    private ReadOnlyCollection<ChatMessage> publicChatMessageHistory;
+    private ReadOnlyCollection<ChatMessage> publicTotalChatMessageHistory;
     private TokenReducer tokenReducer;
     private IChatService chatService;
     private int latestContextLimit;
 }
-

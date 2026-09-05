@@ -15,7 +15,6 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SemanticKernel;
 
 namespace Modulus.ChatGPS.Models;
 

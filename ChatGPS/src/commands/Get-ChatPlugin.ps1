@@ -62,8 +62,8 @@ This invocation set the current session to a session named 'CodingSession'. Subs
 .EXAMPLE
 PS > Get-ChatPlugin -ListAvailable
  
-Name                     Desciption                               Parameters
-----                     ----------                               ----------
+Name                     Description                              Parameters
+----                     -----------                              ----------
 Bing                     Enables access to search the web using   {apiKey, apiUri, searchEngineId}
                          the following search engine source: Bing
 FileIOPlugin             Enables read and write access to the

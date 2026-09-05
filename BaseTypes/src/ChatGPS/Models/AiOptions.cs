@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+using System.Collections.Generic;
+
 namespace Modulus.ChatGPS.Models;
 
 public enum OutputType
@@ -45,12 +47,14 @@ public class AiProviderOptions
     public string? Provider {get; set;}
     public Uri? ApiEndpoint { get; set; }
     public string? LocalModelPath { get; set; }
+    public string? LocalModelProvider { get; set; }
+    public Dictionary<string, string>? LocalModelProviderOptions { get; set; }
     public string? ModelIdentifier { get; set; }
-    public string? DeploymentName { get; set; }
     public string? ServiceIdentifier { get; set; }
     public int? TokenLimit { get; set; }
     public bool? SigninInteractionAllowed { get; set; }
     public bool? PlainTextApiKey { get; set; }
+    public bool? NoAuthentication { get; set; }
     public bool? AllowAgentAccess { get; set; }
 
     public string? OutputType {get; set;}
@@ -60,13 +64,16 @@ public class AiProviderOptions
         this.Provider = options.Provider;
         this.ApiEndpoint = options.ApiEndpoint;
         this.LocalModelPath = options.LocalModelPath;
+        this.LocalModelProvider = options.LocalModelProvider;
+        this.LocalModelProviderOptions = options.LocalModelProviderOptions is null ?
+            null : new Dictionary<string, string>(options.LocalModelProviderOptions);
         this.ModelIdentifier = options.ModelIdentifier;
-        this.DeploymentName = options.DeploymentName;
         this.ServiceIdentifier = options.ServiceIdentifier;
         this.TokenLimit = options.TokenLimit;
         this.OutputType = options.OutputType;
         this.SigninInteractionAllowed = options.SigninInteractionAllowed;
         this.PlainTextApiKey = options.PlainTextApiKey;
+        this.NoAuthentication = options.NoAuthentication;
         this.AllowAgentAccess = options.AllowAgentAccess;
     }
 }
@@ -102,4 +109,3 @@ public sealed class AiOptions : AiProviderOptions
         target.CopyOptions(source);
     }
 }
-

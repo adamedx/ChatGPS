@@ -14,9 +14,6 @@
 // limitations under the License.
 //
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Models.Proxy;

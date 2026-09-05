@@ -46,8 +46,8 @@ Currently plugins defined by Register-ChatPlugin do not accept initialization pa
 Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the uptime of the operating system' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                           Desciption                                           Parameters
-----                           ----------                                           ----------
+Name                           Description                                          Parameters
+----                           -----------                                          ----------
 system_basic_information       Returns basic information about the operating system
  
 PS > Add-ChatPlugin system_basic_information
@@ -76,9 +76,9 @@ Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the u
   } -Description 'Returns the list of operating system updates applied to the system in the last N days' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                           Desciption                                           Parameters
-----                           ----------                                           ----------
-system_basic_information       Returns basic information about the operating system
+Name                          Description                                          Parameters
+----                          -----------                                          ----------
+system_basic_information      Returns basic information about the operating system
  
 PS > Add-ChatPlugin system_basic_information
 PS > Set-ChatAgentAccess -Allowed # Only needed if this wasn't already done
@@ -120,8 +120,8 @@ Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the u
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system' | out-null
 PS > Get-ChatPlugin -ListAvailable
  
-Name                           Desciption                               Parameters
-----                           ----------                               ----------
+Name                           Description                              Parameters
+----                           -----------                              ----------
 Bing                           Enables access to search the web using   {apiKey, apiUri, searchEngineId}
                                the following search engine source: Bing
 ConversationSummaryPlugin      Summarizes a conversation.

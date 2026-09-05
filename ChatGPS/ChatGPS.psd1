@@ -12,7 +12,7 @@
 RootModule = 'src/ChatGPS.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.2.0'
+ModuleVersion = '0.3.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -144,7 +144,7 @@ FileList = @(
     'src/ChatGPS.psm1'
     'src/ChatGPS.ps1'
     'src/addons/addons.ps1'
-    'src/addons/Program.ps1'
+    'src/addons/OnnxChatClientFactory.ps1'
     'src/addons/Tools.ps1'
     'src/codegen.ps1'
     'src/codegen/CodeGeneration.ps1'
@@ -208,7 +208,6 @@ FileList = @(
     'src/presentation/reply.ps1'
     'src/presentation/voice.ps1'
     'src/services.ps1'
-    'src/services/compatibility.ps1'
     'src/services/session.ps1'
     'src/shell.ps1'
     'src/shell/replcommand.ps1'
@@ -283,4 +282,3 @@ None.
 # DefaultCommandPrefix = ''
 
 }
-

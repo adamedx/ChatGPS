@@ -15,13 +15,13 @@
 //
 
 using System.Collections.Generic;
+using System.ClientModel;
+using System.ClientModel.Primitives;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.DependencyInjection;
-
 using Modulus.ChatGPS.Models;
+using OpenAI;
 
 namespace Modulus.ChatGPS.Services;
 
@@ -29,7 +29,7 @@ public class OpenAIChatService : ChatService
 {
     internal OpenAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -46,50 +46,24 @@ public class OpenAIChatService : ChatService
             throw new ArgumentException("An API key is required for the language model service.");
         }
 
-        var builder = base.GetKernelBuilder();
-
         var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
-        if ( this.options.ApiEndpoint is null )
-        {
-            builder.AddOpenAIChatCompletion(
-                modelId: this.options.ModelIdentifier,
-                apiKey: cleartextKey);
-        }
-        else
-        {
-            builder.AddOpenAIChatCompletion(
-                modelId: this.options.ModelIdentifier,
-                endpoint : this.options.ApiEndpoint,
-                apiKey: cleartextKey);
-        }
+        var clientOptions = new OpenAIClientOptions();
 
-        builder.Services.ConfigureHttpClientDefaults(c =>
-        {
-            // Configure throttling retry behavior
-            c.AddStandardResilienceHandler(o =>
-            {
-                o.Retry.ShouldRetryAfterHeader = true;
-                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
-            });
+        clientOptions.Endpoint = this.options.ApiEndpoint ?? GetDefaultEndpoint();
+        clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
+        clientOptions.RetryPolicy = new ClientRetryPolicy(3);
 
-            // Set network timeout
-            c.ConfigureHttpClient(httpClient =>
-            {
-                httpClient.Timeout = TimeSpan.FromMinutes(2);
-            });
-         });
+        var apiKeyCredential = new ApiKeyCredential(cleartextKey);
 
-        var newKernel = builder.Build();
+        var apiClient = new OpenAIClient(credential : apiKeyCredential, options : clientOptions);
 
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
+        var chatClient = apiClient.GetChatClient(this.options.ModelIdentifier).AsIChatClient(); // AsIChatClient(modelId : this.options.ModelIdentifier);
+
+        var newKernel = new AIKernel(chatClient);
 
         this.serviceKernel = newKernel;
 
         return newKernel;
     }
 }
-

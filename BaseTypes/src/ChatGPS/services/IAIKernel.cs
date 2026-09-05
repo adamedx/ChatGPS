@@ -13,15 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-namespace Modulus.ChatGPS.Addons
+
+using Modulus.ChatGPS.Models;
+using Modulus.ChatGPS.Plugins;
+
+namespace Modulus.ChatGPS.Services;
+
+public interface IAIKernel
 {
-    class Program
-    {
-#pragma warning disable CS7022
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World");
-        }
-#pragma warning restore CS7022
-    }
+	Task<ChatMessage> GetNextChatMessageAsync(List<ChatMessage> history, AiOptions options, bool? allowAgentAccess = null);
+	Task<FunctionOutput> InvokeFunctionAsync(AIChatFunction chatFunction, AiOptions options, Dictionary<string,object?>? functionArguments = null, bool? allowAgentAccess = null);
+    AIChatFunction CreateFunctionFromPrompt(string definitionPrompt, AiOptions? options = null);
+    void SetPluginTable(IPluginTable pluginTable);
 }

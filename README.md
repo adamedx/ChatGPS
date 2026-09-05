@@ -12,10 +12,10 @@
 * **Build agents:** enable language models to use specific PowerShell scripts on your system
 * **Chat interactively** with language models without leaving your PowerShell terminal
 
-ChatGPS supports several AI model providers such as OpenAI, Azure OpenAI, Anthropic, Google, etc., including local providers like Onnx and Ollama among others.
+ChatGPS supports several AI model providers such as OpenAI, Azure OpenAI, Anthropic, Google, etc., including local providers like Onnx and Ollama. **Many providers support OpenAI's REST protocol, so you can use their endpoints with ChatGPS by specifying the OpenAI provider.**
 
 ```powershell
-PS > Connect-ChatSession -ApiEndpoint https://searcher-2024-12.openai.azure.com -DeploymentName gpt-4o-mini -ReadApiKey
+PS > Connect-ChatSession -ApiEndpoint https://searcher-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini -ReadApiKey
 ChatGPS: Enter secret key / password>: *****************
 
 PS > Send-ChatMessage 'Hello World!'
@@ -25,7 +25,7 @@ Received                 Response
 3/11/2025 10:10:16 PM    Hello! How can I assist you today?
 ```
 
-ChatGPS is built on [Semantic Kernel (SK)](https://github.com/microsoft/semantic-kernel), and works well with models and AI capabilities supported by SK.
+ChatGPS is built on [Microsoft Agent Framework (MAF)](https://github.com/microsoft/agent-framework), and works well with models and AI capabilities supported by MAF.
 
 # Installation and usage
 
@@ -55,7 +55,7 @@ Once the module is installed, you're only *two commands* away from language modu
 For example:
 
 ```powershell
-Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -DeploymentName gpt-4o-mini # Add -ReadApiKey if you use an ApiKey
+Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini # Add -ReadApiKey if you use an ApiKey
 Send-ChatMessage 'Show me PowerShell code to get free physical memory in gigabytes on the system.'
 
 Received                 Response

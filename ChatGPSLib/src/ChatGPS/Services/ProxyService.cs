@@ -19,10 +19,6 @@ namespace Modulus.ChatGPS.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-
 using Modulus.ChatGPS.Proxy;
 using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Plugins;
@@ -47,9 +43,15 @@ internal class ProxyService : IChatService
         this.clientContext = clientContext;
     }
 
-    public ChatHistory CreateChat(string prompt)
+    public List<ChatMessage> CreateChat(string prompt)
     {
-        return new ChatHistory(prompt);
+        var result = new List<ChatMessage>();
+
+        var systemMessage = new ChatMessage(SenderRole.System, prompt);
+
+        result.Add(systemMessage);
+
+        return result;
     }
 
     public AiOptions ServiceOptions
@@ -60,7 +62,7 @@ internal class ProxyService : IChatService
         }
     }
 
-    public async Task<IReadOnlyList<ChatMessageContent>> GetChatCompletionAsync(ChatHistory history, bool? allowAgentAccess)
+    public async Task<IReadOnlyList<ChatMessage>> GetChatCompletionAsync(List<ChatMessage> history, bool? allowAgentAccess)
     {
         var sendChatRequest = new SendChatRequest(history, this.pluginTable.Plugins, allowAgentAccess, this.clientContext);
 
@@ -75,14 +77,14 @@ internal class ProxyService : IChatService
             throw new AIServiceException("A null reference was returned for the chat request by the AI service.");
         }
 
-        var resultList = new List<ChatMessageContent>();
+        var resultList = new List<ChatMessage>();
 
         if ( sendChatResponse.ChatResponse is not null )
         {
             resultList.Add(sendChatResponse.ChatResponse);
         }
 
-        return new ReadOnlyCollection<ChatMessageContent>(resultList);
+        return new ReadOnlyCollection<ChatMessage>(resultList);
     }
 
     public async Task<FunctionOutput> InvokeFunctionAsync(string definitionPrompt, Dictionary<string,object?>? parameters, bool? allowAgentAccess)

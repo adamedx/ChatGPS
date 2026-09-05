@@ -232,6 +232,14 @@ All Rights Reserved.
                 <PropertyName>AllowInteractiveSignin</PropertyName>
               </ListItem>
               <ListItem>
+                <Label>PlainTextApiKey</Label>
+                <PropertyName>PlainTextApiKey</PropertyName>
+              </ListItem>
+              <ListItem>
+                <Label>NoAuthentication</Label>
+                <PropertyName>NoAuthentication</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>AccessValidated</Label>
                 <PropertyName>AccessValidated</PropertyName>
               </ListItem>
@@ -245,6 +253,13 @@ All Rights Reserved.
                   <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
                 </ItemSelectionCondition>
                 <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>LocalModelProvider</Label>
+                <ItemSelectionCondition>
+                  <ScriptBlock>$_.AiOptions.LocalModelPath</ScriptBlock>
+                </ItemSelectionCondition>
+                <ScriptBlock>$_.AiOptions.LocalModelProvider</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>TokenLimit</Label>
@@ -388,7 +403,7 @@ All Rights Reserved.
             <Label>Name</Label>
           </TableColumnHeader>
           <TableColumnHeader>
-            <Label>Desciption</Label>
+            <Label>Description</Label>
             <Width>40</Width>
           </TableColumnHeader>
           <TableColumnHeader>

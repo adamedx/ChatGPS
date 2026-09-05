@@ -26,7 +26,7 @@ public class StaticPluginProvider : PluginProvider
         this.nativeInstance = null;
     }
 
-    internal override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
+    public override object GetNativeInstance(Dictionary<string,PluginParameterValue>? parameters = null, IShellContext? context = null)
     {
         if ( this.nativeInstance is null )
         {
@@ -58,4 +58,3 @@ public class StaticPluginProvider : PluginProvider
 
     private object? nativeInstance;
 }
-

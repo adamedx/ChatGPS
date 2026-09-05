@@ -43,7 +43,13 @@ public class ChatGPS
         {
             if ( aiProxyHostPath is not null && aiProxyHostPath.Length > 0 )
             {
-                targetChatService = new ProxyService(options, aiProxyHostPath, clientContext, proxyLogPath, logLevel);
+                // When constructing the proxy service, give it an idle timeout of 10 minutes for local models
+                // because we happen to know they are actually hosted in the proxy, so when the proxy goes away
+                // they must be reloaded, which can be expensive. Otherwise, it is assumed that model lifetime
+                // for models hosted over http transport has no correlation to the proxy's lifetime as an http client.
+                var idleTimeoutMs = ! string.IsNullOrWhiteSpace(options.LocalModelPath) ? 600000 : 60000;
+
+                targetChatService = new ProxyService(options, aiProxyHostPath, clientContext, proxyLogPath, logLevel, idleTimeoutMs: idleTimeoutMs);
             }
             else
             {
