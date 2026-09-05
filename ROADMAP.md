@@ -192,8 +192,11 @@
 * PS Session / history integration (LocalContext plugin)
 * Non-repl: Include command history in context (LocalContext plugin)
 * Non-repl: Include command output in context (LocalContext plugin)
+* Ported to Microsoft Agent Framework
 
-### Plugin notes
+### Plugin notes first draft (work now completed)
+
+These notes were from the origial ideas for Plugins -- the work has now been implemented and likely differs from the plan below in both small and significant ways.
 
 * Plugin types should be refactored / renamed:
   * PluginInfo -> Plugin
@@ -261,9 +264,11 @@
   * Start-ChatMCPServer -- contains plugins
   * Get-ChatMCPServer
   * Stop-ChatMCPServer
-  *
 
-### Migration to Agent Framework:
+
+### Migration to Agent Framework -- original plan
+
+Actually implemented plan can be found at [AGENTFRAMEWORK-PORT.md](./AIService/AGENTFRAMEWORK-PORT.md). What follows is the original thinking:
 
 In general use Microsoft.Extensions.AI as the set of types on which to depend, and agent framework itself should just be an implementation.
 

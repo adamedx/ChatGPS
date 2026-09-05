@@ -166,6 +166,7 @@ class ModelResource {
     [string] $provider
     [Uri] $apiEndpoint
     [string] $localModelPath
+    [string] $localModelProvider
     [string] $modelIdentifier
     [string] $serviceIdentifier
 }
@@ -376,6 +377,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
         $modelSettings.provider = $session.AiOptions.Provider
         $modelSettings.apiEndpoint = $session.AiOptions.ApiEndpoint
         $modelSettings.localModelPath = $session.AiOptions.LocalModelPath
+        $modelSettings.localModelProvider = $session.AiOptions.LocalModelProvider
         $modelSettings.modelIdentifier = $session.AiOptions.ModelIdentifier
         $modelSettings.serviceIdentifier = $session.AiOptions.serviceIdentifier
     }
@@ -512,7 +514,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
         }
 
         if ( $model ) {
-            'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath' | foreach {
+            'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'localModelProvider' | foreach {
                 $value = if ( $model | get-member $_ ) {
                     # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
                     '' -ne $model.$_ ? $model.$_ : $null
