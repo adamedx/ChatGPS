@@ -50,7 +50,6 @@ public class AiProviderOptions
     public string? LocalModelProvider { get; set; }
     public Dictionary<string, string>? LocalModelProviderOptions { get; set; }
     public string? ModelIdentifier { get; set; }
-    public string? DeploymentName { get; set; }
     public string? ServiceIdentifier { get; set; }
     public int? TokenLimit { get; set; }
     public bool? SigninInteractionAllowed { get; set; }
@@ -69,7 +68,6 @@ public class AiProviderOptions
         this.LocalModelProviderOptions = options.LocalModelProviderOptions is null ?
             null : new Dictionary<string, string>(options.LocalModelProviderOptions);
         this.ModelIdentifier = options.ModelIdentifier;
-        this.DeploymentName = options.DeploymentName;
         this.ServiceIdentifier = options.ServiceIdentifier;
         this.TokenLimit = options.TokenLimit;
         this.OutputType = options.OutputType;

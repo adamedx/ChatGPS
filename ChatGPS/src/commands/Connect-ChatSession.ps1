@@ -42,9 +42,6 @@ Specifies the language model provider. Currently supported values are LocalOnnx 
 .PARAMETER ApiEndpoint
 For remotely hosted models, the API URI that enables access to the model.
 
-.PARAMETER DeploymentName
-For remotely hosted models some services may require this as an additional parameter to identify the specific model to use. This parameter usually only applies to remote models.
-
 .PARAMETER ApiKey
 Some remotely hosted models that require authentication may support a symmetric key that can be specified through this parameter. On the Windows platform, this parameter must be specified as an encrypted value of the symmetric key. To obtain an encrypted value, use the Get-ChatEncryptedUnicodeKeyCredential command. On non-Windows systems or if the PlainTextApiKey option is specified, the parameter is specified via plaintext rather than as a securestring. To avoid the value of the plaintext key being present in command history, use a command to read it from a secure location such as an Azure KeyVault or a local file with sufficient security measures in place, assign the value of the key to a PowerShell variable, and then use that variable to specify the value of the ApiKey parameter.
 
@@ -124,13 +121,13 @@ This parameter only takes effect if LogDirectory is also specified as a valid lo
 By default, the command has no output. But if the NoSave or PassThru parameters are specified, the newly connected session is returned as output and can be used as a parameter to other commands.
 
 .EXAMPLE
-Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
+Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini # Use Login-AzAccount if this fails.
 PS > Send-ChatMessage 'how do I find my mac address?'
 
 In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified.
 
 .EXAMPLE
-Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini
 PS > Send-ChatMessage 'What attribute do I use to define a specific set of values for the parameter of a Powershell function?'
  
 Received                 Response
@@ -143,7 +140,7 @@ This example creates a new connection using the 'Terse" system prompt Id to get 
 
 .EXAMPLE
 PS > $secretKey = Get-ChatEncryptedUnicodeKeyCredential
-PS > Connect-ChatSession -Name TestSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
+PS > Connect-ChatSession -Name TestSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
  
 Id                                   Provider    Name        ModelIdentifier
@@ -254,7 +251,7 @@ Received                 Role       Elapsed (ms) Response
                                                  device or calendar. Is there something specific you'd like to
                                                  know about a date or a particular event?
  
-PS > Connect-ChatSession -SendBlock {param($text) "The time is: $([DateTime]::Now.ToString('F')). " + $text} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+PS > Connect-ChatSession -SendBlock {param($text) "The time is: $([DateTime]::Now.ToString('F')). " + $text} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini
  
 PS > Send-ChatMessage "Hello what is today's date?"
  
@@ -284,7 +281,7 @@ shows that unlike in the previous attempt, the message sent from the user includ
 The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data during conversations.
 
 .EXAMPLE
-Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini
  
 PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
  
@@ -328,9 +325,9 @@ Timestamp                  Role      Message
 This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatLog command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatShell command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
 
 .EXAMPLE
-Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
-PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
-PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $personalKey
+Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -ModelIdentifier gpt-o1 -ApiKey $workKey
+PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -ModelIdentifier gpt-o1 -ApiKey $workKey
+PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini -ApiKey $personalKey
  
 PS > $unreadMail = GetUnreadMail
 PS > $emailSummary = Invoke-ChatFunction SummarizeMail $unreadMail -Session $work2 | Show-Markdown
@@ -417,9 +414,6 @@ function Connect-ChatSession {
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [Uri] $ApiEndpoint,
-
-        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
-        [string] $DeploymentName,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $ApiKey = $null,
@@ -515,7 +509,6 @@ function Connect-ChatSession {
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
 
     $options.ApiEndpoint = $ApiEndpoint
-    $options.DeploymentName = $DeploymentName
     $options.ModelIdentifier = $ModelIdentifier
     $options.ServiceIdentifier = $ServiceIdentifier
     $options.ApiKey = $targetApiKey
@@ -559,16 +552,6 @@ function Connect-ChatSession {
             throw [System.IO.FileNotFoundException]::new(
                 "The path $($options.LocalModelPath) specified for a local model could not be found. " +
                 "Specify a valid model path in the local file system and retry the operation.")
-        }
-    }
-
-    # There is some confusion over deploymentName and modelId, so for now
-    # we will say that local models should not have only a modelId, we will
-    # explicitly ignore DeploymentName
-    if ( $isLocal ) {
-        if ( $DeploymentName ) {
-            write-warning "A local model was specified -- the DeploymentName parameter will be ignored"
-            $options.DeploymentName = ''
         }
     }
 

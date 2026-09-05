@@ -168,7 +168,6 @@ class ModelResource {
     [string] $localModelPath
     [string] $modelIdentifier
     [string] $serviceIdentifier
-    [string] $deploymentName
 }
 
 class ModelResourceSettings {
@@ -311,7 +310,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     $modelSettings = GetExplicitModelSettingsFromSessionsByName $sessionSettings.modelName
 
     if ( ! $modelSettings -or ! $modelSettings.name ) {
-        $targetModelName = !! $session.AiOptions.ModelIdentifier ? $session.AiOptions.ModelIdentifier : $session.AiOptions.DeploymentName
+        $targetModelName = $session.AiOptions.ModelIdentifier
 
         if ( ! $targetModelName ) {
             $targetModelName = "$($session.AiOptions.Provider.ToString()) model"
@@ -378,7 +377,6 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
         $modelSettings.apiEndpoint = $session.AiOptions.ApiEndpoint
         $modelSettings.localModelPath = $session.AiOptions.LocalModelPath
         $modelSettings.modelIdentifier = $session.AiOptions.ModelIdentifier
-        $modelSettings.deploymentName = $session.AiOptions.DeploymentName
         $modelSettings.serviceIdentifier = $session.AiOptions.serviceIdentifier
     }
 
@@ -514,7 +512,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
         }
 
         if ( $model ) {
-            'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'deploymentName' | foreach {
+            'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath' | foreach {
                 $value = if ( $model | get-member $_ ) {
                     # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
                     '' -ne $model.$_ ? $model.$_ : $null
