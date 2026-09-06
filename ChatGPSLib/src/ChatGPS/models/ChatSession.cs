@@ -239,14 +239,6 @@ public class ChatSession
         }
     }
 
-    public bool AllowInteractiveSignin
-    {
-        get
-        {
-            return this.AiOptions?.SigninInteractionAllowed ?? false;
-        }
-    }
-
     public int HistoryContextLimit
     {
         get

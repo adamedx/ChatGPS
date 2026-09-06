@@ -152,8 +152,9 @@ function TestSession($session, [Modulus.ChatGPS.Models.AiOptions] $originalAiOpt
             } else {
                 'Also ensure that you have signed in using a valid identity that has been granted access to the given model API URI. ' +
                 '(e.g. for Azure OpenAI models try signing out with Logout-AzAccount, then retry the command, or explicitly use ' +
-                'LoginAzAccount to sign in as the correct identity). You can also specify the AllowInteractiveSignin parameter with ' +
-                'with this command and retry if you do not have access to signin tools for the remote model; this may result in ' +
+                'LoginAzAccount to sign in as the correct identity, and also specify the Entra ID tenant id with the TenantId parameter ' +
+                'when retrying this command). You can also specify the TenantId parameter and specify your Entra ID tenant ID with ' +
+                'this command and retry if you do not have access to signin tools for the remote model; this may result in ' +
                 'multiple requests to re-authenticate.'
             }
             throw [ApplicationException]::new("Attempt to establish a test connection to the remote model failed.`n" +

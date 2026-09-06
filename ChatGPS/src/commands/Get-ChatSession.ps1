@@ -66,7 +66,6 @@ Name                   : azure-int
 Provider               : AzureOpenAI
 IsRemote               : True
 ApiEndpoint            : https://ryu-openai-2025-01.openai.azure.com/
-AllowInteractiveSignin : False
 AccessValidated        : False
 AllowAgentAccess       : True
 TokenLimit             : 16384

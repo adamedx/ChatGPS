@@ -53,7 +53,6 @@ public class AiProviderOptions
     public string? ServiceIdentifier { get; set; }
     public string? TenantId { get; set; }
     public int? TokenLimit { get; set; }
-    public bool? SigninInteractionAllowed { get; set; }
     public bool? PlainTextApiKey { get; set; }
     public bool? NoAuthentication { get; set; }
     public bool? AllowAgentAccess { get; set; }
@@ -73,7 +72,6 @@ public class AiProviderOptions
         this.TenantId = options.TenantId;
         this.TokenLimit = options.TokenLimit;
         this.OutputType = options.OutputType;
-        this.SigninInteractionAllowed = options.SigninInteractionAllowed;
         this.PlainTextApiKey = options.PlainTextApiKey;
         this.NoAuthentication = options.NoAuthentication;
         this.AllowAgentAccess = options.AllowAgentAccess;

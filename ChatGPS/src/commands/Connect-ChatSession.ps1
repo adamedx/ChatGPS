@@ -54,9 +54,6 @@ Specify this if the ApiKey parameter being specified uses plaintext. This parame
 .PARAMETER NoAuthentication
 Specifies that this model does not require authentication, e.g. no OAuth or API key is required, the API can be accessed anonymously. This is useful when accessing a locally hosted model over http protocol for instance.
 
-.PARAMETER AllowInteractiveSignin
-For use with remote models only, specify AllowInteractiveSignin to allow this command or subsequent commands that access the model to invoke a user interface for authentication. This is only applicable when the ApiKey parameter or other non-interactive sign-in mechanisms are not configured for the session. For some model services such as Azure OpenAI this option can be useful if sign-in tools such as the "Az.Accounts" module with its "Login-AzAccount" and "Logout-AzAccount" commands is unavailable, however it may have some side effects including multiple sign-in prompts.
-
 .PARAMETER TenantId
 For use with remote models that use Entra ID authentication, optionally specify the Entra ID tenant identifier (GUID) to sign into when not using API key access. This is useful when multiple accounts are signed in on the device through Login-AzAccount, az login, or other mechanisms to ensure that the correct account is used to access the model.
 
@@ -109,7 +106,7 @@ By default, this command may attempt to authenticate to the service that hosts t
 Use the Force parameter to create the session even if the name specified by the Name parameter is already in use by an existing session in the session list. When this situation occurs, the existing session is removed from the list before the new session is created, effectively replacing or overwriting it. Additionally, if the session that would be replaced is the current session, the command will still succeed; however if the NoSetCurrent parameter is also specified then there will no longer be a current session.
 
 .PARAMETER NoProxy
-Specify the NoProxy parameter so ensure that the session will not use an intermediate proxy process to communicate with the model. By default, the session will utilize a proxy that isolates dependencies for the services used to access the language model into a separate process from that of the PowerShell session. This helps avoid incompatibilities with such dependencies and PowerShell itself, and was useful during the early stages of the development of Semantic Kernel which changed frequently. In some cases such as specification of the AllowInteractiveSignin parameter the proxy will not be used due to known user experience issues in that situation. The ForceProxy parameter may be used to force use of the proxy in call cases. At some point the proxy may no longer be required and may eventually be removed. It is possible that code defects in the proxy could introduce errors or other reliability issues, so NoProxy can be specified to remove this risk if problems arise in certain use cases. When the proxy is in use, a log of its activity can be generated if the appropriate values are specified for the LogLevel and LogDirectory parameters.
+Specify the NoProxy parameter so ensure that the session will not use an intermediate proxy process to communicate with the model. By default, the session will utilize a proxy that isolates dependencies for the services used to access the language model into a separate process from that of the PowerShell session. This helps avoid incompatibilities with such dependencies and PowerShell itself, and was useful during the early stages of the development of Semantic Kernel which changed frequently. At some point the proxy may no longer be required and may eventually be removed. It is possible that code defects in the proxy could introduce errors or other reliability issues, so NoProxy can be specified to remove this risk if problems arise in certain use cases. When the proxy is in use, a log of its activity can be generated if the appropriate values are specified for the LogLevel and LogDirectory parameters.
 
 .PARAMETER ForceProxy
 Use ForceProxy to override the command's automatic determination of when to use a proxy process to host language model service dependencies and use the proxy in all cases. This parameter is most likely useful for debugging purposes only and should not be needed.
@@ -434,8 +431,6 @@ function Connect-ChatSession {
         [parameter(valuefrompipelinebypropertyname=$true)]
         [switch] $NoAuthentication,
 
-        [switch] $AllowInteractiveSignin,
-
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $TenantId,
 
@@ -538,7 +533,7 @@ function Connect-ChatSession {
             $options.LocalModelProviderOptions[[string] $entry.Key] = [string] $entry.Value
         }
     }
-    $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
+
     $options.TenantId = $TenantId
     $options.PlainTextApiKey = $PlainTextApiKey.IsPresent
     $options.NoAuthentication = $NoAuthentication.IsPresent
@@ -584,17 +579,10 @@ function Connect-ChatSession {
         throw [ArgumentException]::new("The ForceProxy and NoProxy parameters may not both be specified -- specify exactly one of them or neither.")
     }
 
-    # Proxy mode is not currently compatible with interactive signin for remote models
-    $proxyIncompatibility = ! $isLocal -and ! $ApiKey -and $AllowInteractiveSignin.IsPresent
-    $proxyDisallowed = $proxyIncompatibility -and ! $ForceProxy.IsPresent
-    $useProxy = ! $NoProxy.IsPresent -and ! $proxyDisallowed
+    $useProxy = ! $NoProxy.IsPresent
 
     if ( ! $useProxy ) {
-        if ( $proxyDisallowed -and ! $NoProxy.IsPresent) {
-            write-verbose "No ApiKey specified for a remote model, and AllowInteractiveSignin is specified, so proxy will not be used to prevent signin problems. Use Login-AzAccount and Logout-AzAccount to sign in with the correct identity if access fails."
-        }
-    } elseif ( $proxyIncompatibility ) {
-        write-warning "AllowInteractiveSignin was specified for a remote model that requires authentication and proxy mode was forced with ForceProxy. You may be asked to re-authenticate frequently."
+        Write-Warning "Proxy mode was disallowed due to specification of NoProxy option, some functionality may not be available or may be unreliable"
     }
 
     $targetProxyPath = if ( $useProxy ) {
