@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
-    <PackageReference Include="Microsoft.Extensions.AI" Version="10.5.0" />
+    <!-- There are other unlisted dependencies that are assumed to be satisfied by the larger project -->
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI.DirectML" Version="0.11.4" />
   </ItemGroup>
 
