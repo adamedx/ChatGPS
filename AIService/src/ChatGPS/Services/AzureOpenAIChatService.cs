@@ -73,11 +73,22 @@ public class AzureOpenAIChatService : ChatService
             // Use the default Azure credential when there is no API key -- this
             // requires that the user has already signed in using a mechanism
             // such as the Login-AzAccount command.
-            var signinInteractionAllowed = this.options.SigninInteractionAllowed ?? false;
+            var credentialOptions = new Azure.Identity.DefaultAzureCredentialOptions();
+
+            // If a tenant id is specified, using it since DefaultAzureCredential's behavior
+            // when there are multiple accounts signed in from different tenants is not
+            // transparent to the user -- even when a UX flow is initiated and the user
+            // chooses a certain account, DefaultAzureCredential may pick a different account
+            // (most likely when a personal Microsoft account is signed in to the device
+            // simultaneously with an Entra ID account that you're trying to use).
+            if ( this.options.TenantId is not null && this.options.TenantId.Length > 0 )
+            {
+                credentialOptions.TenantId = this.options.TenantId;
+            }
 
             apiClient = new AzureOpenAIClient(
                 this.options.ApiEndpoint,
-                new Azure.Identity.DefaultAzureCredential(signinInteractionAllowed),
+                new Azure.Identity.DefaultAzureCredential(credentialOptions),
                 clientOptions);
         }
 
