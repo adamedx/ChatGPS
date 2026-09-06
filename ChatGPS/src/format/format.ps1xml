@@ -225,11 +225,11 @@ All Rights Reserved.
                 <ScriptBlock>$_.AiOptions.ApiEndpoint</ScriptBlock>
               </ListItem>
               <ListItem>
-                <Label>AllowInteractiveSignin</Label>
+                <Label>TenantId</Label>
                 <ItemSelectionCondition>
-                  <ScriptBlock>$_.IsRemote</ScriptBlock>
+                  <ScriptBlock>$_.AiOptions.TenantId</ScriptBlock>
                 </ItemSelectionCondition>
-                <PropertyName>AllowInteractiveSignin</PropertyName>
+                <ScriptBlock>$_.AiOptions.TenantId</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>PlainTextApiKey</Label>

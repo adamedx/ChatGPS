@@ -51,8 +51,8 @@ public class AiProviderOptions
     public Dictionary<string, string>? LocalModelProviderOptions { get; set; }
     public string? ModelIdentifier { get; set; }
     public string? ServiceIdentifier { get; set; }
+    public string? TenantId { get; set; }
     public int? TokenLimit { get; set; }
-    public bool? SigninInteractionAllowed { get; set; }
     public bool? PlainTextApiKey { get; set; }
     public bool? NoAuthentication { get; set; }
     public bool? AllowAgentAccess { get; set; }
@@ -69,9 +69,9 @@ public class AiProviderOptions
             null : new Dictionary<string, string>(options.LocalModelProviderOptions);
         this.ModelIdentifier = options.ModelIdentifier;
         this.ServiceIdentifier = options.ServiceIdentifier;
+        this.TenantId = options.TenantId;
         this.TokenLimit = options.TokenLimit;
         this.OutputType = options.OutputType;
-        this.SigninInteractionAllowed = options.SigninInteractionAllowed;
         this.PlainTextApiKey = options.PlainTextApiKey;
         this.NoAuthentication = options.NoAuthentication;
         this.AllowAgentAccess = options.AllowAgentAccess;

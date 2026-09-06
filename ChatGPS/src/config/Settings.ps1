@@ -71,10 +71,10 @@ class ProfileSettings {
 class ModelChatSession {
     ModelChatSession() {
         $this.tokenLimit = $null
-        $this.signinInteractionAllowed = $null
         $this.apikey= $null
         $this.noProxy = $null
         $this.forceProxy = $null
+        $this.tenantId = $null
         $this.plainTextApiKey = $null
         $this.noAuthentication = $null
         $this.allowAgentAccess = $null
@@ -116,7 +116,7 @@ class ModelChatSession {
     [int] $tokenLimit = $null
     [string] $tokenStrategy
     [int] $historyContextLimit = $null
-    [bool] $signinInteractionAllowed
+    [string] $tenantId
     [bool] $plainTextApiKey
     [bool] $noAuthentication
     [bool] $allowAgentAccess
@@ -328,13 +328,13 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
         $sessionSettings.modelName = $targetModelName
     }
 
-    'apiKey', 'systemPromptId', 'customSystemPrompt', 'tokenLimit', 'tokenStrategy', 'historyContextLimit', 'logDirectory', 'logLevel' |
+    'apiKey', 'systemPromptId', 'customSystemPrompt', 'tokenLimit', 'tokenStrategy', 'historyContextLimit', 'logDirectory', 'logLevel', 'tenantId' |
       where { $sessionParameters.ContainsKey($_) } |
       foreach {
         $sessionSettings.$_ = $sessionParameters[$_]
     }
 
-    'allowAgentAccess', 'noProxy', 'forceProxy', 'signinInteractionAllowed', 'plainTextApiKey', 'noAuthentication' |
+    'allowAgentAccess', 'noProxy', 'forceProxy', 'plainTextApiKey', 'noAuthentication' |
       where { $sessionParameters.ContainsKey($_) } |
       foreach {
         $sessionSettings.$_ = $sessionParameters[$_].IsPresent
@@ -486,7 +486,6 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
     $sessionParameters = @{
         Name = $sourceSetting.name
-        AllowInteractiveSignin = [System.Management.Automation.SwitchParameter]::new($sourceSetting.signinInteractionAllowed)
         AllowAgentAccess = [System.Management.Automation.SwitchParameter]::new($sourceSetting.allowAgentAccess)
     }
 
@@ -551,7 +550,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     }
 
     if ( $isValidSetting ) {
-        'systemPromptId', 'customSystemPrompt', 'logLevel', 'logDirectory', 'historyContextLimit', 'apiKey', 'tokenLimit', 'noAuthentication' | foreach {
+        'systemPromptId', 'customSystemPrompt', 'logLevel', 'logDirectory', 'historyContextLimit', 'apiKey', 'tokenLimit', 'noAuthentication', 'tenantId' | foreach {
             # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
             $value = '' -ne $sourceSetting.$_ ? $sourceSetting.$_ : $null
 
