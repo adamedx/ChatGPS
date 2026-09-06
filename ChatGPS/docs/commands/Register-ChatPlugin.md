@@ -46,8 +46,8 @@ Currently plugins defined by Register-ChatPlugin do not accept initialization pa
 Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the uptime of the operating system' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                           Description                                          Parameters
-----                           -----------                                          ----------
+Name                           Description                                           Parameters
+----                           -----------                                           ----------
 system_basic_information       Returns basic information about the operating system
  
 PS > Add-ChatPlugin system_basic_information
@@ -76,9 +76,9 @@ Add-ChatPluginFunction system_uptime { Get-Uptime } -Description 'Retrieve the u
   } -Description 'Returns the list of operating system updates applied to the system in the last N days' |
   Register-ChatPlugin system_basic_information -Description 'Returns basic information about the operating system'
  
-Name                          Description                                          Parameters
-----                          -----------                                          ----------
-system_basic_information      Returns basic information about the operating system
+Name                           Description                                           Parameters
+----                           -----------                                           ----------
+system_basic_information       Returns basic information about the operating system
  
 PS > Add-ChatPlugin system_basic_information
 PS > Set-ChatAgentAccess -Allowed # Only needed if this wasn't already done
@@ -122,8 +122,8 @@ PS > Get-ChatPlugin -ListAvailable
  
 Name                           Description                              Parameters
 ----                           -----------                              ----------
-Bing                           Enables access to search the web using   {apiKey, apiUri, searchEngineId}
-                               the following search engine source: Bing
+BraveSearch                           Enables access to search the web using   {apiKey, apiUri, searchEngineId}
+                               the following search engine source: BraveSearch
 ConversationSummaryPlugin      Summarizes a conversation.
 DocumentPlugin                 Enables the ability to read the
                                contents of Microsoft Word documents in

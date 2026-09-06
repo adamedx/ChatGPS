@@ -18,9 +18,6 @@ versions aligned is important: the agent and function-invocation middleware use 
 `LocalContext`, `TimePlugin`, `FileIOPlugin`, `TextPlugin`, `SearchUrlPlugin`, `DocumentPlugin`, `HttpPlugin`, `BraveSearch`, `DuckDuckGo`, `Google`, and PowerShell-defined custom plugins are implemented in this port. Their native plugin instances are created from the registered providers. Public instance methods on `LocalContextNativePlugin`, `TimeNativePlugin`, `FileIONativePlugin`, `TextNativePlugin`, `SearchUrlNativePlugin`, `DocumentNativePlugin`, `HttpNativePlugin`, `BraveNativePlugin`, `DuckDuckGoNativePlugin`, and `GoogleNativePlugin`, as well as generated methods on PowerShell plugin types, are converted to Agent Framework `AITool` instances using `AIFunctionFactory`. `HttpNativePlugin` additionally supports optional `allowedDomains` / `disallowedDomains` parameters (comma-separated, subdomain-aware, at most one may be specified; all domains are allowed when neither is set) and an `allowRedirect` parameter (default `$false`; redirect responses are raised as errors when redirects are not allowed). Their method
 descriptions are therefore exposed to the model without changing the plugin command interface.
 
-Other plugin names are rejected with `NotImplementedException` rather than being silently ignored. This makes the current scope explicit and avoids
-advertising tools that do not yet have Agent Framework implementations.
-
 PowerShell-defined plugins retain their existing serialized `PowerShellPluginFunction` data and generated .NET types. The generated methods no longer
 depend on Semantic Kernel attributes; Agent Framework uses their public method signatures and `Description` attributes when creating `AITool` instances.
 The generated methods continue to invoke the supplied scriptblocks through the existing isolated PowerShell process mechanism.

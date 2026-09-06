@@ -179,8 +179,8 @@ The '-' characters must not be removed from this documentation even though it is
 
 ### EXAMPLE 4
 ```
-$encryptedBingApiKey = Get-AzKeyVaultSecret -VaultName BingVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
-PS > Add-ChatPlugin -PluginName Bing -ParameterNames apiKey -ParameterValues $encryptedBingApiKey
+$encryptedBraveSearchApiKey = Get-AzKeyVaultSecret -VaultName BraveSearchVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
+PS > Add-ChatPlugin -PluginName BraveSearch -ParameterNames apiKey -ParameterValues $encryptedBraveSearchApiKey
 PS > Add-ChatPlugin -PluginName TimePlugin
 PS > chatgps
 (ryu) ChatGPS>: Can you tell me the latest PowerShell version released this year?
@@ -238,7 +238,7 @@ Received                 Response
 (ryu) ChatGPS>:
 ```
 
-Here Start-ChatShell is invoked with the chatgps alias after the Bing web search and Time plugins have been configured for the session.
+Here Start-ChatShell is invoked with the chatgps alias after the BraveSearch web search and Time plugins have been configured for the session.
 As a result, the subsequent conversation in Start-ChatShell includes web searches and time awareness for model interactions, and the user is able to engage the LLM to find new information as the conversation about PowerShell progresses.
 
 ### EXAMPLE 5

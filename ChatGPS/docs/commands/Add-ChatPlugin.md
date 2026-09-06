@@ -101,8 +101,8 @@ Use of the Set-ChatAgentAccess command to enable agent access allows the Send-Ch
 
 ### EXAMPLE 3
 ```
-$encryptedBingApiKey = Get-AzKeyVaultSecret -VaultName BingVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
-PS > Add-ChatPlugin -PluginName Bing -ParameterNames apiKey -ParameterValues $encryptedBingApiKey
+$encryptedBraveSearchApiKey = Get-AzKeyVaultSecret -VaultName BraveSearchVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
+PS > Add-ChatPlugin -PluginName BraveSearch -ParameterNames apiKey -ParameterValues $encryptedBraveSearchApiKey
 PS > Add-ChatPlugin -PluginName TimePlugin
 PS > Send-ChatMessage 'Can you give a very brief synopsis of three of the latest new features released for PowerShell? Please describe specific features, not just the releases. Please also indicate the approximate dates they were released.'
  
@@ -134,11 +134,11 @@ Received                 Response
                          I can assist further.
 ```
 
-This example shows how to specify encrypted parameters to chat plugins using the Bing web search plugin to demonstrate.
-In the case of Bing, encryption is required for the 'apiKey' parameter.
-The value of the parameter is obtained from a secure Azure KeyVault resource, and then encrypted with Get-ChatEncryptedUnicodeKeyCredential such that ChatGPS commands can decrypt it at the time the plugin needs to use the key to access Bing.
+This example shows how to specify encrypted parameters to chat plugins using the BraveSearch web search plugin to demonstrate.
+In the case of BraveSearch, encryption is required for the 'apiKey' parameter.
+The value of the parameter is obtained from a secure Azure KeyVault resource, and then encrypted with Get-ChatEncryptedUnicodeKeyCredential such that ChatGPS commands can decrypt it at the time the plugin needs to use the key to access BraveSearch.
 
-The Bing plugin, along with the Time plugin are used when Send-ChatMessage is invoked to find information about the latest releases of PowerShell.
+The BraveSearch plugin, along with the Time plugin are used when Send-ChatMessage is invoked to find information about the latest releases of PowerShell.
 
 ### EXAMPLE 4
 ```

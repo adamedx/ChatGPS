@@ -19,9 +19,10 @@ Azure OpenAI supports the use of both Entra ID for authentication as well as a s
 
 ```powershell
 # You only need to do Login-AzAccount once. The credential usually persists even across
-# reboots unless you sign out.
+# reboots unless you sign out. Use the optional TenantId parameter to ensure you sign in to the
+# correct tenant when there are multiple Entra ID accounts signed in to your device.
 Login-AzAccount
-Connect-ChatSession -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini
+Connect-ChatSession -ApiEndpoint https://myposh-test-2024-12.openai.azure.com -ModelIdentifier gpt-4o-mini -TenantId 47c9f911-0fcb-4b9c-af53-e6467b4d37d3
 ```
 
 It should be noted that this Entra ID approach works on all platforms supported by ChatGPS including Windows, MacOS, and Linux.
@@ -129,7 +130,7 @@ Connect-ChatSession -Provider AzureOpenAI -ApiEndpoint https://myposh-test-2024-
 **Anthropic:**
 
 ```powershell
-Connect-ChatSession -Provider Anthropic -ModelIdentifier claude-sonnet-4-20250514 -ReadApiKey
+Connect-ChatSession -Provider Anthropic -ModelIdentifier claude-sonnet-5 -ReadApiKey
 ```
 
 

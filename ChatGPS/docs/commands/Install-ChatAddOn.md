@@ -32,7 +32,9 @@ If the tool required to download the capabilities is not available, the command 
 
 Add-ons only need to be installed once to enable the functionality.
 If a failure is encountered during the execution of the command it is typically safe to re-invoke the command to retry.
-If the command is successful and the command is invoked again, the command will result in no operation unless the Force parameter is specified.
+Specify the Force parameter when reinstalling an add-on to ensure any out of date files are forcibly replaced.
+
+NOTE: If this command fails, you can re-run it with -Debug for troubleshooting.
 
 ## EXAMPLES
 
