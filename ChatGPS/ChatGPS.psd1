@@ -244,20 +244,47 @@ PrivateData = @{
 
         # ReleaseNotes of this module
         ReleaseNotes = @'
-## ChatGPS 0.2.0 Release Notes
+## ChatGPS 0.3.0 Release Notes
 
-Adds shell agent support, improve Build-ChatCode with RunBlock support
+Complete port from Semantic Kernel to Microsoft Agent Framework, many breaking changes, most related to the port, other changes
+caused by removal of confusing interfaces.
 
 ### New dependencies
 
-None.
+* Microsoft Agent Framework is the new model / agent SDK dependency
+  * Semantic Kernel has been completed removed
+* Update to Anthropic.SDK 5.10.0
 
 ### Breaking changes
 
-None.
+* The DeploymentName parameter is removed. ModelIdentifier should be used in place of DeploymentName
+  * This change may also break existing settings that do not specify ModelIdentifier for the correct model
+* AllowInteractiveSignin is removed -- it was not actually implemented correctly
+* The Bing plugin is removed -- Bing no longer supports the search API; any AI integration must go through Azure Foundry models
+  * This may also break settings if the Bing plugin is configured for a session in settings.
+* The ConversationSummary plugin is removed as it did not seem necessary for most use cases
 
 ### New features
 
+* Connect-ChatSession has new parameters -- these are also configurable as settings in settings.json:
+  * LocalModelProvider: Useful currently for local Onnx models -- lets you specify a model-specific "provider" of inferencing.
+    For example, Phi models will default to using CPU for inferencing, but if you specify this parameter as "dml" for DirectML,
+    then Onnx will attempt to use DirectML for much faster inferencing if your hardware supports it.
+  * LocalModelProviderOptions: Its use depends on your hardware and the Onnx model you're using, but this optional parameter may
+    allow you to specify additional parameters to the Onnx SDK depending on yuor model to configure inferencing.
+  * NoAuthentication: Useful when you are accessing models hosted on your local computer or LAN that do not require authentication;
+    otherwise you will be required to specify a "fake" API key
+  * TenantId: Specify this parameter when authenticating to models that use an identity provider like Entra ID -- currently
+    this only applies to Azure OpenAI-based models. When using Entra ID, you may be signed in to more than one account or tenant
+    the device, so specify the TenantId parameter with the correct tenant you are signing in to in order to disambiguate and
+    avoid difficult-to-diagnose cases where you think you're authenticating as one user but the system is using one of the other
+    identities cached on your system.
+* Brave Search plugin: Allows you to use the Brave Search API if you have an API key for that service; ostensibly replaces the
+  returned Bing plugin
+* The AIProxy process that interacts with models now stays around longer for models with a local path since that process has
+  typically loaded the model into memory; keeping it around longer means additional requests can use that proxy without having to
+  start a new one with the slow process of reloading the model, which can take noticeable time (from a several seconds to a minute)
+  on each subsequent chat you send. Remote model or http-based proxy lifetimes are unaffected and still terminate shortly (< 2 minutes) of idle time
 * Shell Agent: A new shell agent capability is added through the Start-ChatAgent command. When this is invoked for a given session, language model interactions through Send-ChatMessage and Start-ChatShell will have access to your command history as well as terminal output to standard output, allowing the language model to "see" all activity in your terminal. New commands include:
   * Start-ChatAgent -- enables the agent for a session
   * Stop-ChatAgent -- disables the agent for a session
@@ -267,7 +294,12 @@ None.
 
 ### Fixed defects
 
-None.
+* Function / Tool calling fixed for Anthropic provider: previously tool calling failed for Anthropic models, but with an update
+  to a newer SDK tool calling is now fixed and works just as with other providers.
+* Some properties of sessions that weren't displayed for commands piped to Format-Table such as Get-ChatSession now show up,
+  including PlainTextApiKey
+* Race conditions on the lifetime of the AIProxy could cause some long-running requests to models to fail because the model
+  tried to terminate in the middle of request processing -- this has been fixed.
 
 '@
 
