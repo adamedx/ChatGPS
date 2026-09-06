@@ -104,7 +104,7 @@ Receive-Job is used to wait for the job to finish and return the output, which i
 
 ### EXAMPLE 4
 ```
-Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini
 PS > Send-ChatMessage 'What attribute do I use to define a specific set of values for the parameter of a Powershell function?'
  
 Received                 Response
@@ -181,7 +181,7 @@ Milwaukee       Toronto                  121    113
 
 This example demonstrates how to use the output of Send-ChatMessage with other commands for additional processing.
 In this case a more complex prompt was supplied.
-The example assumes that a plugin such as Bing or Google was added to the session with the Add-ChatPlugin command, and the AllowAgentAccess property of the session was set to true.
+The example assumes that a plugin such as BraveSearch or Google was added to the session with the Add-ChatPlugin command, and the AllowAgentAccess property of the session was set to true.
 The prompt supplied to Send-ChatMessage instructed the model to use web search to find the scores of games and represent them as JSON.
 The Content property of the output of Send-ChatMessage is then piped to Convert-FromJson which is able to successfully deserialize the JSON, and a well-formatted result of the scores is presented to the terminal.
 

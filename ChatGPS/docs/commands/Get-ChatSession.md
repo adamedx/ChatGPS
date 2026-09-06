@@ -79,12 +79,10 @@ Name                   : azure-int
 Provider               : AzureOpenAI
 IsRemote               : True
 ApiEndpoint            : https://ryu-openai-2025-01.openai.azure.com/
-AllowInteractiveSignin : False
 AccessValidated        : False
 AllowAgentAccess       : True
 TokenLimit             : 16384
 ModelIdentifier        : gpt-4o-mini
-DeploymentName         : gpt-4o-mini
 TotalMessageCount      : 28
 CurrentMessageCount    : 21
 HistoryContextLimit    : -1
@@ -133,6 +131,7 @@ Accept wildcard characters: False
 This optional parameter specifies that only information for the current session should be returned.
 The current session is the session used by default for commands that interact with language models such as Send-ChatMessage, Start-ChatShell, or Invoke-ChatFunction.
 For more information about the current session, see the Select-ChatSession command.
+If there is no current session, the command will fail.
 
 ```yaml
 Type: SwitchParameter
@@ -168,7 +167,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### Detailed information about the specified defined sessions, including all information used to create the session other than credentials as well as state information about the session's connectivity to remote models and the session's conversation history.
+### Detailed information about the specified defined sessions, including all information used to create the session other than credentials as well as state information about the session's connectivity to remote models and the session's conversation history. Note that if a nonexistent session is specified an error occurs.
 ## NOTES
 
 ## RELATED LINKS

@@ -116,8 +116,8 @@ PS > Get-ChatPlugin -ListAvailable
  
 Name                           Description                              Parameters
 ----                           -----------                              ----------
-Bing                           Enables access to search the web using   {apiKey, apiUri, searchEngineId}
-                               the following search engine source: Bing
+BraveSearch                           Enables access to search the web using   {apiKey, apiUri, searchEngineId}
+                               the following search engine source: BraveSearch
 ConversationSummaryPlugin      Summarizes a conversation.
 DocumentPlugin                 Enables the ability to read the
                                contents of Microsoft Word documents in

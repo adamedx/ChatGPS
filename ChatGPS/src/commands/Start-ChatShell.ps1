@@ -191,8 +191,8 @@ Shell commands must start with '.'; valid commands are:
 In this example Start-Shell is started using its alias, and this is the first time Start-ChatShell has been invoked in this PowerShell session, so it shows a welcome message. The user enters the '.help' shell command which shows a list of all the valid shell commands. Note that the example text above contains an oddity where the shell commands listed above are prefixed with a '-' -- this is due to the fact that this very documentation is sourced in PowerShell comment help, and apparently a line starts with a '.' this can invalidate the comment help and the command will then have no documentation exposed in the Get-Help command. So the '-' character is not part of the actual command functionality, just a mechanism to work around a limitation in PowerShell's command help implementation. The '-' characters must not be removed from this documentation even though it is not part of the actual functionality unless a new mechanism is used for documentation.
 
 .EXAMPLE
-$encryptedBingApiKey = Get-AzKeyVaultSecret -VaultName BingVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
-PS > Add-ChatPlugin -PluginName Bing -ParameterNames apiKey -ParameterValues $encryptedBingApiKey
+$encryptedBraveSearchApiKey = Get-AzKeyVaultSecret -VaultName BraveSearchVault -Name SearchApiKey -AsPlainText | Get-ChatEncryptedUnicodeKeyCredential
+PS > Add-ChatPlugin -PluginName BraveSearch -ParameterNames apiKey -ParameterValues $encryptedBraveSearchApiKey
 PS > Add-ChatPlugin -PluginName TimePlugin
 PS > chatgps
 (ryu) ChatGPS>: Can you tell me the latest PowerShell version released this year?
@@ -249,7 +249,7 @@ Received                 Response
  
 (ryu) ChatGPS>:
 
-Here Start-ChatShell is invoked with the chatgps alias after the Bing web search and Time plugins have been configured for the session. As a result, the subsequent conversation in Start-ChatShell includes web searches and time awareness for model interactions, and the user is able to engage the LLM to find new information as the conversation about PowerShell progresses.
+Here Start-ChatShell is invoked with the chatgps alias after the BraveSearch web search and Time plugins have been configured for the session. As a result, the subsequent conversation in Start-ChatShell includes web searches and time awareness for model interactions, and the user is able to engage the LLM to find new information as the conversation about PowerShell progresses.
 
 .EXAMPLE
 Send-ChatMessage 'Can you show a PowerShell script that enumerates all the PowerShell 7 processes?'
