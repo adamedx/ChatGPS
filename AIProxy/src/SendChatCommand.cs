@@ -16,8 +16,8 @@
 
 using System.Text.Json;
 using System.Collections.Generic;
-using Microsoft.SemanticKernel.ChatCompletion;
 
+using Modulus.ChatGPS.Models;
 using Modulus.ChatGPS.Models.Proxy;
 using Modulus.ChatGPS.Plugins;
 
@@ -58,7 +58,9 @@ internal class SendChatCommand : Command
 
         PluginTable.SynchronizePlugins(connection.ChatService.Plugins, this.arguments.Plugins, this.arguments.Context);
 
-        var task = connection.ChatService.GetChatCompletionAsync(this.arguments.History, this.arguments.AllowFunctionCall);
+        var chatHistory =this.arguments.History;
+
+        var task = connection.ChatService.GetChatCompletionAsync(chatHistory, this.arguments.AllowFunctionCall);
 
         var result = task.Result;
 

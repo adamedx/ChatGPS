@@ -17,19 +17,17 @@
 using System.Collections.Generic;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
 namespace Modulus.ChatGPS.Services;
 
+
 public class LocalChatService : ChatService
 {
     internal LocalChatService(AiOptions options, ILoggerFactory? loggerFactory = null) : base(options, loggerFactory) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -50,38 +48,21 @@ public class LocalChatService : ChatService
 
         if ( ! onnxBuilderExtension.IsSupportedOnCurrentPlatform )
         {
-            var osVersion = System.Environment.OSVersion.ToString();
-            var processArch = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture;
-
             throw new PlatformNotSupportedException($"This application does not support the use of Onnx local models " +
                                                     "on the current system platform '{onnxBuilderExtension.PlatformString}'. " +
                                                     "Onnx support currently requires the Windows operating system executing " +
                                                     "on the x64 or arm64 processor architectures.");
         }
 
-        var builder = base.GetKernelBuilder();
-
-#if !USE_COMPILETIME_ONNX
-
-        onnxBuilderExtension.AddOnnxService(builder, this.options.ModelIdentifier, this.options.LocalModelPath);
-
-#else
-
-#pragma warning disable SKEXP0070
-        builder.AddOnnxRuntimeGenAIChatCompletion(this.options.ModelIdentifier, this.options.LocalModelPath);
-#pragma warning restore SKEXP0070
-
-#endif
-        var newKernel = builder.Build();
-
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
+        var chatClient = onnxBuilderExtension.CreateChatClient(
+            this.options.ModelIdentifier,
+            this.options.LocalModelPath,
+            this.options.LocalModelProvider,
+            this.options.LocalModelProviderOptions);
+        var newKernel = new AIKernel(chatClient);
 
         this.serviceKernel = newKernel;
 
         return newKernel;
     }
 }
-

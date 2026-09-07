@@ -42,9 +42,6 @@ Specifies the language model provider. Currently supported values are LocalOnnx 
 .PARAMETER ApiEndpoint
 For remotely hosted models, the API URI that enables access to the model.
 
-.PARAMETER DeploymentName
-For remotely hosted models some services may require this as an additional parameter to identify the specific model to use. This parameter usually only applies to remote models.
-
 .PARAMETER ApiKey
 Some remotely hosted models that require authentication may support a symmetric key that can be specified through this parameter. On the Windows platform, this parameter must be specified as an encrypted value of the symmetric key. To obtain an encrypted value, use the Get-ChatEncryptedUnicodeKeyCredential command. On non-Windows systems or if the PlainTextApiKey option is specified, the parameter is specified via plaintext rather than as a securestring. To avoid the value of the plaintext key being present in command history, use a command to read it from a secure location such as an Azure KeyVault or a local file with sufficient security measures in place, assign the value of the key to a PowerShell variable, and then use that variable to specify the value of the ApiKey parameter.
 
@@ -54,11 +51,20 @@ Specify the ReadApiKey parameter to supply secure, interactive input for the API
 .PARAMETER PlainTextApiKey
 Specify this if the ApiKey parameter being specified uses plaintext. This parameter should only be used for troubleshooting such as confirming that the actual value of the API key is correct before using encryption.
 
-.PARAMETER AllowInteractiveSignin
-For use with remote models only, specify AllowInteractiveSignin to allow this command or subsequent commands that access the model to invoke a user interface for authentication. This is only applicable when the ApiKey parameter or other non-interactive sign-in mechanisms are not configured for the session. For some model services such as Azure OpenAI this option can be useful if sign-in tools such as the "Az.Accounts" module with its "Login-AzAccount" and "Logout-AzAccount" commands is unavailable, however it may have some side effects including multiple sign-in prompts.
+.PARAMETER NoAuthentication
+Specifies that this model does not require authentication, e.g. no OAuth or API key is required, the API can be accessed anonymously. This is useful when accessing a locally hosted model over http protocol for instance.
+
+.PARAMETER TenantId
+For use with remote models that use Entra ID authentication, optionally specify the Entra ID tenant identifier (GUID) to sign into when not using API key access. This is useful when multiple accounts are signed in on the device through Login-AzAccount, az login, or other mechanisms to ensure that the correct account is used to access the model.
 
 .PARAMETER LocalModelPath
 For local models such as those supported by the LocalOnnx provider this is the path to the local model in the executing device's file system.
+
+.PARAMETER LocalModelProvider
+Optionally Specifies arbitrary provider-specific configuration options for a local model, where provider in this case refers to the locally used inferencing mechanism such as CPU-based inferencing (typically the default) or GPU-based inferencing through DirectML or CUDA. If you're using Onnx libraries for example you can use DirectML by specifying "dml" for this parameter, or use CUDA by specifying "cuda".Other values may be available depending on the particular model and the version of the local inferencing libraries used by ChatGPS and generally installed transparently by Install-ChatAddOn. These providers may need additional configuration, which can be specified through the additional LocalModelProviderOptions parameter. Note that because these providers are specific to a version of the inferencing library, ChatGPS is not able to validate the values you specify, they are simply passed through to the inferencing library; consult the library's documentation (e.g. .NET Onnx library for instance) to idetify valid provider values that will work with your chosen model. Note that this value is optional -- a safe default likely to work on your system will be used when this is not specified, so specify this only when you need to get features or performance not available by default (e.g. GPU acceleration to greatly speed up inferencing).
+
+.PARAMETER LocalModelProviderOptions
+Specifies a hash table of key-value pairs for configuration values specific to the provider specified by the LocalModelProvider. These options are specific to the library used for inferencing for the given provider, so consult documentation if needed for more information.
 
 .PARAMETER ModelIdentifier
 This parameter may be required for certain providers, particularly for local models.
@@ -100,7 +106,7 @@ By default, this command may attempt to authenticate to the service that hosts t
 Use the Force parameter to create the session even if the name specified by the Name parameter is already in use by an existing session in the session list. When this situation occurs, the existing session is removed from the list before the new session is created, effectively replacing or overwriting it. Additionally, if the session that would be replaced is the current session, the command will still succeed; however if the NoSetCurrent parameter is also specified then there will no longer be a current session.
 
 .PARAMETER NoProxy
-Specify the NoProxy parameter so ensure that the session will not use an intermediate proxy process to communicate with the model. By default, the session will utilize a proxy that isolates dependencies for the services used to access the language model into a separate process from that of the PowerShell session. This helps avoid incompatibilities with such dependencies and PowerShell itself, and was useful during the early stages of the development of Semantic Kernel which changed frequently. In some cases such as specification of the AllowInteractiveSignin parameter the proxy will not be used due to known user experience issues in that situation. The ForceProxy parameter may be used to force use of the proxy in call cases. At some point the proxy may no longer be required and may eventually be removed. It is possible that code defects in the proxy could introduce errors or other reliability issues, so NoProxy can be specified to remove this risk if problems arise in certain use cases. When the proxy is in use, a log of its activity can be generated if the appropriate values are specified for the LogLevel and LogDirectory parameters.
+Specify the NoProxy parameter so ensure that the session will not use an intermediate proxy process to communicate with the model. By default, the session will utilize a proxy that isolates dependencies for the services used to access the language model into a separate process from that of the PowerShell session. This helps avoid incompatibilities with such dependencies and PowerShell itself, and was useful during the early stages of the development of Semantic Kernel which changed frequently. At some point the proxy may no longer be required and may eventually be removed. It is possible that code defects in the proxy could introduce errors or other reliability issues, so NoProxy can be specified to remove this risk if problems arise in certain use cases. When the proxy is in use, a log of its activity can be generated if the appropriate values are specified for the LogLevel and LogDirectory parameters.
 
 .PARAMETER ForceProxy
 Use ForceProxy to override the command's automatic determination of when to use a proxy process to host language model service dependencies and use the proxy in all cases. This parameter is most likely useful for debugging purposes only and should not be needed.
@@ -115,13 +121,17 @@ This parameter only takes effect if LogDirectory is also specified as a valid lo
 By default, the command has no output. But if the NoSave or PassThru parameters are specified, the newly connected session is returned as output and can be used as a parameter to other commands.
 
 .EXAMPLE
-Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini # Use Login-AzAccount if this fails.
+Connect-ChatSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini -TenantId c1725a57-7d53-4765-a178-051e44ba581f
+ 
+# Use Login-AzAccount if this fails.
 PS > Send-ChatMessage 'how do I find my mac address?'
-
+ 
 In this example, a chat session is used to communicate with a model deployment called gpt-4o-mini provided by an Azure OpenAI service resource. This will use the currently signed in credentials from Login-AzAccount by default and will fail if there is no such sign-in or if the signed in user does not have access to the specified model. After the connection is created, the Send-ChatMessage command is used to send a message to the service and receive a response. Note that it is not required to specify the Provider parameter since AzureOpenAI is the default when the ApiEndpint is specified.
+ 
+Note that the TenantId parameter is optional, but it is specified to ensure that the correct account is used for access if there are multiple Entra ID accounts signed in on the device.
 
 .EXAMPLE
-Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -SystemPromptId Terse -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini -TenantId c1725a57-7d53-4765-a178-051e44ba581f
 PS > Send-ChatMessage 'What attribute do I use to define a specific set of values for the parameter of a Powershell function?'
  
 Received                 Response
@@ -134,7 +144,7 @@ This example creates a new connection using the 'Terse" system prompt Id to get 
 
 .EXAMPLE
 PS > $secretKey = Get-ChatEncryptedUnicodeKeyCredential
-PS > Connect-ChatSession -Name TestSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $secretKey
+PS > Connect-ChatSession -Name TestSession -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini -ApiKey $secretKey
 PS > Get-ChatSession
  
 Id                                   Provider    Name        ModelIdentifier
@@ -180,7 +190,7 @@ Id                                   Provider    Name ModelIdentifier
 This example shows how to connect to a local phi-3.5 onnx model -- the Provider parameter may also be omitted in this case because currently when LocalModelPath is specified the LocalOnnx provider is implied (this will likely be impacted by a breaking change when additional local models are supported in the future). The Get-ChatSession command which outputs the current session is used here to show that the values passed to Connect-ChatSesssion are in effect. Lastly, the Start-ChatShell command is used to start an interactive conversation.
 
 .EXAMPLE
-Connect-Chatsession -LocalModelPath '/models/Phi-3.5-mini-instruct-onnx/gpu/gpu-int4-awq-block-128' -ModelIdentifier phi-3.5pu-int4-awq-block-128' -ModelIdentifier phi-3.5
+Connect-Chatsession -LocalModelPath '/models/gpu/gpu-int4-rtn-block-32' -ModelIdentifier phi-4-gpu-int4-rtn-128 -LocalModelProvider dml
  
 PS > Start-ChatShell
  
@@ -200,7 +210,7 @@ Received                 Response
 12/30/2024 11:15:06 PM   Hello! I'm Phi, an AI language model here to assist you with any questions or tasks you have.
                          How can I help you today?
 
-In this case, a connection was created to a local Onnx model. Then when a prompt was submitted using the Start-ChatShell interactive loop, the command encountered an error caused by missing dependencies for Onnx. These library dependencies are not installed with the ChatGPS module due to their size, but as the warning message suggests, running the Install-ChatAddOn command can address this by installing such missing components. The user follows this suggestion and invokes Install-ChatAddOn, the retries submitting a prompt with Start-ChatShell and this successfully returns a response from the local model.
+In this case, a connection was created to a local Onnx model that supports DirectML acceleration, and the value "dml" was passed through the LocalModelProvider parameter to override the default CPU inferencing implementation; this "dml" value to enable DirectML is specific to recent versions of the Onnx libraries. When a prompt was submitted using the Start-ChatShell interactive loop, the command encountered an error caused by missing dependencies for Onnx. These library dependencies are not installed with the ChatGPS module due to their size, but as the warning message suggests, running the Install-ChatAddOn command can address this by installing such missing components. The user follows this suggestion and invokes Install-ChatAddOn, the retries submitting a prompt with Start-ChatShell and this successfully returns a response from the local model. The user can also verify that the GPU acceleration is being used by monitoring GPU activity through tools such as nvtop or Windows Task Manager during model interactions from ChatGPS.
 
 .EXAMPLE
 Connect-ChatSession -Provider Anthropic -ModelIdentifier claude-sonnet-4-20250514 -ReadApiKey
@@ -245,7 +255,7 @@ Received                 Role       Elapsed (ms) Response
                                                  device or calendar. Is there something specific you'd like to
                                                  know about a date or a particular event?
  
-PS > Connect-ChatSession -SendBlock {param($text) "The time is: $([DateTime]::Now.ToString('F')). " + $text} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+PS > Connect-ChatSession -SendBlock {param($text) "The time is: $([DateTime]::Now.ToString('F')). " + $text} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini
  
 PS > Send-ChatMessage "Hello what is today's date?"
  
@@ -275,7 +285,7 @@ shows that unlike in the previous attempt, the message sent from the user includ
 The script block is executed every time a message is sent to the model, so this shows one way in which the model can be made of some real time data during conversations.
 
 .EXAMPLE
-Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini
+Connect-ChatSession -ReceiveBlock {param($text) $text; (Get-ChatLog | Select-Object -Last 2 | ConvertTo-Csv -NoHeader ) -Replace "`n", '' >> ~/chatlog.csv} -ApiEndpoint 'https://searcher-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini
  
 PS > 'Role', 'Message', 'Type', 'Duration', 'Timestamp' -join ',' | Set-Content ~/chatlog.csv
  
@@ -319,9 +329,9 @@ Timestamp                  Role      Message
 This example uses the ReceiveBlock parameter to configure the session such that whenever a response is received from the model, the script block supplied to the ReciveBlock parameter will append the last message sent by the user as well as the response from the model to a comma-separated (csv) log file. The script block contains code that reads the last two lines of history via the Get-ChatLog command and converts them to comma-delimited lines with ConvertTo-Csv. A subsequent use of the Start-ChatShell command to conduct a short conversation is thus captured in the log file. The ConvertFrom-Csv command along with standard PowerShell formatting commands can be used to view the log file as a table.
 
 .EXAMPLE
-Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
-PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -DeploymentName gpt-o1 -ApiKey $workKey
-PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -DeploymentName gpt-4o-mini -ApiKey $personalKey
+Connect-ChatSession -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -ModelIdentifier gpt-o1 -ApiKey $workKey
+PS > $work2 = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://devteam1-2024-12.openai.azure.com' -ModelIdentifier gpt-o1 -ApiKey $workKey
+PS > $personal = Connect-ChatSession -NoSetCurrent -ApiEndpoint 'https://myposh-test-2024-12.openai.azure.com' -ModelIdentifier gpt-4o-mini -ApiKey $personalKey
  
 PS > $unreadMail = GetUnreadMail
 PS > $emailSummary = Invoke-ChatFunction SummarizeMail $unreadMail -Session $work2 | Show-Markdown
@@ -373,6 +383,11 @@ Received                 Response
 
 In this example, a session is created as the curent session, and then NoSetCurrent option is used to create two new sessions without impacting the current session. One of the latter two sessions uses the same model as the default which is suitable for professional usage, while the other connects to a personal model for non-work purposes. The Start-ChatShell command is used with current session, then Send-ChatMessage and Invoke-ChatFunction commands are used with second and third sessions, and finally Start-ChatShell is used again and it is clear that the messages transmitted with the other sessions did not affect the conversation history of Start-ChatShell as it still shows the last response from the previous Start-ChatShell usage on that session as the latest response.
 
+.EXAMPLE
+PS > Connect-ChatSession -Provider OpenAI -ApiEndpoint http://localhost:8080/v1 -ModelIdentifier qwen3-8-27b-q4 -NoAuthentication
+ 
+Here the model is being served via the OpenAI provider from an API endpoint on the local host. In this case the local model server does not require authentication, so the NoAuthentication parameter is used to avoid the need to specify a needless API key. This can be done for any API endpoint, not just those on local host, though the hoster must of course ensure that the lack of authentication does not enable security exploits; under no circumstances should a hoster allow unauthenticated access on an internet exposed endpoint.
+
 .LINK
 Get-ChatSession
 Select-ChatSession
@@ -405,9 +420,6 @@ function Connect-ChatSession {
         [Uri] $ApiEndpoint,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
-        [string] $DeploymentName,
-
-        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [string] $ApiKey = $null,
 
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
@@ -416,10 +428,20 @@ function Connect-ChatSession {
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
         [switch] $PlainTextApiKey,
 
-        [switch] $AllowInteractiveSignin,
+        [parameter(valuefrompipelinebypropertyname=$true)]
+        [switch] $NoAuthentication,
+
+        [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
+        [string] $TenantId,
 
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [string] $LocalModelPath,
+
+        [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true)]
+        [string] $LocalModelProvider,
+
+        [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true)]
+        [Hashtable] $LocalModelProviderOptions,
 
         [parameter(parametersetname='localmodel', valuefrompipelinebypropertyname=$true, mandatory=$true)]
         [parameter(parametersetname='remoteaiservice', valuefrompipelinebypropertyname=$true)]
@@ -481,6 +503,8 @@ function Connect-ChatSession {
     if ( $ApiKey ) {
         if ( $PlainTextApiKey.IsPresent ) {
             write-warning "An API key was specified and the PlainTextApiKey parameter was specified. To ensure the key does not leak, use a variable if possible to specify its value to the command rather than directly specifying the value to the command."
+        } elseif ( $TenantId -or  $LocalModelPath ) {
+            throw [ArgumentException]::new("The TenantId parameter is not valid when API key authentication is used or when accessing a local model")
         }
     } elseif ( $PlainTextApiKey.IsPresent ) {
         throw [ArgumentException]::new("The PlainText ApiKey parameter may only be specified when the ApiKey parameter is also specified.")
@@ -492,20 +516,33 @@ function Connect-ChatSession {
     $options = [Modulus.ChatGPS.Models.AiOptions]::new()
 
     $options.ApiEndpoint = $ApiEndpoint
-    $options.DeploymentName = $DeploymentName
     $options.ModelIdentifier = $ModelIdentifier
     $options.ServiceIdentifier = $ServiceIdentifier
     $options.ApiKey = $targetApiKey
     $options.TokenLimit = $TokenLimit
     $options.LocalModelPath = $LocalModelPath
-    $options.SigninInteractionAllowed = $AllowInteractiveSignin.IsPresent
+    $options.LocalModelProvider = $LocalModelProvider
+    if ( $LocalModelProviderOptions ) {
+
+        if ( ! $LocalModelProvider ) {
+            throw [ArgumentException]::new("The LocaModelProviderOptions parameter may not be specified when the LocalModelProvider parameter is unspecified.")
+        }
+
+        $options.LocalModelProviderOptions = [System.Collections.Generic.Dictionary[string,string]]::new()
+        foreach ( $entry in $LocalModelProviderOptions.GetEnumerator() ) {
+            $options.LocalModelProviderOptions[[string] $entry.Key] = [string] $entry.Value
+        }
+    }
+
+    $options.TenantId = $TenantId
     $options.PlainTextApiKey = $PlainTextApiKey.IsPresent
+    $options.NoAuthentication = $NoAuthentication.IsPresent
     $options.AllowAgentAccess = $AllowAgentAccess.IsPresent
 
     $isLocal = !  ( ! $options.LocalModelPath )
 
     if ( $Provider ) {
-        $options.Provider = $Provider
+        $options.Provider = ( [Modulus.ChatGPS.Models.ModelProvider] $Provider ).ToString()
     } else {
         if ( ! $isLocal ) {
             $options.Provider = if ( $options.ApiEndpoint ) {
@@ -526,16 +563,6 @@ function Connect-ChatSession {
         }
     }
 
-    # There is some confusion over deploymentName and modelId, so for now
-    # we will say that local models should not have only a modelId, we will
-    # explicitly ignore DeploymentName
-    if ( $isLocal ) {
-        if ( $DeploymentName ) {
-            write-warning "A local model was specified -- the DeploymentName parameter will be ignored"
-            $options.DeploymentName = ''
-        }
-    }
-
     $systemPrompt = if ( $CustomSystemPrompt ) {
         $CustomSystemPrompt
     } else {
@@ -552,17 +579,10 @@ function Connect-ChatSession {
         throw [ArgumentException]::new("The ForceProxy and NoProxy parameters may not both be specified -- specify exactly one of them or neither.")
     }
 
-    # Proxy mode is not currently compatible with interactive signin for remote models
-    $proxyIncompatibility = ! $isLocal -and ! $ApiKey -and $AllowInteractiveSignin.IsPresent
-    $proxyDisallowed = $proxyIncompatibility -and ! $ForceProxy.IsPresent
-    $useProxy = ! $NoProxy.IsPresent -and ! $proxyDisallowed
+    $useProxy = ! $NoProxy.IsPresent
 
     if ( ! $useProxy ) {
-        if ( $proxyDisallowed -and ! $NoProxy.IsPresent) {
-            write-verbose "No ApiKey specified for a remote model, and AllowInteractiveSignin is specified, so proxy will not be used to prevent signin problems. Use Login-AzAccount and Logout-AzAccount to sign in with the correct identity if access fails."
-        }
-    } elseif ( $proxyIncompatibility ) {
-        write-warning "AllowInteractiveSignin was specified for a remote model that requires authentication and proxy mode was forced with ForceProxy. You may be asked to re-authenticate frequently."
+        Write-Warning "Proxy mode was disallowed due to specification of NoProxy option, some functionality may not be available or may be unreliable"
     }
 
     $targetProxyPath = if ( $useProxy ) {
@@ -602,4 +622,3 @@ function Connect-ChatSession {
 }
 
 RegisterPluginCompleter Connect-ChatSession Plugins
-

@@ -62,7 +62,7 @@ After the last step, you'll be able to browse the resulting docs from `main` at 
 Here is a sample command for the `Publish-Documentation` command executed from the root of the repository
 
 ```powershell
-& ./build/Publish-Documentation.ps1 -ModulePath ./ChatGPS/bin/Release/net8.0/Module/ChatGPS -Production
+& ./ChatGPS/build/Publish-Documentation.ps1 -ModulePath ./ChatGPS/bin/Release/net8.0/Module/ChatGPS -Production
 ```
 
 Note that currently the configuration of the build used by `dotnet build` has no impact on documentation generation, so either `Debug` or `Release` should work fine for instance.

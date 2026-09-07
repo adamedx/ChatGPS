@@ -31,8 +31,8 @@ $LastSettings = $null
 $SettingsInitialized = $false
 
 # Trick to ensure that the attribute 'Microsoft.SemanticKernel.KernelFunctionAttribute' exists during module initialization
-$aiDependencyPath = (get-item (join-path "$psscriptroot/../../lib" 'Microsoft.SemanticKernel.Abstractions.dll')).fullName
-[System.Reflection.Assembly]::LoadFrom($aiDependencyPath) | out-null
+# $aiDependencyPath = (get-item (join-path "$psscriptroot/../../lib" 'Microsoft.SemanticKernel.Abstractions.dll')).fullName
+# [System.Reflection.Assembly]::LoadFrom($aiDependencyPath) | out-null
 
 
 # These class definitions represent the deserialized structure of the
@@ -71,11 +71,12 @@ class ProfileSettings {
 class ModelChatSession {
     ModelChatSession() {
         $this.tokenLimit = $null
-        $this.signinInteractionAllowed = $null
         $this.apikey= $null
         $this.noProxy = $null
         $this.forceProxy = $null
+        $this.tenantId = $null
         $this.plainTextApiKey = $null
+        $this.noAuthentication = $null
         $this.allowAgentAccess = $null
         $this.historyContextLimit = -1
     }
@@ -115,8 +116,9 @@ class ModelChatSession {
     [int] $tokenLimit = $null
     [string] $tokenStrategy
     [int] $historyContextLimit = $null
-    [bool] $signinInteractionAllowed
+    [string] $tenantId
     [bool] $plainTextApiKey
+    [bool] $noAuthentication
     [bool] $allowAgentAccess
     [System.Collections.Generic.Dictionary[string,System.Collections.Generic.Dictionary[string,Modulus.ChatGPS.Plugins.PluginParameterValue]]] $plugins
     [string] $logDirectory
@@ -164,9 +166,9 @@ class ModelResource {
     [string] $provider
     [Uri] $apiEndpoint
     [string] $localModelPath
+    [string] $localModelProvider
     [string] $modelIdentifier
     [string] $serviceIdentifier
-    [string] $deploymentName
 }
 
 class ModelResourceSettings {
@@ -309,7 +311,7 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
     $modelSettings = GetExplicitModelSettingsFromSessionsByName $sessionSettings.modelName
 
     if ( ! $modelSettings -or ! $modelSettings.name ) {
-        $targetModelName = !! $session.AiOptions.ModelIdentifier ? $session.AiOptions.ModelIdentifier : $session.AiOptions.DeploymentName
+        $targetModelName = $session.AiOptions.ModelIdentifier
 
         if ( ! $targetModelName ) {
             $targetModelName = "$($session.AiOptions.Provider.ToString()) model"
@@ -326,13 +328,13 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
         $sessionSettings.modelName = $targetModelName
     }
 
-    'apiKey', 'systemPromptId', 'customSystemPrompt', 'tokenLimit', 'tokenStrategy', 'historyContextLimit', 'logDirectory', 'logLevel' |
+    'apiKey', 'systemPromptId', 'customSystemPrompt', 'tokenLimit', 'tokenStrategy', 'historyContextLimit', 'logDirectory', 'logLevel', 'tenantId' |
       where { $sessionParameters.ContainsKey($_) } |
       foreach {
         $sessionSettings.$_ = $sessionParameters[$_]
     }
 
-    'allowAgentAccess', 'noProxy', 'forceProxy', 'signinInteractionAllowed', 'plainTextApiKey' |
+    'allowAgentAccess', 'noProxy', 'forceProxy', 'plainTextApiKey', 'noAuthentication' |
       where { $sessionParameters.ContainsKey($_) } |
       foreach {
         $sessionSettings.$_ = $sessionParameters[$_].IsPresent
@@ -375,8 +377,8 @@ function GetExplicitSessionSettingsFromSessionParameters($session, $sessionParam
         $modelSettings.provider = $session.AiOptions.Provider
         $modelSettings.apiEndpoint = $session.AiOptions.ApiEndpoint
         $modelSettings.localModelPath = $session.AiOptions.LocalModelPath
+        $modelSettings.localModelProvider = $session.AiOptions.LocalModelProvider
         $modelSettings.modelIdentifier = $session.AiOptions.ModelIdentifier
-        $modelSettings.deploymentName = $session.AiOptions.DeploymentName
         $modelSettings.serviceIdentifier = $session.AiOptions.serviceIdentifier
     }
 
@@ -484,7 +486,6 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
 
     $sessionParameters = @{
         Name = $sourceSetting.name
-        AllowInteractiveSignin = [System.Management.Automation.SwitchParameter]::new($sourceSetting.signinInteractionAllowed)
         AllowAgentAccess = [System.Management.Automation.SwitchParameter]::new($sourceSetting.allowAgentAccess)
     }
 
@@ -512,7 +513,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
         }
 
         if ( $model ) {
-            'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'deploymentName' | foreach {
+            'serviceIdentifier', 'modelIdentifier', 'provider', 'apiEndpoint', 'localModelPath', 'localModelProvider' | foreach {
                 $value = if ( $model | get-member $_ ) {
                     # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
                     '' -ne $model.$_ ? $model.$_ : $null
@@ -549,7 +550,7 @@ function SessionSettingToSession($sessionSetting, $defaultValues, $models) {
     }
 
     if ( $isValidSetting ) {
-        'systemPromptId', 'customSystemPrompt', 'logLevel', 'logDirectory', 'historyContextLimit', 'apiKey', 'tokenLimit' | foreach {
+        'systemPromptId', 'customSystemPrompt', 'logLevel', 'logDirectory', 'historyContextLimit', 'apiKey', 'tokenLimit', 'noAuthentication', 'tenantId' | foreach {
             # Yes, you must have empty string on the LHS because 0 -eq '' is true (???) but '' -eq 0 is false :(
             $value = '' -ne $sourceSetting.$_ ? $sourceSetting.$_ : $null
 

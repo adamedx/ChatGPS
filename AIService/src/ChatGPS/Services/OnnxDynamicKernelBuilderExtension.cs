@@ -16,10 +16,9 @@
 
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
-using Microsoft.SemanticKernel;
-
-using Modulus.ChatGPS.Models;
+using Microsoft.Extensions.AI;
 
 namespace Modulus.ChatGPS.Services;
 
@@ -40,6 +39,60 @@ internal class OnnxDynamicKernelBuilderExtension
     }
 
     internal string? PlatformString { get; private set; }
+
+    internal IChatClient CreateChatClient(
+        string modelIdentifier,
+        string modelPath,
+        string? localModelProvider,
+        Dictionary<string, string>? localModelProviderOptions)
+    {
+        var assemblyPath = Path.Combine(
+            Path.GetDirectoryName(typeof(OnnxDynamicKernelBuilderExtension).Assembly.Location) ?? string.Empty,
+            "addons.dll");
+
+        Assembly onnxAssembly;
+
+        try
+        {
+            onnxAssembly = Assembly.LoadFrom(assemblyPath);
+        }
+        catch (Exception exception)
+        {
+            throw new TypeLoadException(
+                $"Unable to initialize local Onnx model support. Install the LocalOnnx add-on with Install-ChatAddOn and retry. " +
+                $"The add-on assembly could not be loaded from '{assemblyPath}'.",
+                exception);
+        }
+
+        var factoryType = onnxAssembly.GetType("Modulus.ChatGPS.Addons.OnnxChatClientFactory");
+        var factoryMethod = factoryType?.GetMethod(
+            "Create",
+            BindingFlags.Public | BindingFlags.Static);
+
+        if (factoryMethod is null)
+        {
+            throw new MissingMethodException(
+                "The LocalOnnx add-on does not contain the expected OnnxChatClientFactory.Create method.");
+        }
+
+        try
+        {
+            return (IChatClient)(factoryMethod.Invoke(
+                    null,
+                    new object?[]
+                    {
+                        modelIdentifier,
+                        modelPath,
+                        localModelProvider,
+                        localModelProviderOptions
+                    })
+                ?? throw new TypeLoadException("The LocalOnnx add-on returned no chat client."));
+        }
+        catch (TargetInvocationException exception) when (exception.InnerException is not null)
+        {
+            throw exception.InnerException;
+        }
+    }
 
     private void InitializePlatformInfo()
     {
@@ -78,50 +131,4 @@ internal class OnnxDynamicKernelBuilderExtension
         }
     }
 
-    internal void AddOnnxService( IKernelBuilder onnxKernelBuilder, string modelIdentifier, string localModelPath )
-    {
-        if ( OnnxDynamicKernelBuilderExtension.onnxBuilderMethod is null )
-        {
-            var callingAssemblyPath = Assembly.GetCallingAssembly().Location;
-            var callingAssemblyDirectory = Path.GetDirectoryName(callingAssemblyPath);
-
-            var onnxAssemblyPath = Path.Join(callingAssemblyDirectory, onnxAssemblyFileName);
-
-            Assembly? onnxAssembly;
-
-            try
-            {
-                onnxAssembly = System.Reflection.Assembly.LoadFrom(onnxAssemblyPath);
-            }
-            catch ( Exception e )
-            {
-                throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type {onnxBuilderTypeName} from the assembly path {onnxAssemblyPath}.", e);
-            }
-
-            var onnxBuilderType = onnxAssembly.GetType(onnxBuilderTypeName);
-
-            if ( onnxBuilderType is null )
-            {
-                throw new TypeLoadException($"Unable to initialize local Onnxmodel support. Could not load type {onnxBuilderTypeName} from the successfully loaded assembly at the path {onnxAssemblyPath}.");
-            }
-
-            OnnxDynamicKernelBuilderExtension.onnxBuilderMethod = onnxBuilderType.GetMethod(
-                onnxBuilderMethodName,
-                BindingFlags.Public | BindingFlags.Static);
-
-            if ( OnnxDynamicKernelBuilderExtension.onnxBuilderMethod is null )
-            {
-                throw new MissingMethodException($"The static method {onnxBuilderMethodName} was not found on type {onnxBuilderTypeName}.");
-            }
-        }
-
-        OnnxDynamicKernelBuilderExtension.onnxBuilderMethod.Invoke(null, new object?[] { onnxKernelBuilder, modelIdentifier, localModelPath, null, null });
-    }
-
-    const string onnxAssemblyFileName = "Microsoft.SemanticKernel.Connectors.Onnx.dll";
-    const string onnxBuilderTypeName = "Microsoft.SemanticKernel.OnnxKernelBuilderExtensions";
-    const string onnxBuilderMethodName = "AddOnnxRuntimeGenAIChatCompletion";
-
-    static MethodInfo? onnxBuilderMethod = null;
 }
-

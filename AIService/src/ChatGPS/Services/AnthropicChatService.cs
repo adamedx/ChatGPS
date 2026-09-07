@@ -17,9 +17,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 using Modulus.ChatGPS.Models;
 
@@ -31,7 +28,7 @@ public class AnthropicChatService : ChatService
 {
     internal AnthropicChatService(AiOptions options, ILoggerFactory? loggerFactory = null) : base(options, loggerFactory) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
@@ -52,37 +49,18 @@ public class AnthropicChatService : ChatService
 
         var apiKey = new APIAuthentication( cleartextKey );
 
-        this.initialPromptSettings = new OpenAIPromptExecutionSettings()
+        var httpClient = new HttpClient(new AnthropicRetryHandler(new HttpClientHandler()))
         {
-            ModelId = this.options.ModelIdentifier,
-            MaxTokens = this.options.TokenLimit ?? tokenLimitDefault
+            Timeout = TimeSpan.FromMinutes(2)
         };
 
-        var builder = base.GetKernelBuilder();
+        var chatClient = (IChatClient) new AnthropicClient(apiKey, httpClient).Messages;
 
-        // Configure throttling retry behavior
-        builder.Services.ConfigureHttpClientDefaults(c =>
-        {
-            c.AddStandardResilienceHandler(o =>
-            {
-                o.Retry.ShouldRetryAfterHeader = true;
-                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
-            });
-        });
-
-#pragma warning disable SKEXP0001
-        builder.Services.AddSingleton<IChatCompletionService>((serviceProvider) => new AnthropicClient(apiKey).Messages.AsChatCompletionService());
-#pragma warning restore SKEXP0001
-
-        var newKernel = builder.Build();
-
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
+        var newKernel = new AIKernel(chatClient);
 
         this.serviceKernel = newKernel;
 
         return newKernel;
     }
 }
+

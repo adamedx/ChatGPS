@@ -17,8 +17,6 @@
 namespace Modulus.ChatGPS.Models;
 
 using System.Collections.ObjectModel;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
 using Modulus.ChatGPS.Services;
 
 class TokenReducer
@@ -49,7 +47,7 @@ class TokenReducer
         }
     }
 
-    public ChatHistory? Reduce(ChatHistory chatHistory, AuthorRole triggeringRole)
+    public List<ChatMessage>? Reduce(List<ChatMessage> chatHistory, SenderRole triggeringRole)
     {
         if ( this.strategy == TokenReductionStrategy.None )
         {
@@ -125,7 +123,7 @@ class TokenReducer
         return reducedHistory;
     }
 
-    private void ValidateHistory(ChatHistory history, AuthorRole reductionTriggeringRole )
+    private void ValidateHistory(List<ChatMessage> history, SenderRole reductionTriggeringRole )
     {
         if ( history.Count < 1 )
         {
@@ -137,7 +135,7 @@ class TokenReducer
             throw new ArgumentException("The first history message is null");
         }
 
-        if ( history[0].Role != AuthorRole.System )
+        if ( history[0].Role != SenderRole.System )
         {
             throw new ArgumentException(String.Format("First message in history does not have the valid System role and instead has invalid role {0}", history[0].Role));
         }
@@ -149,7 +147,7 @@ class TokenReducer
             throw new ArgumentException(String.Format("The last message that triggered token reduction should have been {0} but was {1} instead", reductionTriggeringRole, triggeringMessage.Role));
         }
 
-        var expectedOffset = triggeringMessage.Role == AuthorRole.Assistant ? 1 : 0;
+        var expectedOffset = triggeringMessage.Role == SenderRole.Assistant ? 1 : 0;
 
         if ( history.Count > 1 && ( history.Count % 2 != expectedOffset ) )
         {
@@ -157,16 +155,16 @@ class TokenReducer
         }
     }
 
-    private void AddSummaryToConversation(ChatHistory targetHistory, ChatHistory sourceHistory, int summaryEnd)
+    private void AddSummaryToConversation(List<ChatMessage> targetHistory, List<ChatMessage> sourceHistory, int summaryEnd)
     {
         var lastMessage = sourceHistory[summaryEnd];
 
-        if ( lastMessage.Role != AuthorRole.Assistant )
+        if ( lastMessage.Role != SenderRole.Assistant )
         {
             throw new ArgumentException("Message summary cannot be generated for this history because the last response is not from an assistant");
         }
 
-        this.conversationBuilder.AddMessageToConversation(targetHistory, AuthorRole.User, "Please summarize our conversation up to this point, and start the summary by saying 'Also, just to remind us both of our conversation in case we forgot anything, here is a summary what we have been talking about:'.");
+        this.conversationBuilder.AddMessageToConversation(targetHistory, SenderRole.User, "Please summarize our conversation up to this point, and start the summary by saying 'Also, just to remind us both of our conversation in case we forgot anything, here is a summary what we have been talking about:'.");
 
         var summaryTask = this.conversationBuilder.SendMessageAsync(targetHistory);
 
@@ -177,7 +175,7 @@ class TokenReducer
         this.conversationBuilder.UpdateHistoryWithResponse(targetHistory, summaryWithOriginalResponse);
     }
 
-    private double GetTokenCountForMessage(ChatMessageContent message)
+    private double GetTokenCountForMessage(ChatMessage message)
     {
         if ( message.Content == null )
         {
@@ -189,7 +187,7 @@ class TokenReducer
         return message.Content.Split(whitespace, StringSplitOptions.RemoveEmptyEntries).Length * this.wordToTokenFactor;
     }
 
-    private double GetTokenCountForSequence(ChatHistory history, int start = 0, int end = -1)
+    private double GetTokenCountForSequence(List<ChatMessage> history, int start = 0, int end = -1)
     {
         double tokenCount = 0;
 
@@ -235,4 +233,5 @@ class TokenReducer
     private ReadOnlyCollection<double> readOnlyPastLimitTokenSize;
     private ReadOnlyCollection<double> readOnlyReducedTokenSize;
 }
+
 

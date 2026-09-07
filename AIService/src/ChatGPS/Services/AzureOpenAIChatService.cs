@@ -15,14 +15,14 @@
 //
 
 using System.Collections.Generic;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.DependencyInjection;
+using System.ClientModel.Primitives;
 using Azure.AI.OpenAI;
 
 using Modulus.ChatGPS.Models;
+
 
 namespace Modulus.ChatGPS.Services;
 
@@ -30,19 +30,17 @@ public class AzureOpenAIChatService : ChatService
 {
     internal AzureOpenAIChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
 
-    protected override Kernel GetKernel()
+    protected override IAIKernel GetKernel()
     {
         if ( this.serviceKernel != null )
         {
             return this.serviceKernel;
         }
 
-        if ( this.options.DeploymentName == null )
+        if ( this.options.ModelIdentifier == null )
         {
-            throw new ArgumentException("A deployment name for the language model must be specified.");
+            throw new ArgumentException("A model identifier for the language model must be specified.");
         }
-
-        var builder = base.GetKernelBuilder();
 
         if ( this.options.ApiEndpoint == null )
         {
@@ -55,10 +53,13 @@ public class AzureOpenAIChatService : ChatService
         var clientOptions = new AzureOpenAIClientOptions();
 
         clientOptions.NetworkTimeout = TimeSpan.FromMinutes(2);
+        clientOptions.RetryPolicy = new ClientRetryPolicy(3);
 
         AzureOpenAIClient apiClient;
 
-        if ( this.options.ApiKey is not null && this.options.ApiKey.Length > 0 )
+        if ( ! ( this.options.NoAuthentication ?? false ) &&
+             ( this.options.ApiKey is not null ) &&
+             ( this.options.ApiKey.Length > 0 ) )
         {
             var cleartextKey = GetCompatibleApiKey(this.options.ApiKey, this.options.PlainTextApiKey);
 
@@ -72,38 +73,31 @@ public class AzureOpenAIChatService : ChatService
             // Use the default Azure credential when there is no API key -- this
             // requires that the user has already signed in using a mechanism
             // such as the Login-AzAccount command.
-            var signinInteractionAllowed = this.options.SigninInteractionAllowed ?? false;
+            var credentialOptions = new Azure.Identity.DefaultAzureCredentialOptions();
+
+            // If a tenant id is specified, using it since DefaultAzureCredential's behavior
+            // when there are multiple accounts signed in from different tenants is not
+            // transparent to the user -- even when a UX flow is initiated and the user
+            // chooses a certain account, DefaultAzureCredential may pick a different account
+            // (most likely when a personal Microsoft account is signed in to the device
+            // simultaneously with an Entra ID account that you're trying to use).
+            if ( this.options.TenantId is not null && this.options.TenantId.Length > 0 )
+            {
+                credentialOptions.TenantId = this.options.TenantId;
+            }
 
             apiClient = new AzureOpenAIClient(
                 this.options.ApiEndpoint,
-                new Azure.Identity.DefaultAzureCredential(signinInteractionAllowed),
+                new Azure.Identity.DefaultAzureCredential(credentialOptions),
                 clientOptions);
         }
 
-        builder.AddAzureOpenAIChatCompletion(
-            deploymentName: this.options.DeploymentName,
-            azureOpenAIClient: apiClient);
+        var chatClient = apiClient.GetChatClient(this.options.ModelIdentifier).AsIChatClient();
 
-        // Configure throttling retry behavior
-        builder.Services.ConfigureHttpClientDefaults(c =>
-        {
-            c.AddStandardResilienceHandler(o =>
-            {
-                o.Retry.ShouldRetryAfterHeader = true;
-                o.Retry.ShouldHandle = args => ValueTask.FromResult(args.Outcome.Result?.StatusCode is System.Net.HttpStatusCode.TooManyRequests);
-            });
-        });
-
-        var newKernel = builder.Build();
-
-        if ( newKernel == null )
-        {
-            throw new ArgumentException("Unable to initialize AI service parameters with supplied arguments");
-        }
+        var newKernel = new AIKernel(chatClient);
 
         this.serviceKernel = newKernel;
 
         return newKernel;
     }
 }
-

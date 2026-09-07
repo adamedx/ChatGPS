@@ -67,8 +67,8 @@ Get-ChatPlugin
  
 Name                     Description                              Parameters
 ----                     -----------                              ----------
-Bing                     Enables access to search the web using   apiKey
-                         the following search engine source: Bing
+BraveSearch              Enables access to search the web using   apiKey
+                         Brave
 FileIOPlugin             Enables read and write access to the
                          local file system.
 system_powershell_agent  Uses powershell code to interact with
@@ -87,10 +87,10 @@ Subsequent commands that interact with langauge models will use this session unl
 ```
 Get-ChatPlugin -ListAvailable
  
-Name                     Desciption                               Parameters
-----                     ----------                               ----------
-Bing                     Enables access to search the web using   {apiKey, apiUri, searchEngineId}
-                         the following search engine source: Bing
+Name                     Description                              Parameters
+----                     -----------                              ----------
+BraveSearch              Enables access to search the web using   {apiKey, apiUri, searchEngineId}
+                         Brave
 FileIOPlugin             Enables read and write access to the
                          local file system.
 Google                   Enables access to search the web using   {apiKey, apiUri, searchEngineId}
