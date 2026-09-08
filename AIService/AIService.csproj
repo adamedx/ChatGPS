@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.AI" Version="10.3.0" />
-    <PackageReference Include="Microsoft.Extensions.AI.Ollama" Version="9.7.0-preview.1.25356.2" />
+    <PackageReference Include="OllamaSharp" Version="5.4.23" />
     <!-- Using this 1.0.0-rc4 to avoid conflict with Anthropic SDK requirement of M.E.AI 10.3.0 -->
     <PackageReference Include="Microsoft.Agents.AI" Version="1.0.0-rc4" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-rc4" />
