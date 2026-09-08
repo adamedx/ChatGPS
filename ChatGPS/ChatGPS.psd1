@@ -252,6 +252,7 @@ Update to .NET 10, update most dependencies to latest possible stable version.
 
 * Microsoft.Agents.AI.AzureAI
 * Microsoft.Agents.AI.OpenAI
+* OllamaSharp (replacement for deprecated Microsoft.Extensions.AI.Ollama)
 
 ### Breaking changes
 
