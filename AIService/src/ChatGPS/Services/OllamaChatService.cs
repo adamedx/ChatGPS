@@ -17,13 +17,13 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Modulus.ChatGPS.Models;
+using OllamaSharp;
 
 namespace Modulus.ChatGPS.Services;
 
 public class OllamaChatService : ChatService
 {
     internal OllamaChatService(AiOptions options, ILoggerFactory? loggerFactory = null, string? userAgent = null) : base(options, loggerFactory, userAgent) { }
-
 
     protected override IAIKernel GetKernel()
     {
@@ -39,7 +39,7 @@ public class OllamaChatService : ChatService
 
         var endpoint = this.options.ApiEndpoint ?? DefaultUri;
 
-        var chatClient = new OllamaChatClient(endpoint, this.options.ModelIdentifier);
+        var chatClient = new OllamaApiClient(endpoint, this.options.ModelIdentifier);
 
         var newKernel = new AIKernel(chatClient);
 
@@ -47,7 +47,6 @@ public class OllamaChatService : ChatService
 
         return newKernel;
     }
-
 
     readonly Uri DefaultUri = new Uri("http://localhost:11434");
 }

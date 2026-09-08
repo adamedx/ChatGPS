@@ -20,7 +20,7 @@ This will build the default configuration, which is `Debug`. To build the releas
 
 For troubleshooting build errors, you can append `--verbosity detailed` to the command to obtain additional debug output that can identify specific errors in the build.
 
-This will produce an importable PowerShell module with a relative path to the repository root like `./ChatGPS/bin/Debug/net8.0/Module/ChatGPS`.
+This will produce an importable PowerShell module with a relative path to the repository root like `./ChatGPS/bin/Debug/net10.0/Module/ChatGPS`.
 
 Note that docuemntation is also generated as part of the build -- for details on documentatio build see the [documentation README](ChatGPS/docs/README.md).
 
@@ -43,7 +43,7 @@ This method of execution is exactly what the repository's CI pipeline invokes wh
 For faster iteration, you can initialize the test environment separately from the test run, and then run Pester directly using the `Initialize-Tools.ps1` build script:
 
 ```powershell
-& ./build/Initialize-Tools.ps1 -TestTargetModuleDirectory ./ChatGPS/ChatGPS/bin/Debug\net8.0/Module/ChatGPS -ToolsRootPath ./ChatGPS/ChatGPS/tools -ToolsModuleName Pester -ToolsModuleVersion 5.5.0
+& ./build/Initialize-Tools.ps1 -TestTargetModuleDirectory ./ChatGPS/ChatGPS/bin/Debug\net10.0/Module/ChatGPS -ToolsRootPath ./ChatGPS/ChatGPS/tools -ToolsModuleName Pester -ToolsModuleVersion 5.5.0
 ```
 
 The `Initialize-Tools` command will install a particular version of Pester for you isolated from the version that is installed on your system. It also imports the module you've built using the value specified for the `TestTargetModuleDirectory` parameter (customize the path with a `Release` segment instead of `Debug` if you are testing the release build) and will use the Pester version specified for `ToolsModuleVersion`. You can also see how this is used in the PowerShell module's dotnet [project specification](ChatGPS/ChatGPS.csproj); this in turn is what is invoked for CI through the repository's [CI pipeline](azure-pipelines.yml).
@@ -55,7 +55,7 @@ Note that using this script is not a requirement for testing -- you can indeed i
 To test manually, start a new PowerShell session and import the built module with the following command -- this example assumes that you've built the the `debug` configuration, so if you want to test the release configuration substitute the path segment `Debug` with `Release`:
 
 ```powershell
-import-module ./ChatGPS/bin/Debug\net8.0/Module/ChatGPS/ChatGPS.psd1
+import-module ./ChatGPS/bin/Debug\net10.0/Module/ChatGPS/ChatGPS.psd1
 ```
 
 Once you successfully execute the build step mentioned above you can test resulting PowerShell module build output.

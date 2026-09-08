@@ -81,7 +81,7 @@ function Start-ProxyRepl {
 
         [string[]] $ProxyExecutableParameters,
 
-        [string] $AssemblyPath = "$psscriptroot/../bin/debug/net8.0",
+        [string] $AssemblyPath = "$psscriptroot/../bin/debug/net10.0",
 
         [string] $ConfigPath = "$psscriptroot/../../azureopenai.config",
 

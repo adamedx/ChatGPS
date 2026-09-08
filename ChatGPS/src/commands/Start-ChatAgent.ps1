@@ -51,7 +51,7 @@ PS > dotnet build | out-string
  Determining projects to restore...
   All projects are up-to-date for restore.
 C:\Users\ryu\src\sockettest\Program.cs(11,23): warning CS8600: Converting null literal or possible null value to non-nullable type. [C:\Users\ryu\src\sockettest\sockettest.csproj]
-  sockettest -> C:\Users\ryu\src\sockettest\bin\Debug\net8.0\sockettest.dll
+  sockettest -> C:\Users\ryu\src\sockettest\bin\Debug\net10.0\sockettest.dll
  
 Build succeeded.
  

@@ -57,8 +57,8 @@ public sealed class DocumentNativePlugin
 
     private static string ReadText(WordprocessingDocument document)
     {
-        var mainPart = document.MainDocumentPart ?? throw new InvalidOperationException("The main document part is missing.");
-        var body = mainPart.Document.Body ?? throw new InvalidOperationException("The document body is missing.");
+        var mainPart = document?.MainDocumentPart ?? throw new InvalidOperationException("The main document part is missing.");
+        var body = mainPart.Document?.Body ?? throw new InvalidOperationException("The document body is missing.");
 
         var builder = new StringBuilder();
 
@@ -81,7 +81,7 @@ public sealed class DocumentNativePlugin
     private static void AppendText(WordprocessingDocument document, string text)
     {
         var mainPart = document.MainDocumentPart ?? throw new InvalidOperationException("The main document part is missing.");
-        var body = mainPart.Document.Body ?? throw new InvalidOperationException("The document body is missing.");
+        var body = mainPart.Document?.Body ?? throw new InvalidOperationException("The document body is missing.");
 
         Paragraph para = body.AppendChild(new Paragraph());
         Run run = para.AppendChild(new Run());
