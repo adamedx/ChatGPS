@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Modulus.ChatGPS.Models;
 using OpenAI;
+using OpenAI.Responses;
 
 namespace Modulus.ChatGPS.Services;
 
